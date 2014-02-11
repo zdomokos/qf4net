@@ -1,0 +1,284 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+</head>
+
+
+<body>
+
+
+<p>This document lists the various versions of the port of Miro Samek's
+Quantum Framework which encompasses Hierarchical State Machines and
+Active Objects: </p>
+
+
+<p>v1.1.17.0 [May 14, 2006]<br>
+
+
+</p>
+
+
+<ul>
+  <li>The creation of the new threads for a new IQActive instances is
+abstracted by a thread factory. The DefaultThreadFactory creates
+regular threads. In contrast the ImpersonatingThreadFacotry transfers
+the thread secturity token from the calling thread to the new thread.
+This is important if the framework is used in conjuction with dynamic
+impersonation.&nbsp;</li>
+</ul>
+
+<p>v1.1.16.0 [August 18, 2005]<br>
+
+
+</p>
+
+
+<ul>
+
+  <li>David Shields sent me a fix to allow static transitions to be compatible with QHsm inheritance hierarchies 
+more than 2 levels deep. The changed code can be found in the class&nbsp;TransitionChainStore (QHsm.cs). Thanks, David!&nbsp;</li>
+
+</ul>
+
+<p>v1.1.14.0 [Jan 27, 2005]<br>
+
+
+</p>
+
+
+<ul>
+
+
+  <li>When compiled under Visual Studio 2005 beta1 the examples
+OrthogonalComponent and RunToCompletion raised illegal cross-thread
+operation exceptions since the form was accessed from a non-UI. The new
+version fixes this issue.<br>
+
+
+Note: If you use Visual Studio 2005 beta 1 make sure that you deselect <span style="font-style: italic;">Use Console Window</span> under <span style="font-style: italic;">Tools/Options/Debugging/General</span>.
+Otherwise you will encounter an illegal cross-thread operation when you
+run the console based examples in debug mode. If <span style="font-style: italic;">Use Console Window</span> then Visual
+Studio will redirect Console.Write(Line) calls to an output window
+controlled by Visual Studio. It turns out that the redirected
+Console.Write(Line) is NOT thread-safe while the 'real'
+Console.Write(Line) is. I expect this to be fixed in a later release of
+Visual Studio 2005.<br>
+
+
+  </li>
+
+
+</ul>
+
+
+<p>v1.1.13.0 [Jan 14, 2005]<br>
+
+
+</p>
+
+
+<ul>
+
+
+  <li>In addition to the sln and csproj files for VisualtStudio 2003
+and .Net 1.1 a parallel set of solution and project files was added for
+VisualStudio 2005 and .Net 2.0 Beta1. The names of the new solution and
+project files are derived from the original names by appending
+_dotnet2. </li>
+
+
+</ul>
+
+
+<p>v1.1.12.0 [Sep 18, 2004]<br>
+
+
+</p>
+
+
+<ul>
+
+
+  <li>QHSMs.cs: Fixed a bug in how a transition is recorded. Formerly
+it
+was not guaranteed that the final transition to the target state was
+recorded. </li>
+
+
+  <li>QEventQueue.cs: Added Peek capability to QEventQueue.</li>
+
+
+  <li>QActive.cs: Changed method name Stop to Abort. Added virtual
+method OnExecutionAborted that allows the deriving class to react to
+the abort of the active object.</li>
+
+
+  <li>Samples: OrthogonalComponent.exe is part of the build now and
+hence available as an executable.</li>
+
+
+</ul>
+
+
+<p>v1.1.11.0 [Jan 10, 2004]<br>
+
+
+</p>
+
+
+<ul>
+
+
+  <li> QF: This is the first release that provides a (mimimal)
+implemention the QF and its associated classes. The goal was to make it
+possible to implement the Dining Philosophers Problem. The following
+shortcuts were taken:
+    
+    
+    <ul>
+
+
+      <li> There is no event pool. I rely on the garbage collector to
+destroy no longer needed event instances. That also allows me to <strong>not</strong>
+implement the event propagation pattern that Miro Samek uses. I.e.,
+currently the QF synchronously dispatches events to all the IQActive
+objects that subscribed for it and then forgets about the event. </li>
+
+
+      <li> The event queue is based on a linked list. This means that
+in addition to the actual event, the garbage collector also needs to
+collect the linked list node that holds the event once it is no longer
+needed. Avoiding the linked list nodes in favor of a queue that is
+based on an ArrayList should be a worthwile optimization.</li>
+
+
+    
+    
+    </ul>
+
+
+  </li>
+
+
+  <li> QHsm:
+    
+    
+    <ul>
+
+
+      <li> The signature of the state delegate has been changed to use
+an IQEvent interface instead of the QEvent base class. All samples have
+beeen updated accordingly.&nbsp; </li>
+
+
+      <li> The previous version stored QState delegates in the static
+transition chains. These delegates point to methods on a given <strong>instance</strong>
+of a hierarchical state machine. Hence when events were played back via
+a stored transition chain they were played back against state methods
+of the specific state machine instance that they were&nbsp;recorded on.
+The new version recordes MethodInfo objects instead of QState
+delegates. During playback the MethodInfo object is used in conjunction
+with the this pointer of the currently executing QHsm to invoke the
+correct instance method. </li>
+
+
+      <li> The population of the transition chain in&nbsp;now
+thread-safe.</li>
+
+
+    
+    
+    </ul>
+
+
+  </li>
+
+
+  <li> New Samples:
+    
+    
+    <ul>
+
+
+      <li> Dining Philosophers </li>
+
+
+      <li> Reminder Pattern [by David Shields] </li>
+
+
+      <li> Run To Completion with interruptible step [by David
+Shields].&nbsp;</li>
+
+
+    
+    
+    </ul>
+
+
+  </li>
+
+
+</ul>
+
+
+<p>v1.0.6.2 [Dec 20, 2003]:<br>
+
+
+</p>
+
+
+<ul>
+
+
+  <li> New Sample Application <span style="font-style: italic;">CalculatorHSM</span>
+provided by <a href="mailto:david@shields.net">David Shields</a>.
+Thanks David! The source code for the sample is provided in the
+subdirectory <span style="font-style: italic;">\Samples\CalculatorHSM</span>.<br>
+
+
+For details please see the associciated readme file in the same
+directory. <br>
+
+
+  </li>
+
+
+</ul>
+
+
+<p> </p>
+
+
+<p><br>
+
+
+v1.0.0.2 [Dec 12, 2003]: </p>
+
+
+<ul>
+
+
+  <li> OHsm.cs: Fixed bug in the coding of case g) in ExitUpToLCA &gt;
+(check each super state of super state ... of my source state == super
+&gt; state of super state of ... target state). </li>
+
+
+  <li> QEvent.cs: This class now overrides the ToString() method to
+provide an easy way to debug or log what events are exchanged. </li>
+
+
+  <li> Assembly HierarchicalStateMachine is now strongly typed. The key
+pair QHsm.snk is delivered as part of the source code. </li>
+
+
+  <li> QHsmTest.cs: Cosmetic changes (better variable names)</li>
+
+
+</ul>
+
+
+<p>v1.0.0.0 [Feb 1, 2003]: Initial release</p>
+
+
+</body>
+</html>

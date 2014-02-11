@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<project name="SlaveBuildInclude" description="Include file for any NAnt slave build files">
+
+	<!-- determine whether the build environment has been already configured -->
+	<ifnot test="${property::exists('configured')}">
+		<property name="configured" value="false"/>
+		<!-- default configuration -->
+	    <property name="project.config" value="debug"/> <!-- debug|release -->
+	</ifnot>
+
+	<!-- named configurations -->
+	<target name="init" description="Initializes build properties" unless="${configured}">
+		<call target="${project.config}"/>
+        <property name="build.dir" value="${build.basedir}/${project.config}" />
+	</target>
+	
+	<!-- named project configurations -->
+	<target name="debug" description="configures a debug build" unless="${configured}">
+		<property name="project.config" value="debug"/>
+		<property name="build.debug" value="true"/>
+	</target>
+	
+	<target	name="release" description="configures a release build" unless="${configured}">
+		<property name="project.config" value="release"/>
+		<property name="build.debug" value="false"/>
+	</target>
+</project>
