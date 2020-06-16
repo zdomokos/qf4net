@@ -52,7 +52,7 @@ namespace qf4net
     /// </summary>
     public class Signal
     {
-        static private int _maxSignalCount = 0;
+        private static int _maxSignalCount;
         readonly int _signalValue;
         readonly string _signalName;
 

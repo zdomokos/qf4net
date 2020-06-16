@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Runtime.CompilerServices;
 
@@ -49,7 +48,7 @@ namespace qf4net
             }
             _priority = priority;
             // TODO: Leverage the priority
-            _executionThread = Threading.ThreadFactory.GetThread(0, new ThreadStart(this.DoEventLoop));
+            _executionThread = Threading.ThreadFactory.GetThread(0, this.DoEventLoop);
             _executionThread.Start();
         }
 
@@ -133,8 +132,7 @@ namespace qf4net
         /// </summary>
         private void OnExecutionAborted()
         {
-            if (ExecutionAborted != null)
-                ExecutionAborted();
+            ExecutionAborted?.Invoke();
         }
     }
 }

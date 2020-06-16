@@ -44,7 +44,6 @@
 // -----------------------------------------------------------------------------
 
 using System;
-using System.Text;
 
 namespace qf4net.Threading
 {

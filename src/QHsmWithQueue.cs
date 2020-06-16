@@ -44,9 +44,7 @@
 // -----------------------------------------------------------------------------
 
 
-using System;
 using System.Collections;
-using qf4net;
 
 namespace qf4net
 {
@@ -103,7 +101,7 @@ namespace qf4net
 
 		}//DispatchQ
 
-		private bool isDispatching = false;
+		private bool isDispatching;
 
 		/// <summary>
 		/// Enqueues the first event then dequeues and dispatches all queued events to this state machine.

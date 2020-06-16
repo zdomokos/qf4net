@@ -44,11 +44,6 @@
 // -----------------------------------------------------------------------------
 
 
-
-using System;
-using System.Runtime.CompilerServices;
-using System.Threading;
-
 namespace qf4net
 {
 	/// <summary>

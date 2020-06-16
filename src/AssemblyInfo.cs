@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 //
 // General Information about an assembly is controlled through the following 
@@ -7,7 +6,11 @@ using System.Runtime.CompilerServices;
 // associated with an assembly.
 //
 [assembly: AssemblyTitle("")]
-[assembly: AssemblyDescription("")]
+#if DEBUG
+[assembly: AssemblyDescription("Debug")]
+#else
+[assembly: AssemblyDescription("Release")]
+#endif
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("")]

@@ -66,7 +66,7 @@ namespace qf4net
 		{
 			m_QActive = qActive;
 			m_Timer = new Timer(
-				new TimerCallback(this.OnTimer),
+				this.OnTimer,
 				null, // we don't need a state object 
 				Timeout.Infinite, // don't start yet
 				Timeout.Infinite  // no periodic firing

@@ -44,8 +44,6 @@
 // -----------------------------------------------------------------------------
 
 
-using System;
-    
 namespace qf4net
 {
     /// <summary>
@@ -54,7 +52,7 @@ namespace qf4net
     public class QEvent : IQEvent
     {
         private Signal m_QSignal;
-        private object eventObject = null;
+        private object eventObject;
 
         /// <summary>
         /// Default constructor - initializes all fields to default values

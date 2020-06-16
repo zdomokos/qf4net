@@ -45,7 +45,6 @@
 
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Runtime.CompilerServices;
 
@@ -91,7 +90,7 @@ namespace qf4net
             }
             m_Priority = priority;
             // TODO: Leverage the priority
-            m_ExecutionThread = Threading.ThreadFactory.GetThread(0, new ThreadStart(this.DoEventLoop));
+            m_ExecutionThread = Threading.ThreadFactory.GetThread(0, this.DoEventLoop);
             m_ExecutionThread.Start();
         }
 

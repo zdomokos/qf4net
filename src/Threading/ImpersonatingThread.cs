@@ -44,7 +44,6 @@
 // -----------------------------------------------------------------------------
 
 using System;
-using System.Text;
 using System.Threading;
 using System.Security.Principal;
 
@@ -73,7 +72,7 @@ namespace qf4net.Threading
 				throw new ArgumentNullException("start");
 			}
 
-			m_WrappedThread = new Thread(new ThreadStart(this.InternalStart));
+			m_WrappedThread = new Thread(this.InternalStart);
 			m_ThreadStart = start;
 		}
 
@@ -147,10 +146,7 @@ namespace qf4net.Threading
 			}
 			finally
 			{
-				if (impersonatedUser != null)
-				{
-					impersonatedUser.Undo();
-				}
+			    impersonatedUser?.Undo();
 			}
 		}
 

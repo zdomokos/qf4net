@@ -45,7 +45,6 @@
 
 
 using System;
-using System.Diagnostics;
 using System.Collections;
 using System.Runtime.CompilerServices;
 
@@ -59,7 +58,7 @@ namespace qf4net
         // Implementation of not-quite lazy, but thread-safe singleton pattern without using locks
         // See http://www.yoda.arachsys.com/csharp/singleton.html for details
         private static readonly QF s_Instance = new QF(); // holds reference to the singleton instance
-        private SortedList[] m_SignalSubscribers = null;
+        private SortedList[] m_SignalSubscribers;
 
         // Explicit static constructor to tell C# compiler
         // not to mark type as beforefieldinit

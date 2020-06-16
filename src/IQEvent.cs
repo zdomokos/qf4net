@@ -43,8 +43,6 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-using System;
-
 namespace qf4net
 {
 	/// <summary>
