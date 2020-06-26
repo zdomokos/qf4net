@@ -50,7 +50,7 @@ namespace qf4net.Threading
 {
 	internal class RegularThread : IThread
 	{
-		private Thread m_WrappedThread;
+		private Thread _mWrappedThread;
 		/// <summary>
 		/// Creates a new <see cref="ImpersonatingThread"/>
 		/// </summary>
@@ -62,7 +62,7 @@ namespace qf4net.Threading
 				throw new ArgumentNullException("start");
 			}
 
-			m_WrappedThread = new Thread(start);
+			_mWrappedThread = new Thread(start);
 		}
 
 		///// <summary>
@@ -84,7 +84,7 @@ namespace qf4net.Threading
 		/// </summary>
 		public void Start()
 		{
-			m_WrappedThread.Start();
+			_mWrappedThread.Start();
 		}
 
 		///// <summary>
@@ -101,7 +101,7 @@ namespace qf4net.Threading
 		/// </summary>
 		public void Join()
 		{
-			m_WrappedThread.Join();
+			_mWrappedThread.Join();
 		}
 
 		/// <summary>
@@ -111,7 +111,7 @@ namespace qf4net.Threading
 		/// <returns></returns>
 		public bool Join(int millisecondsTimeout)
 		{
-			return m_WrappedThread.Join(millisecondsTimeout);
+			return _mWrappedThread.Join(millisecondsTimeout);
 		}
 
 		/// <summary>
@@ -121,7 +121,7 @@ namespace qf4net.Threading
 		/// <returns></returns>
 		public bool Join(TimeSpan timeout)
 		{
-			return m_WrappedThread.Join(timeout);
+			return _mWrappedThread.Join(timeout);
 		}
 
 		/// <summary>
@@ -130,7 +130,7 @@ namespace qf4net.Threading
 		/// </summary>
 		public void Abort()
 		{
-			m_WrappedThread.Abort();
+			_mWrappedThread.Abort();
 		}
 	}
 }

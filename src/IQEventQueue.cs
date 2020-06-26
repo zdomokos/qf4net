@@ -55,13 +55,13 @@ namespace qf4net
 		/// Inserts the <see paramref="qEvent"/> at the end of the queue (First In First Out). 
 		/// </summary>
 		/// <param name="qEvent"></param>
-		void EnqueueFIFO(IQEvent qEvent);
+		void EnqueueFifo(IQEvent qEvent);
 
 		/// <summary>
 		/// Inserts the <see paramref="qEvent"/> at the beginning of the queue (First In First Out). 
 		/// </summary>
 		/// <param name="qEvent"></param>
-		void EnqueueLIFO(IQEvent qEvent);
+		void EnqueueLifo(IQEvent qEvent);
 
 		/// <summary>
 		/// Returns <see langword="true"/> if the <see cref="IQEventQueue"/> is empty

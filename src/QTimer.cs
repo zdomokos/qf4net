@@ -53,9 +53,9 @@ namespace qf4net
 	/// </summary>
 	public class QTimer
 	{
-		private IQActive m_QActive;
-		private Timer m_Timer;
-		private IQEvent m_QEvent;
+		private IQActive _mQActive;
+		private Timer _mTimer;
+		private IQEvent _mQEvent;
 
 		/// <summary>
 		/// Creates a new <see cref="QTimer"/> instance.
@@ -64,8 +64,8 @@ namespace qf4net
 		/// the <see cref="IQActive"/> object that will receive the timer based events.</param>
 		public QTimer(IQActive qActive)
 		{
-			m_QActive = qActive;
-			m_Timer = new Timer(
+			_mQActive = qActive;
+			_mTimer = new Timer(
 				this.OnTimer,
 				null, // we don't need a state object 
 				Timeout.Infinite, // don't start yet
@@ -81,7 +81,7 @@ namespace qf4net
 		/// object when the timeout occurs.</param>
 		public void FireIn(TimeSpan timeSpan, IQEvent qEvent)
 		{
-			lock(m_Timer)
+			lock(_mTimer)
 			{
 				if (qEvent == null)
 				{
@@ -93,8 +93,8 @@ namespace qf4net
 					throw new ArgumentException("The provided timespan must be positive", "timeSpan");
 				}
 
-				m_QEvent = qEvent;
-				m_Timer.Change(timeSpan, new TimeSpan(-1));
+				_mQEvent = qEvent;
+				_mTimer.Change(timeSpan, new TimeSpan(-1));
 			}
 		}
 
@@ -106,7 +106,7 @@ namespace qf4net
 		/// object when the timeout occurs.</param>
 		public void FireEvery(TimeSpan timeSpan, IQEvent qEvent)
 		{
-			lock(m_Timer)
+			lock(_mTimer)
 			{
 				if (qEvent == null)
 				{
@@ -118,8 +118,8 @@ namespace qf4net
 					throw new ArgumentException("The provided timespan must be positive", "timeSpan");
 				}
 			
-				m_QEvent = qEvent;
-				m_Timer.Change(timeSpan, timeSpan);
+				_mQEvent = qEvent;
+				_mTimer.Change(timeSpan, timeSpan);
 			}
 		}
 
@@ -128,13 +128,13 @@ namespace qf4net
 		/// </summary>
 		public void Disarm()
 		{
-			lock(m_Timer)
+			lock(_mTimer)
 			{
-				m_Timer.Change(Timeout.Infinite, Timeout.Infinite);
+				_mTimer.Change(Timeout.Infinite, Timeout.Infinite);
 				// Since a timer performs the callback on a thread of the thread pool we could have a race condition
 				// between stopping (disarming) a timer and the callback being invoked afterwards.
 				// We circumvent this problem by changing the event to null.
-				m_QEvent = null;
+				_mQEvent = null;
 			}
 		}
 
@@ -144,13 +144,13 @@ namespace qf4net
 		/// <param name="timeSpan">The <see cref="TimeSpan"/> to wait before the timeout occurs.</param>
 		public void Rearm(TimeSpan timeSpan)
 		{
-			lock(m_Timer)
+			lock(_mTimer)
 			{
-				if (m_QEvent == null)
+				if (_mQEvent == null)
 				{
 					throw new InvalidOperationException("The QTimer must first be armed before it can be re-armed.");
 				}
-				m_Timer.Change(timeSpan, new TimeSpan(-1));
+				_mTimer.Change(timeSpan, new TimeSpan(-1));
 			}
 		}
 
@@ -160,11 +160,11 @@ namespace qf4net
 		/// <param name="state"></param>
 		private void OnTimer(object state)
 		{
-			lock(m_Timer)
+			lock(_mTimer)
 			{
-				if (m_QEvent != null)
+				if (_mQEvent != null)
 				{
-					m_QActive.PostFIFO(m_QEvent);
+					_mQActive.PostFifo(_mQEvent);
 				}
 			}
 		}

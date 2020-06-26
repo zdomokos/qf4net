@@ -53,32 +53,32 @@ namespace qf4net
     /// <summary>
     /// QF singleton. This is the class that handles the delivery of events.
     /// </summary>
-    public class QF : IQF
+    public class Qf : IQf
     {
         // Implementation of not-quite lazy, but thread-safe singleton pattern without using locks
         // See http://www.yoda.arachsys.com/csharp/singleton.html for details
-        private static readonly QF s_Instance = new QF(); // holds reference to the singleton instance
-        private SortedList[] m_SignalSubscribers;
+        private static readonly Qf SInstance = new Qf(); // holds reference to the singleton instance
+        private SortedList[] _mSignalSubscribers;
 
         // Explicit static constructor to tell C# compiler
         // not to mark type as beforefieldinit
-        static QF()
+        static Qf()
         {
         }
 
-        private QF()
+        private Qf()
         {
         }
 
         /// <summary>
-        /// Allows a client application to get the instance of the singleton <see cref="IQF"/>.
+        /// Allows a client application to get the instance of the singleton <see cref="IQf"/>.
         /// </summary>
-        /// <returns>Reference to the singleton <see cref="IQF"/> instance.</returns>
-        public static IQF Instance
+        /// <returns>Reference to the singleton <see cref="IQf"/> instance.</returns>
+        public static IQf Instance
         {
             get
             {
-                return s_Instance;
+                return SInstance;
             }
         }
 
@@ -86,18 +86,18 @@ namespace qf4net
 
         /// <summary>
         /// Initializes the the quantum framework. Must be called exactly once before any of the other methods on
-        /// <see cref="IQF"/> can be used.
+        /// <see cref="IQf"/> can be used.
         /// </summary>
-        /// <param name="maxSignal">The maximal signal that the <see cref="IQF"/> must be able to handle.</param>
+        /// <param name="maxSignal">The maximal signal that the <see cref="IQf"/> must be able to handle.</param>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void Initialize(int maxSignal)
         {
-            if (m_SignalSubscribers != null)
+            if (_mSignalSubscribers != null)
             {
                 // Initialize was called before
                 throw new InvalidOperationException("The Initialize method can only be called once.");
             }
-            m_SignalSubscribers = new SortedList[maxSignal + 1];
+            _mSignalSubscribers = new SortedList[maxSignal + 1];
         }
 
         /// <summary>
@@ -108,15 +108,15 @@ namespace qf4net
         public void Subscribe(IQActive qActive, Signal qSignal)
         {
             //Debug.WriteLine(qActive.ToString() + " subscribes for signal " + qSignal.ToString());
-            lock (m_SignalSubscribers)
+            lock (_mSignalSubscribers)
             {
-                if (m_SignalSubscribers[qSignal] == null)
+                if (_mSignalSubscribers[qSignal] == null)
                 {
                     // this is the first time that somebody subscribes for this signal
-                    m_SignalSubscribers[qSignal] = new SortedList();
+                    _mSignalSubscribers[qSignal] = new SortedList();
                 }
 
-                m_SignalSubscribers[qSignal].Add(qActive.Priority, qActive);
+                _mSignalSubscribers[qSignal].Add(qActive.Priority, qActive);
             }
         }
 
@@ -127,9 +127,9 @@ namespace qf4net
         /// <param name="qSignal">The signal to unsubscribe.</param>
         public void Unsubscribe(IQActive qActive, Signal qSignal)
         {
-            lock (m_SignalSubscribers)
+            lock (_mSignalSubscribers)
             {
-                m_SignalSubscribers[qSignal].Remove(qActive.Priority);
+                _mSignalSubscribers[qSignal].Remove(qActive.Priority);
             }
         }
 
@@ -139,11 +139,11 @@ namespace qf4net
         /// <param name="qEvent">The <see cref="QEvent"/> to publish.</param>
         public void Publish(QEvent qEvent)
         {
-            lock (m_SignalSubscribers)
+            lock (_mSignalSubscribers)
             {
-                if (qEvent.QSignal < m_SignalSubscribers.Length)
+                if (qEvent.QSignal < _mSignalSubscribers.Length)
                 {
-                    SortedList sortedSubscriberList = m_SignalSubscribers[qEvent.QSignal];
+                    SortedList sortedSubscriberList = _mSignalSubscribers[qEvent.QSignal];
                     if (sortedSubscriberList != null)
                     {
                         // For simplicity we do not use the event propagae pattern that Miro Samek uses in his implementation.
@@ -153,7 +153,7 @@ namespace qf4net
                         for (int i = 0; i < sortedSubscriberList.Count; i++)
                         {
                             IQActive subscribingQActive = (IQActive)sortedSubscriberList.GetByIndex(i);
-                            subscribingQActive.PostFIFO(qEvent);
+                            subscribingQActive.PostFifo(qEvent);
                         }
                     }
                 }
@@ -169,21 +169,21 @@ namespace qf4net
         /// </summary>
         private class SubscriberList
         {
-            private SortedList m_SubscriberList;
+            private SortedList _mSubscriberList;
 
             internal SubscriberList()
             {
-                m_SubscriberList = new SortedList();
+                _mSubscriberList = new SortedList();
             }
 
             internal void AddSubscriber(IQActive qActive)
             {
-                m_SubscriberList.Add(qActive.Priority, qActive);
+                _mSubscriberList.Add(qActive.Priority, qActive);
             }
 
             internal void RemoveSubscriber(IQActive qActive)
             {
-                m_SubscriberList.Remove(qActive.Priority);
+                _mSubscriberList.Remove(qActive.Priority);
             }
         }
 

@@ -58,21 +58,21 @@ namespace qf4net
     /// </summary>
     public abstract class QHsm : IQHsm
     {
-        private static QState s_TopState;
+        private static QState _sTopState;
         
         /// <summary>
         /// Added for symmetry reasons, so that all deriving classes can add their own static 
         /// <see cref="TransitionChainStore"/> variable using the new key word.
         /// </summary>
-        protected static TransitionChainStore s_TransitionChainStore = null;
+        protected static TransitionChainStore STransitionChainStore = null;
         
-        private MethodInfo m_MyStateMethod;
-        private MethodInfo m_MySourceStateMethod;
-        private string m_targetStateName;
+        private MethodInfo _mMyStateMethod;
+        private MethodInfo _mMySourceStateMethod;
+        private string _mTargetStateName;
 
         static QHsm()
         {
-            s_TopState = Top; 	
+            _sTopState = Top; 	
         }
         
         /// <summary>
@@ -80,7 +80,7 @@ namespace qf4net
         /// </summary>
         public QHsm()
         {
-            m_MyStateMethod = s_TopState.Method;
+            _mMyStateMethod = _sTopState.Method;
         }
 
         /// <summary>
@@ -103,21 +103,21 @@ namespace qf4net
         /// </summary>
         public void Init()
         {
-            Debug.Assert(m_MyStateMethod == s_TopState.Method); // HSM not executed yet
-            MethodInfo stateMethod = m_MyStateMethod; // save m_StateHandler in a temporary
+            Debug.Assert(_mMyStateMethod == _sTopState.Method); // HSM not executed yet
+            MethodInfo stateMethod = _mMyStateMethod; // save m_StateHandler in a temporary
 
             this.InitializeStateMachine(); // We call into the deriving class
             // initial transition must go *one* level deep
-            Debug.Assert(GetSuperStateMethod(m_MyStateMethod) == stateMethod);
+            Debug.Assert(GetSuperStateMethod(_mMyStateMethod) == stateMethod);
             
-            stateMethod = m_MyStateMethod; // Note: We only use the temporary
+            stateMethod = _mMyStateMethod; // Note: We only use the temporary
             // variable stateMethod so that we can use Assert statements to ensure
             // that each transition is only one level deep.
             Trigger(stateMethod, QSignals.Entry);
             while(Trigger(stateMethod, QSignals.Init) == null) // init handled?
             {
-                Debug.Assert(GetSuperStateMethod(m_MyStateMethod) == stateMethod);
-                stateMethod = m_MyStateMethod;
+                Debug.Assert(GetSuperStateMethod(_mMyStateMethod) == stateMethod);
+                stateMethod = _mMyStateMethod;
                 
                 Trigger(stateMethod, QSignals.Entry);
             }
@@ -138,7 +138,7 @@ namespace qf4net
         public bool IsInState(QState inquiredState)
         {
             MethodInfo stateMethod;
-            for(stateMethod = m_MyStateMethod;
+            for(stateMethod = _mMyStateMethod;
                 stateMethod != null; 
                 stateMethod = GetSuperStateMethod(stateMethod))
             {
@@ -150,15 +150,15 @@ namespace qf4net
             return false; // no match found
         }
 
-        public MethodInfo StateMethod { get { return m_MyStateMethod; } }
-        public MethodInfo SourceStateMethod { get { return m_MySourceStateMethod; } }
+        public MethodInfo StateMethod { get { return _mMyStateMethod; } }
+        public MethodInfo SourceStateMethod { get { return _mMySourceStateMethod; } }
 
         /// <summary>
         /// Returns the name of the (deepest) state that the state machine is currently in.
         /// </summary>
         public string CurrentStateName
         {
-            get { return m_MyStateMethod.Name; }
+            get { return _mMyStateMethod.Name; }
         }
         
         public string CurrentNestedStateName
@@ -167,7 +167,7 @@ namespace qf4net
             {
                 MethodInfo stateMethod;
                 string nest = "";
-                for(stateMethod = m_MyStateMethod;
+                for(stateMethod = _mMyStateMethod;
                     stateMethod != null; 
                     stateMethod = GetSuperStateMethod(stateMethod))
                 {
@@ -190,18 +190,18 @@ namespace qf4net
             // We let the event bubble up the chain until it is handled by a state handler
             try
             {
-                m_MySourceStateMethod = m_MyStateMethod;
-                while(m_MySourceStateMethod != null)
+                _mMySourceStateMethod = _mMyStateMethod;
+                while(_mMySourceStateMethod != null)
                 {
-                    StateTrace(m_MySourceStateMethod, qEvent.QSignal); // ZTG-added
-                    QState state = (QState)m_MySourceStateMethod.Invoke(this, new object[] { qEvent } );
+                    StateTrace(_mMySourceStateMethod, qEvent.QSignal); // ZTG-added
+                    QState state = (QState)_mMySourceStateMethod.Invoke(this, new object[] { qEvent } );
                     if (state != null)
                     {
-                        m_MySourceStateMethod = state.Method;
+                        _mMySourceStateMethod = state.Method;
                     }
                     else
                     {
-                        m_MySourceStateMethod = null;
+                        _mMySourceStateMethod = null;
                     }
                 }
             }
@@ -210,7 +210,7 @@ namespace qf4net
                 System.Exception e = tie.InnerException;
 
                 string message =
-                    $"The following unhandled exception was generated by {this} in {m_targetStateName}:\n\n";
+                    $"The following unhandled exception was generated by {this} in {_mTargetStateName}:\n\n";
                 
                 // add the exception history
                 string exceptions = "";
@@ -254,7 +254,7 @@ namespace qf4net
         /// </summary>
         protected QState TopState
         {
-            get { return s_TopState; }
+            get { return _sTopState; }
         }
         
         #region Helper functions for the predefined signals
@@ -324,10 +324,10 @@ namespace qf4net
         /// </summary>
         protected void InitializeState(QState state)
         {
-            m_MyStateMethod = state.Method;
+            _mMyStateMethod = state.Method;
 
             // try setting this in cases of transitionTo before any Dispatches
-            m_MySourceStateMethod = m_MyStateMethod;
+            _mMySourceStateMethod = _mMyStateMethod;
 
         }
 
@@ -337,9 +337,9 @@ namespace qf4net
         /// <param name="targetState">The <see cref="QState"/> to transition to.</param>
         protected virtual void TransitionTo(QState targetState)
         {
-            m_targetStateName = targetState.Method.Name;
+            _mTargetStateName = targetState.Method.Name;
 
-            Debug.Assert(targetState != s_TopState); // can't target 'top' state
+            Debug.Assert(targetState != _sTopState); // can't target 'top' state
             ExitUpToSourceState();
             // This is a dynamic transition. We pass in null instead of a recorder
             TransitionFromSourceToTarget(targetState.Method, null);
@@ -363,7 +363,7 @@ namespace qf4net
         /// </remarks>
         protected void TransitionTo(QState targetState, ref TransitionChain transitionChain)
         {
-            Debug.Assert(targetState != s_TopState); // can't target 'top' state			
+            Debug.Assert(targetState != _sTopState); // can't target 'top' state			
             ExitUpToSourceState();
 
             if (transitionChain == null) // for efficiency the first check is not thread-safe
@@ -426,7 +426,7 @@ namespace qf4net
 
         private void ExitUpToSourceState()
         {
-            for(MethodInfo stateMethod = m_MyStateMethod; stateMethod != m_MySourceStateMethod; )
+            for(MethodInfo stateMethod = _mMyStateMethod; stateMethod != _mMySourceStateMethod; )
             {
                 Debug.Assert(stateMethod != null);
                 MethodInfo stateMethodToHandleExit = Trigger(stateMethod, QSignals.Exit);
@@ -458,10 +458,10 @@ namespace qf4net
         /// </remarks>
         private void TransitionFromSourceToTarget(MethodInfo targetStateMethod, TransitionChainRecorder recorder)
         {
-            ArrayList statesTargetToLCA;
+            ArrayList statesTargetToLca;
             int indexFirstStateToEnter;
-            ExitUpToLCA(targetStateMethod, out statesTargetToLCA, out indexFirstStateToEnter, recorder);
-            TransitionDownToTargetState(targetStateMethod, statesTargetToLCA, indexFirstStateToEnter, recorder);
+            ExitUpToLca(targetStateMethod, out statesTargetToLca, out indexFirstStateToEnter, recorder);
+            TransitionDownToTargetState(targetStateMethod, statesTargetToLca, indexFirstStateToEnter, recorder);
         }
         
         /// <summary>
@@ -469,7 +469,7 @@ namespace qf4net
         /// and exits up to LCA while doing so.
         /// </summary>
         /// <param name="targetStateMethod">The target state method of the transition.</param>
-        /// <param name="statesTargetToLCA">An <see cref="ArrayList"/> that holds (in reverse order) the states
+        /// <param name="statesTargetToLca">An <see cref="ArrayList"/> that holds (in reverse order) the states
         /// that need to be entered on the way down to the target state.
         /// Note: The index of the first state that needs to be entered is returned in 
         /// <see paramref="indexFirstStateToEnter"/>.</param>
@@ -477,65 +477,65 @@ namespace qf4net
         /// that specifies the first state that needs to be entered on the way down to the target state.</param>
         /// <param name="recorder">An instance of <see cref="TransitionChainRecorder"/> if the transition chain
         /// should be recorded; <see langword="null"/> otherwise.</param>
-        private void ExitUpToLCA(
+        private void ExitUpToLca(
             MethodInfo targetStateMethod, 
-            out ArrayList statesTargetToLCA, 
+            out ArrayList statesTargetToLca, 
             out int indexFirstStateToEnter,
             TransitionChainRecorder recorder)
         {
-            statesTargetToLCA = new ArrayList();
-            statesTargetToLCA.Add(targetStateMethod);
+            statesTargetToLca = new ArrayList();
+            statesTargetToLca.Add(targetStateMethod);
             indexFirstStateToEnter = 0;
             
             // (a) check my source state == target state (transition to self)
-            if(m_MySourceStateMethod == targetStateMethod)
+            if(_mMySourceStateMethod == targetStateMethod)
             {
-                Trigger(m_MySourceStateMethod, QSignals.Exit, recorder);
+                Trigger(_mMySourceStateMethod, QSignals.Exit, recorder);
                 return;
             }
             
             // (b) check my source state == super state of the target state
             MethodInfo targetSuperStateMethod = GetSuperStateMethod(targetStateMethod);
             //Debug.WriteLine(targetSuperStateMethod.Name);
-            if(m_MySourceStateMethod == targetSuperStateMethod)
+            if(_mMySourceStateMethod == targetSuperStateMethod)
             {
                 return;
             }
             
             // (c) check super state of my source state == super state of target state
             // (most common)
-            MethodInfo sourceSuperStateMethod = GetSuperStateMethod(m_MySourceStateMethod);
+            MethodInfo sourceSuperStateMethod = GetSuperStateMethod(_mMySourceStateMethod);
             if(sourceSuperStateMethod == targetSuperStateMethod)
             {
-                Trigger(m_MySourceStateMethod, QSignals.Exit, recorder);
+                Trigger(_mMySourceStateMethod, QSignals.Exit, recorder);
                 return;
             }
             
             // (d) check super state of my source state == target
             if (sourceSuperStateMethod == targetStateMethod)
             {
-                Trigger(m_MySourceStateMethod, QSignals.Exit, recorder);
+                Trigger(_mMySourceStateMethod, QSignals.Exit, recorder);
                 indexFirstStateToEnter = -1; // we don't enter the LCA
                 return;
             }
             
             // (e) check rest of my source = super state of super state ... of target state hierarchy
-            statesTargetToLCA.Add(targetSuperStateMethod);
+            statesTargetToLca.Add(targetSuperStateMethod);
             indexFirstStateToEnter++;
             for (MethodInfo stateMethod = GetSuperStateMethod(targetSuperStateMethod);
                 stateMethod != null; stateMethod = GetSuperStateMethod(stateMethod))
             {
-                if (m_MySourceStateMethod == stateMethod)
+                if (_mMySourceStateMethod == stateMethod)
                 {
                     return;
                 }
                 
-                statesTargetToLCA.Add(stateMethod);
+                statesTargetToLca.Add(stateMethod);
                 indexFirstStateToEnter++;
             }
             
             // For both remaining cases we need to exit the source state
-            Trigger(m_MySourceStateMethod, QSignals.Exit, recorder);
+            Trigger(_mMySourceStateMethod, QSignals.Exit, recorder);
             
             // (f) check rest of super state of my source state ==
             //     super state of super state of ... target state
@@ -543,7 +543,7 @@ namespace qf4net
             // from the target state up to the top state
             for (int stateIndex = indexFirstStateToEnter; stateIndex >= 0; stateIndex--)
             {
-                if (sourceSuperStateMethod == (MethodInfo)statesTargetToLCA[stateIndex])
+                if (sourceSuperStateMethod == (MethodInfo)statesTargetToLca[stateIndex])
                 {
                     indexFirstStateToEnter = stateIndex - 1;
                     // Note that we do not include the LCA state itself;
@@ -559,7 +559,7 @@ namespace qf4net
             {
                 for (int stateIndex = indexFirstStateToEnter; stateIndex >= 0; stateIndex--)
                 {
-                    if (stateMethod == (MethodInfo)statesTargetToLCA[stateIndex])
+                    if (stateMethod == (MethodInfo)statesTargetToLca[stateIndex])
                     {
                         indexFirstStateToEnter = stateIndex - 1;
                         // Note that we do not include the LCA state itself;
@@ -576,17 +576,17 @@ namespace qf4net
         
         private void TransitionDownToTargetState(
             MethodInfo targetStateMethod, 
-            ArrayList statesTargetToLCA, 
+            ArrayList statesTargetToLca, 
             int indexFirstStateToEnter,
             TransitionChainRecorder recorder)
         {
             // we enter the states in the passed in array in reverse order
             for (int stateIndex = indexFirstStateToEnter; stateIndex >= 0; stateIndex--)
             {
-                Trigger((MethodInfo)statesTargetToLCA[stateIndex], QSignals.Entry, recorder);
+                Trigger((MethodInfo)statesTargetToLca[stateIndex], QSignals.Entry, recorder);
             }
             
-            m_MyStateMethod = targetStateMethod;
+            _mMyStateMethod = targetStateMethod;
             
             // At last we are ready to initialize the target state.
             // If the specified target state handles init then the effective
@@ -595,8 +595,8 @@ namespace qf4net
             while (Trigger(targetStateMethod, QSignals.Init, recorder) == null)
             {
                 // Initial transition must be one level deep
-                Debug.Assert(targetStateMethod == GetSuperStateMethod(m_MyStateMethod));
-                targetStateMethod = m_MyStateMethod;
+                Debug.Assert(targetStateMethod == GetSuperStateMethod(_mMyStateMethod));
+                targetStateMethod = _mMyStateMethod;
                 Trigger(targetStateMethod, QSignals.Entry, recorder);
             }
 
@@ -653,7 +653,7 @@ namespace qf4net
                 transitionStep = transitionChain[i];
                 Trigger(transitionStep.StateMethod, transitionStep.QSignal);
             }
-            m_MyStateMethod = transitionStep.StateMethod;
+            _mMyStateMethod = transitionStep.StateMethod;
         }
 
         #region Helper classes for the handling of static transitions
@@ -666,11 +666,11 @@ namespace qf4net
         /// </summary>
         private class TransitionChainRecorder
         {
-            private ArrayList m_TransitionSteps = new ArrayList();
+            private ArrayList _mTransitionSteps = new ArrayList();
 
             internal void Record(MethodInfo stateMethod, Signal qSignal)
             {
-                m_TransitionSteps.Add(new TransitionStep(stateMethod, qSignal));
+                _mTransitionSteps.Add(new TransitionStep(stateMethod, qSignal));
             }
 
             /// <summary>
@@ -680,7 +680,7 @@ namespace qf4net
             internal TransitionChain GetRecordedTransitionChain()
             {
                 // We turn the ArrayList into a strongly typed array
-                return new TransitionChain(m_TransitionSteps);
+                return new TransitionChain(_mTransitionSteps);
             }
         }
 
@@ -693,49 +693,49 @@ namespace qf4net
         /// </summary>
         protected class TransitionChain
         {
-            private MethodInfo[] m_StateMethodChain; 
+            private MethodInfo[] _mStateMethodChain; 
             //  holds the transitions that need to be performed from the LCA down to the target state
             
-            private BitArray m_ActionBits;
+            private BitArray _mActionBits;
             // holds the actions that need to be performed on each transition in two bits:
             // 0x1: Init; 0x2: Entry, 0x3: Exit
 
             internal TransitionChain(ArrayList transitionSteps)
             {
-                m_StateMethodChain = new MethodInfo[transitionSteps.Count];
-                m_ActionBits = new BitArray(transitionSteps.Count * 2);
+                _mStateMethodChain = new MethodInfo[transitionSteps.Count];
+                _mActionBits = new BitArray(transitionSteps.Count * 2);
 
                 for(int i = 0; i<transitionSteps.Count; i++)
                 {
                     TransitionStep transitionStep = (TransitionStep)transitionSteps[i];
 
-                    m_StateMethodChain[i] = transitionStep.StateMethod;
+                    _mStateMethodChain[i] = transitionStep.StateMethod;
                     int bitPos = i * 2;
                     
                     if (QSignals.Empty == transitionStep.QSignal)
-                    { m_ActionBits[bitPos] = false; m_ActionBits[++bitPos] = false; }
+                    { _mActionBits[bitPos] = false; _mActionBits[++bitPos] = false; }
                     else if (QSignals.Init == transitionStep.QSignal)
-                    { m_ActionBits[bitPos] = false; m_ActionBits[++bitPos] = true; }
+                    { _mActionBits[bitPos] = false; _mActionBits[++bitPos] = true; }
                     else if (QSignals.Entry == transitionStep.QSignal)
-                    { m_ActionBits[bitPos] = true; m_ActionBits[++bitPos] = false; }
+                    { _mActionBits[bitPos] = true; _mActionBits[++bitPos] = false; }
                     else if (QSignals.Exit == transitionStep.QSignal)
-                    { m_ActionBits[bitPos] = true; m_ActionBits[++bitPos] = true; }
+                    { _mActionBits[bitPos] = true; _mActionBits[++bitPos] = true; }
                 }
             }
 
-            internal int Length { get { return m_StateMethodChain.Length; } } 
+            internal int Length { get { return _mStateMethodChain.Length; } } 
 
             internal TransitionStep this[int index]
             {
                 get
                 {
                     TransitionStep transitionStep = new TransitionStep();
-                    transitionStep.StateMethod = m_StateMethodChain[index];
+                    transitionStep.StateMethod = _mStateMethodChain[index];
                     
                     int bitPos = index * 2;
-                    if (m_ActionBits[bitPos])
+                    if (_mActionBits[bitPos])
                     {
-                        if (m_ActionBits[bitPos + 1])
+                        if (_mActionBits[bitPos + 1])
                         {
                             transitionStep.QSignal = QSignals.Exit;
                         }
@@ -746,7 +746,7 @@ namespace qf4net
                     }
                     else
                     {
-                        if (m_ActionBits[bitPos + 1])
+                        if (_mActionBits[bitPos + 1])
                         {
                             transitionStep.QSignal = QSignals.Init;
                         }
@@ -782,10 +782,10 @@ namespace qf4net
         /// </summary>
         protected class TransitionChainStore
         {
-            private const int c_DefaultCapacity = 16;
+            private const int CDefaultCapacity = 16;
 
-            private TransitionChain[] m_Items;
-            private int m_Size;
+            private TransitionChain[] _mItems;
+            private int _mSize;
 
             /// <summary>
             /// Constructs a <see cref="TransitionChainStore"/>. The internal array for holding 
@@ -850,14 +850,14 @@ namespace qf4net
             {
                 if (slotsRequiredByBaseQHsm == 0)
                 {
-                    m_Items = new TransitionChain[c_DefaultCapacity];
+                    _mItems = new TransitionChain[CDefaultCapacity];
                 }
                 else
                 {
-                    m_Items = new TransitionChain[2 * slotsRequiredByBaseQHsm];
+                    _mItems = new TransitionChain[2 * slotsRequiredByBaseQHsm];
                 }
 
-                m_Size = slotsRequiredByBaseQHsm;
+                _mSize = slotsRequiredByBaseQHsm;
             }
 
             /// <summary>
@@ -866,31 +866,31 @@ namespace qf4net
             /// <returns>The index of the new slot.</returns>
             public int GetOpenSlot()
             {
-                if (m_Size >= m_Items.Length)
+                if (_mSize >= _mItems.Length)
                 {
                     // We no longer have room in the items array to hold a new slot
                     IncreaseCapacity();
                 }
-                return m_Size++;
+                return _mSize++;
             }
 
             /// <summary>
-            /// Reallocates the internal array <see cref="m_Items"/> to an array twice the previous capacity.
+            /// Reallocates the internal array <see cref="_mItems"/> to an array twice the previous capacity.
             /// </summary>
             private void IncreaseCapacity() 
             {
                 int newCapacity;
-                if (m_Items.Length == 0)
+                if (_mItems.Length == 0)
                 {
-                    newCapacity = c_DefaultCapacity;
+                    newCapacity = CDefaultCapacity;
                 }
                 else
                 {
-                    newCapacity	= m_Items.Length * 2;
+                    newCapacity	= _mItems.Length * 2;
                 }
                 TransitionChain[] newItems = new TransitionChain[newCapacity];
-                Array.Copy(m_Items, 0, newItems, 0, m_Items.Length);
-                m_Items = newItems;
+                Array.Copy(_mItems, 0, newItems, 0, _mItems.Length);
+                _mItems = newItems;
             }
 
             /// <summary>
@@ -899,9 +899,9 @@ namespace qf4net
             /// </summary>
             public void ShrinkToActualSize()
             {
-                TransitionChain[] newItems = new TransitionChain[m_Size];
-                Array.Copy(m_Items, 0, newItems, 0, m_Size);
-                m_Items = newItems;
+                TransitionChain[] newItems = new TransitionChain[_mSize];
+                Array.Copy(_mItems, 0, newItems, 0, _mSize);
+                _mItems = newItems;
             }
 
             /// <summary>
@@ -909,7 +909,7 @@ namespace qf4net
             /// </summary>
             public TransitionChain[] TransitionChains
             {
-                get { return m_Items; }
+                get { return _mItems; }
             }
 
             /// <summary>
@@ -917,7 +917,7 @@ namespace qf4net
             /// </summary>
             internal int Size
             {
-                get { return m_Size; }
+                get { return _mSize; }
             }
         }
 

@@ -55,16 +55,16 @@ namespace qf4net
     /// </summary>
     public abstract class QActive : QHsm, IQActive
     {
-        private IQEventQueue m_EventQueue;
-        private int m_Priority;
-        private Threading.IThread m_ExecutionThread;
+        private IQEventQueue _mEventQueue;
+        private int _mPriority;
+        private Threading.IThread _mExecutionThread;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QActive"/> class. 
         /// </summary>
         public QActive() : base()
         {
-            m_EventQueue = EventQueueFactory.GetEventQueue();
+            _mEventQueue = EventQueueFactory.GetEventQueue();
         }
 
         #region IQActive Members
@@ -78,7 +78,7 @@ namespace qf4net
         [MethodImpl(MethodImplOptions.Synchronized)]
         public virtual void Start(int priority)
         {
-            if (m_ExecutionThread != null)
+            if (_mExecutionThread != null)
             {
                 throw new InvalidOperationException("This active object is already started. The Start method can only be invoked once.");
             }
@@ -88,10 +88,10 @@ namespace qf4net
             {
                 throw new ArgumentException("The priority of an Active Object cannot be negative.", "priority");
             }
-            m_Priority = priority;
+            _mPriority = priority;
             // TODO: Leverage the priority
-            m_ExecutionThread = Threading.ThreadFactory.GetThread(0, this.DoEventLoop);
-            m_ExecutionThread.Start();
+            _mExecutionThread = Threading.ThreadFactory.GetThread(0, this.DoEventLoop);
+            _mExecutionThread.Start();
         }
 
         /// <summary>
@@ -99,16 +99,16 @@ namespace qf4net
         /// is started the priority is non-negative. For an <see cref="IQActive"/> object that has not yet been started
         /// the value -1 is returned as the priority.
         /// </summary>
-        public int Priority { get { return m_Priority; } }
+        public int Priority { get { return _mPriority; } }
 
         /// <summary>
         /// Post the <see paramref="qEvent"/> directly to the <see cref="IQActive"/> object's event queue
         /// using the FIFO (First In First Out) policy. 
         /// </summary>
         /// <param name="qEvent"></param>
-        public void PostFIFO(IQEvent qEvent)
+        public void PostFifo(IQEvent qEvent)
         {
-            m_EventQueue.EnqueueFIFO(qEvent);
+            _mEventQueue.EnqueueFifo(qEvent);
         }
 
         /// <summary>
@@ -116,9 +116,9 @@ namespace qf4net
         /// using the LIFO (Last In First Out) policy. 
         /// </summary>
         /// <param name="qEvent"></param>
-        public void PostLIFO(IQEvent qEvent)
+        public void PostLifo(IQEvent qEvent)
         {
-            m_EventQueue.EnqueueLIFO(qEvent);
+            _mEventQueue.EnqueueLifo(qEvent);
         }
 
         #endregion
@@ -134,7 +134,7 @@ namespace qf4net
             {
                 while(true)
                 {
-                    IQEvent qEvent = m_EventQueue.DeQueue(); // this blocks if there are no events in the queue
+                    IQEvent qEvent = _mEventQueue.DeQueue(); // this blocks if there are no events in the queue
                     //Debug.WriteLine(String.Format("Dispatching {0} on thread {1}.", qEvent.ToString(), Thread.CurrentThread.Name));
                     if (qEvent.IsSignal(QSignals.Terminate))
                         break;
@@ -146,7 +146,7 @@ namespace qf4net
             {
                 // We use the method Thread.Abort() in this.Abort() to exit from the event loop
                 Thread.ResetAbort();
-                m_ExecutionThread = null;
+                _mExecutionThread = null;
             }
 
             // The QActive object ends
@@ -159,13 +159,13 @@ namespace qf4net
         protected void Abort()
         {
             // QF.Remove(this);
-            m_ExecutionThread.Abort();
+            _mExecutionThread.Abort();
         }
 
         protected void Join()
         {
-            m_ExecutionThread.Join();
-            m_ExecutionThread = null;
+            _mExecutionThread.Join();
+            _mExecutionThread = null;
         }
 
         /// <summary>

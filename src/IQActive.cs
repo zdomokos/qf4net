@@ -71,14 +71,14 @@ namespace qf4net
 		/// using the FIFO (First In First Out) policy. 
 		/// </summary>
 		/// <param name="qEvent"></param>
-		void PostFIFO(IQEvent qEvent);
+		void PostFifo(IQEvent qEvent);
 
 		/// <summary>
 		/// Post the <see paramref="qEvent"/> directly to the <see cref="IQActive"/> object's event queue
 		/// using the LIFO (Last In First Out) policy. 
 		/// </summary>
 		/// <param name="qEvent"></param>
-		void PostLIFO(IQEvent qEvent);
+		void PostLifo(IQEvent qEvent);
 
         ///// <summary>
         ///// Determines whether the state machine is in the state specified by <see paramref="inquiredState"/>.

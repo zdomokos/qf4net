@@ -56,9 +56,9 @@ namespace qf4net.Threading
 	/// </summary>
 	internal class ImpersonatingThread : IThread
 	{
-		private Thread m_WrappedThread;
-		private IntPtr m_SecurityToken;
-		private ThreadStart m_ThreadStart;
+		private Thread _mWrappedThread;
+		private IntPtr _mSecurityToken;
+		private ThreadStart _mThreadStart;
 		//private ParameterizedThreadStart m_ParameterizedThreadStart;
 
 		/// <summary>
@@ -72,8 +72,8 @@ namespace qf4net.Threading
 				throw new ArgumentNullException("start");
 			}
 
-			m_WrappedThread = new Thread(this.InternalStart);
-			m_ThreadStart = start;
+			_mWrappedThread = new Thread(this.InternalStart);
+			_mThreadStart = start;
 		}
 
 		///// <summary>
@@ -97,7 +97,7 @@ namespace qf4net.Threading
 		public void Start()
 		{
 			InitializeSecurityToken();
-			m_WrappedThread.Start();
+			_mWrappedThread.Start();
 		}
 
 		///// <summary>
@@ -112,7 +112,7 @@ namespace qf4net.Threading
 
 		private void InitializeSecurityToken()
 		{
-			m_SecurityToken = WindowsIdentity.GetCurrent().Token;
+			_mSecurityToken = WindowsIdentity.GetCurrent().Token;
 			// We don't need to duplicate this token since it is already a token that can be used for impersonation
 			// purposes (in constrast to the primary token of the process)
 			// See http://www.pluralsight.com/wiki/default.aspx/Keith.GuideBook.HowToCreateAWindowsPrincipalGivenAToken
@@ -134,7 +134,7 @@ namespace qf4net.Threading
 			{
 				//try
 				//{
-					WindowsIdentity tempWindowsIdentity = new WindowsIdentity(m_SecurityToken);
+					WindowsIdentity tempWindowsIdentity = new WindowsIdentity(_mSecurityToken);
 					impersonatedUser = tempWindowsIdentity.Impersonate();
 				//}
 				//catch (Exception ex)
@@ -142,7 +142,7 @@ namespace qf4net.Threading
 				//    s_Log.Error("Failed to impersonate user from the security token " + m_SecurityToken.ToString(), ex);
 				//    throw;
 				//}
-				m_ThreadStart();
+				_mThreadStart();
 			}
 			finally
 			{
@@ -181,7 +181,7 @@ namespace qf4net.Threading
 		/// </summary>
 		public void Join()
 		{
-			m_WrappedThread.Join();
+			_mWrappedThread.Join();
 		}
 
 		/// <summary>
@@ -191,7 +191,7 @@ namespace qf4net.Threading
 		/// <returns></returns>
 		public bool Join(int millisecondsTimeout)
 		{
-			return m_WrappedThread.Join(millisecondsTimeout);
+			return _mWrappedThread.Join(millisecondsTimeout);
 		}
 
 		/// <summary>
@@ -201,7 +201,7 @@ namespace qf4net.Threading
 		/// <returns></returns>
 		public bool Join(TimeSpan timeout)
 		{
-			return m_WrappedThread.Join(timeout);
+			return _mWrappedThread.Join(timeout);
 		}
 
 		/// <summary>
@@ -210,7 +210,7 @@ namespace qf4net.Threading
 		/// </summary>
 		public void Abort()
 		{
-			m_WrappedThread.Abort();
+			_mWrappedThread.Abort();
 		}
 	}
 }

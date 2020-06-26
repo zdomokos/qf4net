@@ -56,7 +56,7 @@ namespace qf4net.Threading
 	/// </summary>
 	public class ThreadFactory
 	{
-		private static IThreadFactory s_ThreadFactory = new DefaultThreadFactory();
+		private static IThreadFactory _sThreadFactory = new DefaultThreadFactory();
 		//private static IThreadFactory s_ThreadFactory = new ImpersonatingThreadFactory();
 
 		/// <summary>
@@ -70,7 +70,7 @@ namespace qf4net.Threading
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		public static void Initialize(IThreadFactory threadFactory)
 		{
-			s_ThreadFactory = threadFactory;
+			_sThreadFactory = threadFactory;
 		}
 		
 		/// <summary>
@@ -81,7 +81,7 @@ namespace qf4net.Threading
 		/// <returns></returns>
 		public static IThread GetThread(int priority, ThreadStart start)
 		{
-			return s_ThreadFactory.GetThread(priority, start);
+			return _sThreadFactory.GetThread(priority, start);
 		}
 	}
 }

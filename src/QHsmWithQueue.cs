@@ -60,14 +60,14 @@ namespace qf4net
 		/// <summary>
 		/// FIFO event queue
 		/// </summary>
-		private Queue m_EventQueue;
+		private Queue _mEventQueue;
 
 		/// <summary>
 		/// Constructor for the Quantum Hierarchical State Machine with Queue
 		/// </summary>
 		public QHsmQ()
 		{
-			m_EventQueue = new Queue();
+			_mEventQueue = new Queue();
 		}
 
 
@@ -78,7 +78,7 @@ namespace qf4net
 		/// <param name="qEvent">New message posted to self during processing</param>
 		protected void Enqueue(QEvent qEvent)
 		{
-			m_EventQueue.Enqueue(qEvent);
+			_mEventQueue.Enqueue(qEvent);
 		}
 
 		/// <summary>
@@ -86,22 +86,22 @@ namespace qf4net
 		/// </summary>
 		protected void DispatchQ()
 		{
-			if (isDispatching)
+			if (_isDispatching)
 			{
 				return;
 			}
 
-			isDispatching = true;
-			while (m_EventQueue.Count > 0)
+			_isDispatching = true;
+			while (_mEventQueue.Count > 0)
 			{
 				//new events may be added (self-posted) during the dispatch handling of this first event
-				base.Dispatch((QEvent)m_EventQueue.Dequeue());
+				base.Dispatch((QEvent)_mEventQueue.Dequeue());
 			}
-			isDispatching = false;
+			_isDispatching = false;
 
 		}//DispatchQ
 
-		private bool isDispatching;
+		private bool _isDispatching;
 
 		/// <summary>
 		/// Enqueues the first event then dequeues and dispatches all queued events to this state machine.
@@ -110,7 +110,7 @@ namespace qf4net
 		/// </summary>
 		public void DispatchQ(QEvent qEvent)
 		{
-			m_EventQueue.Enqueue(qEvent);
+			_mEventQueue.Enqueue(qEvent);
 			DispatchQ();
 
 		}//DispatchQ
@@ -120,7 +120,7 @@ namespace qf4net
 		/// </summary>
 		protected void ClearQ()
 		{
-			m_EventQueue.Clear();
+			_mEventQueue.Clear();
 		}
 
 	}//QHsmQ

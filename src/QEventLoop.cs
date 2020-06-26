@@ -64,9 +64,9 @@ namespace qf4net
         /// using the FIFO (First In First Out) policy. 
         /// </summary>
         /// <param name="qEvent"></param>
-        public void PostFIFO(IQEvent qEvent)
+        public void PostFifo(IQEvent qEvent)
         {
-            _eventQueue.EnqueueFIFO(qEvent);
+            _eventQueue.EnqueueFifo(qEvent);
         }
 
         /// <summary>
@@ -74,9 +74,9 @@ namespace qf4net
         /// using the LIFO (Last In First Out) policy. 
         /// </summary>
         /// <param name="qEvent"></param>
-        public void PostLIFO(IQEvent qEvent)
+        public void PostLifo(IQEvent qEvent)
         {
-            _eventQueue.EnqueueLIFO(qEvent);
+            _eventQueue.EnqueueLifo(qEvent);
         }
 
         #endregion

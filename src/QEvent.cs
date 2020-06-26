@@ -51,8 +51,8 @@ namespace qf4net
     /// </summary>
     public class QEvent : IQEvent
     {
-        private Signal m_QSignal;
-        private object eventObject;
+        private Signal _mQSignal;
+        private object _eventObject;
 
         /// <summary>
         /// Default constructor - initializes all fields to default values
@@ -60,7 +60,7 @@ namespace qf4net
         public QEvent(Signal qSignal)
         {
             System.Diagnostics.Debug.Assert((object)qSignal != null, "QEvent created with null signal");
-            m_QSignal = qSignal;
+            _mQSignal = qSignal;
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace qf4net
         /// </summary>
         public Signal QSignal
         {
-            get { return m_QSignal; }
+            get { return _mQSignal; }
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace qf4net
         /// <returns></returns>
         public bool IsSignal(Signal sig)
         {
-            return sig == m_QSignal;
+            return sig == _mQSignal;
         }
 
         /// <summary>
@@ -87,24 +87,24 @@ namespace qf4net
         /// <returns>The signal as string.</returns>
         public override string ToString()
         {
-            return m_QSignal.ToString();
+            return _mQSignal.ToString();
         }
 
 
         public object EventObject
         {
-            get { return eventObject; }
-            set { eventObject = value; }
+            get { return _eventObject; }
+            set { _eventObject = value; }
         }
 
         public override bool Equals(object obj)
         {
-            return IsSignal(((QEvent)obj).m_QSignal);
+            return IsSignal(((QEvent)obj)._mQSignal);
         }
 
         public override int GetHashCode()
         {
-            return m_QSignal;
+            return _mQSignal;
         }
 
 

@@ -49,13 +49,13 @@ namespace qf4net
 	/// <summary>
 	/// Interface implemented by the QF
 	/// </summary>
-	public interface IQF
+	public interface IQf
 	{
 		/// <summary>
 		/// Initializes the the quantum framework. Must be called exactly once before any of the other methods on
-		/// <see cref="IQF"/> can be used.
+		/// <see cref="IQf"/> can be used.
 		/// </summary>
-		/// <param name="maxSignal">The maximal signal that the <see cref="IQF"/> must be able to handle.</param>
+		/// <param name="maxSignal">The maximal signal that the <see cref="IQf"/> must be able to handle.</param>
 		void Initialize(int maxSignal);
 
 		/// <summary>
