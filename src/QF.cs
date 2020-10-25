@@ -74,13 +74,7 @@ namespace qf4net
         /// Allows a client application to get the instance of the singleton <see cref="IQf"/>.
         /// </summary>
         /// <returns>Reference to the singleton <see cref="IQf"/> instance.</returns>
-        public static IQf Instance
-        {
-            get
-            {
-                return SInstance;
-            }
-        }
+        public static IQf Instance => SInstance;
 
         #region IQF Members
 

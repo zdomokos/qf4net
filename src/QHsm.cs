@@ -87,11 +87,8 @@ namespace qf4net
         /// Getter for an optional <see cref="TransitionChainStore"/> that can hold cached
         /// <see cref="TransitionChain"/> objects that are used to optimize static transitions.
         /// </summary>
-        protected virtual TransitionChainStore TransChainStore
-        {
-            get { return null; }
-        }
-        
+        protected virtual TransitionChainStore TransChainStore => null;
+
         /// <summary>
         /// Is called inside of the function Init to give the deriving class a chance to
         /// initialize the state machine.
@@ -150,17 +147,14 @@ namespace qf4net
             return false; // no match found
         }
 
-        public MethodInfo StateMethod { get { return _mMyStateMethod; } }
-        public MethodInfo SourceStateMethod { get { return _mMySourceStateMethod; } }
+        public MethodInfo StateMethod       => _mMyStateMethod;
+        public MethodInfo SourceStateMethod => _mMySourceStateMethod;
 
         /// <summary>
         /// Returns the name of the (deepest) state that the state machine is currently in.
         /// </summary>
-        public string CurrentStateName
-        {
-            get { return _mMyStateMethod.Name; }
-        }
-        
+        public string CurrentStateName => _mMyStateMethod.Name;
+
         public string CurrentNestedStateName
         {
             get
@@ -252,11 +246,8 @@ namespace qf4net
         /// <summary>
         /// The top state of each <see cref="QHsm"/>
         /// </summary>
-        protected QState TopState
-        {
-            get { return _sTopState; }
-        }
-        
+        protected QState TopState => _sTopState;
+
         #region Helper functions for the predefined signals
 
         private MethodInfo Trigger(MethodInfo stateMethod, Signal qSignal)
@@ -291,7 +282,7 @@ namespace qf4net
         private MethodInfo Trigger(MethodInfo receiverStateMethod, Signal qSignal, TransitionChainRecorder recorder)
         {
             MethodInfo stateMethod = Trigger(receiverStateMethod, qSignal);
-            if ((stateMethod == null) && (recorder != null))
+            if (stateMethod == null && recorder != null)
             {
                 // The receiverState handled the event
                 recorder.Record(receiverStateMethod, qSignal);
@@ -723,7 +714,7 @@ namespace qf4net
                 }
             }
 
-            internal int Length { get { return _mStateMethodChain.Length; } } 
+            internal int Length => _mStateMethodChain.Length;
 
             internal TransitionStep this[int index]
             {
@@ -833,7 +824,7 @@ namespace qf4net
             private bool IsDerivedFromQHsm(Type type)
             {
                 Type baseType = type.BaseType;
-                while ((baseType != null)) 
+                while (baseType != null) 
                 {
                     if (baseType == typeof(QHsm))
                     {
@@ -907,18 +898,12 @@ namespace qf4net
             /// <summary>
             /// Provides access to the array that holds the persisted <see cref="TransitionChain"/> objects.
             /// </summary>
-            public TransitionChain[] TransitionChains
-            {
-                get { return _mItems; }
-            }
+            public TransitionChain[] TransitionChains => _mItems;
 
             /// <summary>
             /// The size of the <see cref="TransitionChainStore"/>; i.e., the actual number of used slots.
             /// </summary>
-            internal int Size
-            {
-                get { return _mSize; }
-            }
+            internal int Size => _mSize;
         }
 
         #endregion

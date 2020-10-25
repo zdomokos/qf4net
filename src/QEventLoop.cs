@@ -57,7 +57,7 @@ namespace qf4net
         /// is started the priority is non-negative. For an <see cref="IQEventLoop"/> object that has not yet been started
         /// the value -1 is returned as the priority.
         /// </summary>
-        public int Priority { get { return _priority; } }
+        public int Priority => _priority;
 
         /// <summary>
         /// Post the <see paramref="qEvent"/> directly to the <see cref="IQEventLoop"/> object's event queue

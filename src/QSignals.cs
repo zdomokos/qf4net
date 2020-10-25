@@ -42,6 +42,7 @@
 //   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
+
 using System;
 using System.Threading;
 
@@ -52,49 +53,42 @@ namespace qf4net
     /// </summary>
     public class Signal
     {
-        private static int _maxSignalCount;
-        readonly int _signalValue;
-        readonly string _signalName;
-
         public Signal(string name)
         {
-            _signalName  = name;
-            _signalValue = _maxSignalCount;
+            _signalName     = name;
+            _signalValue    = _maxSignalCount;
             _maxSignalCount = Interlocked.Increment(ref _maxSignalCount);
         }
 
-        public static int MaxSignalCount 
-        {
-            get { return _maxSignalCount; }
-        }
+        public static int MaxSignalCount => _maxSignalCount;
 
-        public static implicit operator int(Signal sig) 
+        public static implicit operator int(Signal sig)
         {
             return sig._signalValue;
         }
 
-        public static bool operator==(Signal lhs, Signal rhs)
+        public static bool operator ==(Signal lhs, Signal rhs)
         {
-            return (lhs._signalValue == rhs._signalValue);
+            return lhs._signalValue == rhs._signalValue;
         }
 
-        public static bool operator!=(Signal lhs, Signal rhs)
+        public static bool operator !=(Signal lhs, Signal rhs)
         {
             return !(lhs._signalValue == rhs._signalValue);
         }
 
-        public override bool Equals(Object obj) 
+        public override bool Equals(object obj)
         {
             //Check for null and compare run-time types.
-            if (   obj == null 
-                || GetType() != obj.GetType()) 
+            if (obj == null
+                || GetType() != obj.GetType())
                 return false;
-            
-            var sig = (Signal)obj;
-            return (_signalValue == sig._signalValue);
+
+            var sig = (Signal) obj;
+            return _signalValue == sig._signalValue;
         }
 
-        public override int GetHashCode() 
+        public override int GetHashCode()
         {
             return _signalValue;
         }
@@ -103,6 +97,10 @@ namespace qf4net
         {
             return _signalName;
         }
+        
+        private static int    _maxSignalCount;
+        readonly       int    _signalValue;
+        readonly       string _signalName;
     }
 
 
@@ -114,11 +112,11 @@ namespace qf4net
     public static class QSignals
     {
         public static readonly Signal Empty     = new Signal("Empty");
-        public static readonly Signal Init      = new Signal("Init" );
+        public static readonly Signal Init      = new Signal("Init");
         public static readonly Signal Entry     = new Signal("Entry");
-        public static readonly Signal Exit      = new Signal("Exit" );
-        public static readonly Signal Terminate = new Signal("Terminate" );
-    };	
+        public static readonly Signal Exit      = new Signal("Exit");
+        public static readonly Signal Terminate = new Signal("Terminate");
+    };
 
 
 //	public enum QSignals : int

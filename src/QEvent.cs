@@ -66,10 +66,7 @@ namespace qf4net
         /// <summary>
         /// The identifier of the <see cref="QEvent"/> type.
         /// </summary>
-        public Signal QSignal
-        {
-            get { return _mQSignal; }
-        }
+        public Signal QSignal => _mQSignal;
 
         /// <summary>
         /// IsSignal
@@ -93,8 +90,8 @@ namespace qf4net
 
         public object EventObject
         {
-            get { return _eventObject; }
-            set { _eventObject = value; }
+            get => _eventObject;
+            set => _eventObject = value;
         }
 
         public override bool Equals(object obj)

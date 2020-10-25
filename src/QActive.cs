@@ -45,8 +45,9 @@
 
 
 using System;
-using System.Threading;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using qf4net.Threading;
 
 namespace qf4net
 {
@@ -57,12 +58,12 @@ namespace qf4net
     {
         private IQEventQueue _mEventQueue;
         private int _mPriority;
-        private Threading.IThread _mExecutionThread;
+        private IThread _mExecutionThread;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QActive"/> class. 
         /// </summary>
-        public QActive() : base()
+        public QActive()
         {
             _mEventQueue = EventQueueFactory.GetEventQueue();
         }
@@ -90,7 +91,7 @@ namespace qf4net
             }
             _mPriority = priority;
             // TODO: Leverage the priority
-            _mExecutionThread = Threading.ThreadFactory.GetThread(0, this.DoEventLoop);
+            _mExecutionThread = ThreadFactory.GetThread(0, DoEventLoop);
             _mExecutionThread.Start();
         }
 
@@ -99,7 +100,7 @@ namespace qf4net
         /// is started the priority is non-negative. For an <see cref="IQActive"/> object that has not yet been started
         /// the value -1 is returned as the priority.
         /// </summary>
-        public int Priority { get { return _mPriority; } }
+        public int Priority => _mPriority;
 
         /// <summary>
         /// Post the <see paramref="qEvent"/> directly to the <see cref="IQActive"/> object's event queue
@@ -128,7 +129,7 @@ namespace qf4net
         /// </summary>
         private void DoEventLoop()
         {
-            this.Init();
+            Init();
             // Once initialized we kick off our event loop
             try
             {
@@ -138,7 +139,7 @@ namespace qf4net
                     //Debug.WriteLine(String.Format("Dispatching {0} on thread {1}.", qEvent.ToString(), Thread.CurrentThread.Name));
                     if (qEvent.IsSignal(QSignals.Terminate))
                         break;
-                    this.Dispatch(qEvent);
+                    Dispatch(qEvent);
                     // QF.Propagate(qEvent);
                 }
             }

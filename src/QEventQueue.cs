@@ -174,9 +174,9 @@ namespace qf4net
 				_mCount = 0;
 			}
 
-			internal int Count { get { return _mCount; } }
+			internal int Count => _mCount;
 
-			internal bool IsEmpty { get { return (_mCount == 0); } }
+			internal bool IsEmpty => _mCount == 0;
 
 			internal void InsertNewHead(IQEvent qEvent)
 			{
@@ -209,8 +209,8 @@ namespace qf4net
 				_mCount++;
 			}
 
-			internal EventNode Head { get { return _mHeadNode; } }
-			internal EventNode Tail { get { return _mTailNode; } }
+			internal EventNode Head => _mHeadNode;
+			internal EventNode Tail => _mTailNode;
 
 			/// <summary>
 			/// Removes the current head node from the linked list and returns its associated <see cref="QEvent"/>.
@@ -243,14 +243,14 @@ namespace qf4net
 
 				internal EventNode NextNode
 				{
-					get { return _mNextNode; }
-					set { _mNextNode = value; }
+					get => _mNextNode;
+					set => _mNextNode = value;
 				}
 
 				internal IQEvent QEvent
 				{
-					get { return _mQEvent; }
-					set { _mQEvent = value; }
+					get => _mQEvent;
+					set => _mQEvent = value;
 				}
 			}
 
