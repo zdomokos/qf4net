@@ -45,7 +45,6 @@
 
 using System;
 using System.Threading;
-using System.Security.Principal;
 
 namespace qf4net.Threading
 {
@@ -57,7 +56,7 @@ namespace qf4net.Threading
 	internal class ImpersonatingThread : IThread
 	{
 		private Thread _mWrappedThread;
-		private IntPtr _mSecurityToken;
+		// private IntPtr _mSecurityToken;
 		private ThreadStart _mThreadStart;
 		//private ParameterizedThreadStart m_ParameterizedThreadStart;
 
@@ -112,7 +111,7 @@ namespace qf4net.Threading
 
 		private void InitializeSecurityToken()
 		{
-			_mSecurityToken = WindowsIdentity.GetCurrent().Token;
+			//_mSecurityToken = WindowsIdentity.GetCurrent().Token;
 			// We don't need to duplicate this token since it is already a token that can be used for impersonation
 			// purposes (in constrast to the primary token of the process)
 			// See http://www.pluralsight.com/wiki/default.aspx/Keith.GuideBook.HowToCreateAWindowsPrincipalGivenAToken
@@ -129,13 +128,13 @@ namespace qf4net.Threading
 
 		private void InternalStart()
 		{
-			WindowsImpersonationContext impersonatedUser = null;
+			//WindowsImpersonationContext impersonatedUser = null;
 			try
 			{
 				//try
 				//{
-					WindowsIdentity tempWindowsIdentity = new WindowsIdentity(_mSecurityToken);
-					impersonatedUser = tempWindowsIdentity.Impersonate();
+				//	WindowsIdentity tempWindowsIdentity = new WindowsIdentity(_mSecurityToken);
+				//	impersonatedUser = tempWindowsIdentity.Impersonate();
 				//}
 				//catch (Exception ex)
 				//{
@@ -146,7 +145,7 @@ namespace qf4net.Threading
 			}
 			finally
 			{
-			    impersonatedUser?.Undo();
+			    //impersonatedUser?.Undo();
 			}
 		}
 

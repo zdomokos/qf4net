@@ -49,7 +49,7 @@ using System.Diagnostics;
 using System.Collections;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Windows.Forms;
+//using System.Windows.Forms;
 
 namespace qf4net
 {
@@ -218,7 +218,9 @@ namespace qf4net
                 message += Environment.NewLine;
 
                 message += "The thread is no longer functioning properly, and the application should be restarted.";
-                MessageBox.Show(message,"Fatal Error");
+                
+                throw new Exception(message);
+                //MessageBox.Show(message,"Fatal Error");
             }
         }
 
