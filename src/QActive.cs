@@ -135,12 +135,24 @@ namespace qf4net
             {
                 while(true)
                 {
-                    IQEvent qEvent = _mEventQueue.DeQueue(); // this blocks if there are no events in the queue
-                    //Debug.WriteLine(String.Format("Dispatching {0} on thread {1}.", qEvent.ToString(), Thread.CurrentThread.Name));
-                    if (qEvent.IsSignal(QSignals.Terminate))
-                        break;
-                    Dispatch(qEvent);
-                    // QF.Propagate(qEvent);
+                    try
+                    {
+                        IQEvent qEvent = _mEventQueue.DeQueue(); // this blocks if there are no events in the queue
+                        //Debug.WriteLine(String.Format("Dispatching {0} on thread {1}.", qEvent.ToString(), Thread.CurrentThread.Name));
+                        if (qEvent.IsSignal(QSignals.Terminate))
+                            break;
+                        Dispatch(qEvent);
+                        // QF.Propagate(qEvent);
+                    }
+                    catch (ThreadAbortException e)
+                    {
+                        throw;
+                    }
+                    catch (Exception e)
+                    {
+                        // log exception
+                        HsmUnhandledException(e);
+                    }
                 }
             }
             catch(ThreadAbortException)
@@ -176,5 +188,11 @@ namespace qf4net
         protected virtual void OnExecutionAborted()
         {
         }
+
+        /// <summary>
+        /// Allows a deriving class to handle error in the running thread. 
+        /// </summary>
+        protected abstract void HsmUnhandledException(Exception e);
+
     }
 }
