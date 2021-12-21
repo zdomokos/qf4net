@@ -56,7 +56,7 @@ namespace qf4net
     /// </summary>
     public abstract class QActive : QHsm, IQActive
     {
-        private IQEventQueue _mEventQueue;
+        private readonly IQEventQueue _mEventQueue;
         private int _mPriority;
         private IThread _mExecutionThread;
 
@@ -144,7 +144,7 @@ namespace qf4net
                         Dispatch(qEvent);
                         // QF.Propagate(qEvent);
                     }
-                    catch (ThreadAbortException e)
+                    catch (ThreadAbortException)
                     {
                         throw;
                     }
