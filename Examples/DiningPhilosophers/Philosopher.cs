@@ -39,7 +39,7 @@ namespace DiningPhilosophers
 		{
 			Thread.CurrentThread.Name = this.ToString();
 			LogMessage(String.Format("Initializing philosopher {0}.", m_PhilosopherId));
-			QF.Instance.Subscribe(this, DPPSignal.Eat);
+			Qf.Instance.Subscribe(this, DPPSignal.Eat);
 			InitializeState(m_StateThinking); // initial transition
 		}
 
@@ -75,7 +75,7 @@ namespace DiningPhilosophers
                 LogMessage(String.Format("Philosopher {0} is hungry.", m_PhilosopherId));
                 TableEvent tableEvent = new TableEvent(DPPSignal.Hungry, m_PhilosopherId); 
                 LogMessage(String.Format("Philosopher {0} publishes Hungry event.", m_PhilosopherId));
-                QF.Instance.Publish(tableEvent);
+                Qf.Instance.Publish(tableEvent);
                 return null;
             }
 
@@ -118,7 +118,7 @@ namespace DiningPhilosophers
                 LogMessage(String.Format("Philosopher {0} is exiting eating state.", m_PhilosopherId));
 				TableEvent tableEvent = new TableEvent(DPPSignal.Done, m_PhilosopherId); 
 				LogMessage(String.Format("Philosopher {0} publishes Done event.", m_PhilosopherId));
-				QF.Instance.Publish(tableEvent);
+				Qf.Instance.Publish(tableEvent);
 				return null;
 			}
 			return this.TopState;
@@ -133,5 +133,7 @@ namespace DiningPhilosophers
 		{
 			Debug.WriteLine("\t" + Thread.CurrentThread.Name + ": " + message);
 		}
+
+		protected override void HsmUnhandledException(Exception e) { throw new NotImplementedException(); }
 	}
 }

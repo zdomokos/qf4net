@@ -43,7 +43,6 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-using System;
 using System.Threading;
 
 namespace qf4net
@@ -104,6 +103,31 @@ namespace qf4net
     }
 
 
+    public enum SignalId : int
+    {
+        /// <summary>
+        /// Signal that is used to retrieve the super state (must not be used externally).
+        /// </summary>
+        Empty,
+        /// <summary>
+        /// 
+        /// </summary>
+        Init,
+        /// <summary>
+        /// 
+        /// </summary>
+        Entry,
+        /// <summary>
+        /// 
+        /// </summary>
+        Exit,
+        /// <summary>
+        /// Entry in the enumeration that marks the first slot that is available for custom signals.
+        /// </summary>
+        Terminate,
+        UserSig
+    };
+    
     /// <summary>
     /// An class that holds the signals that are intrinsically used by
     /// the hierarchical state machine base class <see cref="QHsm"/> and hence are
@@ -111,11 +135,11 @@ namespace qf4net
     /// </summary>
     public static class QSignals
     {
-        public static readonly Signal Empty     = new Signal("Empty");
-        public static readonly Signal Init      = new Signal("Init");
-        public static readonly Signal Entry     = new Signal("Entry");
-        public static readonly Signal Exit      = new Signal("Exit");
-        public static readonly Signal Terminate = new Signal("Terminate");
+        public static readonly Signal Empty     = new Signal(SignalId.Empty.ToString());
+        public static readonly Signal Init      = new Signal(SignalId.Init.ToString());
+        public static readonly Signal Entry     = new Signal(SignalId.Entry.ToString());
+        public static readonly Signal Exit      = new Signal(SignalId.Exit.ToString());
+        public static readonly Signal Terminate = new Signal(SignalId.Terminate.ToString());
     };
 
 

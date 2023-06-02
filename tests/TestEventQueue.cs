@@ -19,23 +19,23 @@ namespace UnitTests
 			QEvent[] qEvents = new QEvent[numQEvents];
 			for(int i = 0; i < numQEvents; i++)
 			{
-				qEvents[i] = new QEvent(i);
+				qEvents[i] = new QEvent(new Signal(i.ToString()));
 			}
 
 			IQEventQueue eventQueue = new QEventQueue();
-			eventQueue.EnqueueFIFO(qEvents[2]);
-			eventQueue.EnqueueLIFO(qEvents[1]);
-			eventQueue.EnqueueFIFO(qEvents[3]);
-			eventQueue.EnqueueLIFO(qEvents[0]);
-			eventQueue.EnqueueFIFO(qEvents[4]);
-			Assertion.AssertEquals("Number of events in the queue", 5, eventQueue.Count);
+			eventQueue.EnqueueFifo(qEvents[2]);
+			eventQueue.EnqueueLifo(qEvents[1]);
+			eventQueue.EnqueueFifo(qEvents[3]);
+			eventQueue.EnqueueLifo(qEvents[0]);
+			eventQueue.EnqueueFifo(qEvents[4]);
+			Assert.Equals(5, eventQueue.Count); // "Number of events in the queue"
 
 			// when we dequeue the events they should come back in the original order
 			for(int i = 0; i < numQEvents; i++)
 			{
 				IQEvent qEvent = eventQueue.DeQueue();
-				Assertion.AssertEquals("Expected signal id", i, qEvent.QSignal);
-				Assertion.AssertEquals("Number of events in the queue", 5 - i - 1, eventQueue.Count);
+				Assert.Equals(i, qEvent.QSignal); // "Expected signal id"
+				Assert.Equals(5 - i - 1, eventQueue.Count); // "Number of events in the queue"
 			}
 		}
 
@@ -49,12 +49,13 @@ namespace UnitTests
 			QEvent[] qEvents = new QEvent[numQEvents];
 			for(int i = 0; i < numQEvents; i++)
 			{
-				qEvents[i] = new QEvent(i);
-				eventQueue.EnqueueFIFO(qEvents[i]);
+				
+				qEvents[i] = new QEvent(new Signal(i.ToString()));
+				eventQueue.EnqueueFifo(qEvents[i]);
 				Thread.Sleep(10); // We give the event loop a chance to execute
 			}
 
-			eventQueue.EnqueueFIFO(new QEvent(-1)); // We send a 'stop' signal
+			eventQueue.EnqueueFifo(new QEvent(new Signal("Stop"))); // We send a 'stop' signal
 			eventLoop.Join(); // Wait until the event loop is done
 
 			QEvent[] handledEvents = eventLoop.HandledEvents;
@@ -62,7 +63,7 @@ namespace UnitTests
 			// we check that the events were handled in the correct order
 			for(int i = 0; i < numQEvents; i++)
 			{
-				Assertion.AssertEquals("Expected QEvent", qEvents[i], handledEvents[i]);
+				Assert.Equals(qEvents[i], handledEvents[i]); //"Expected QEvent"
 			}
 		}
 
@@ -70,34 +71,32 @@ namespace UnitTests
 
 		private class EventLoop
 		{
-			private ArrayList m_HandledEvents;
-			private IQEventQueue m_EventQueue;
-			private Thread m_WorkerThread;
+			private readonly ArrayList    _handledEvents;
+			private readonly IQEventQueue _eventQueue;
+			private readonly Thread       _workerThread;
 
 			internal EventLoop(IQEventQueue eventQueue)
 			{
-				m_HandledEvents = new ArrayList();
-				m_EventQueue = eventQueue;
-				m_WorkerThread = new Thread(new ThreadStart(this.HandleEvents));
-				m_WorkerThread.Start();
+				_handledEvents = new ArrayList();
+				_eventQueue = eventQueue;
+				_workerThread = new Thread(new ThreadStart(this.HandleEvents));
+				_workerThread.Start();
 			}
 
 			internal void HandleEvents()
 			{
 				while(true)
 				{
-					lock(m_HandledEvents)
+					lock(_handledEvents)
 					{
-						IQEvent qEvent = m_EventQueue.DeQueue();
+						IQEvent qEvent = _eventQueue.DeQueue();
 						if (qEvent.QSignal == -1)
 						{
 							// we use a signal value of -1 to indicate that the loop should stop
 							break;
 						}
-						else
-						{
-							m_HandledEvents.Add(qEvent);
-						}
+
+						_handledEvents.Add(qEvent);
 					}
 				}
 			}
@@ -107,16 +106,16 @@ namespace UnitTests
 			/// </summary>
 			internal void Join()
 			{
-				m_WorkerThread.Join();
+				_workerThread.Join();
 			}
 
 			internal QEvent[] HandledEvents
 			{
 				get
 				{
-					lock(m_HandledEvents)
+					lock(_handledEvents)
 					{
-						return (QEvent[])m_HandledEvents.ToArray(typeof(QEvent));
+						return (QEvent[])_handledEvents.ToArray(typeof(QEvent));
 					}
 				}
 			}

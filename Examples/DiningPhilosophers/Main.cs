@@ -17,7 +17,7 @@ namespace DiningPhilosophers
 		static void Main(string[] args)
 		{
             DPPSignal _signals = new DPPSignal();
-            QF.Instance.Initialize(Signal.MaxSignalCount);
+            Qf.Instance.Initialize(Signal.MaxSignalCount);
 
 			IQActive table = new Table(c_NumberOfPhilosophers);
 			IQActive[] philosophers = new IQActive[c_NumberOfPhilosophers];

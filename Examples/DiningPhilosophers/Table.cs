@@ -38,8 +38,8 @@ namespace DiningPhilosophers
 		{
 			Thread.CurrentThread.Name = this.ToString();
 			// Subscribe for the relevant events raised by philosophers
-			QF.Instance.Subscribe(this, DPPSignal.Hungry);
-			QF.Instance.Subscribe(this, DPPSignal.Done);
+			Qf.Instance.Subscribe(this, DPPSignal.Hungry);
+			Qf.Instance.Subscribe(this, DPPSignal.Done);
 
 			InitializeState(m_StateServing); // initial transition			
 		}
@@ -114,7 +114,7 @@ namespace DiningPhilosophers
 			TableEvent tableEvent = new TableEvent(DPPSignal.Eat, philosopherId);
 			Debug.WriteLine(String.Format("Table publishes Eat event for Philosopher {0}.", philosopherId));
 
-			QF.Instance.Publish(tableEvent);
+			Qf.Instance.Publish(tableEvent);
 			Console.WriteLine(String.Format("Philosopher {0} is eating.", philosopherId));
 		}
 
@@ -150,5 +150,7 @@ namespace DiningPhilosophers
 		{
 			return "Table";
 		}
+
+		protected override void HsmUnhandledException(Exception e) { throw new NotImplementedException(); }
 	}
 }
