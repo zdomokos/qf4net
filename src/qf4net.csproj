@@ -5,5 +5,23 @@
     <LangVersion>10</LangVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Configurations>Debug;Release</Configurations>
+    <Title>qf4net</Title>
+    <Description>C# port of Miro Samek's Quantum Framework including his excellent implementation of a hierarchical state machine.  
+Updated version of https://sourceforge.net/projects/qf4net/</Description>
+    <Copyright>Copyright (C) 2003-2004, The qf4net Team</Copyright>
+    <PackageProjectUrl>https://sourceforge.net/projects/qf4net</PackageProjectUrl>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/zdomokos/qf4net</RepositoryUrl>
+    <PackageTags>statecharts;statemachine;quantum-framework;</PackageTags>
+    <AssemblyVersion>23.6.2.1</AssemblyVersion>
+    <FileVersion>23.6.2.1</FileVersion>
+    <Version>23.6.2</Version>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\readme.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 </Project>
