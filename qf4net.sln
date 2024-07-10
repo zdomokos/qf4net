@@ -1,10 +1,13 @@
-﻿				
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qf4net", "src\qf4net.csproj", "{DE939421-BD60-4021-B3AD-4CEB9089A9B5}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "tests\UnitTests.csproj", "{EC09CB13-D45E-4B55-8CBF-088042A6645B}"
-EndProject
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{6B10D6CE-BBE3-43C6-A2DC-C5930D1FD264}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qf4net", "src\qf4net.csproj", "{DE939421-BD60-4021-B3AD-4CEB9089A9B5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "tests\UnitTests.csproj", "{EC09CB13-D45E-4B55-8CBF-088042A6645B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculatorHSM", "Examples\CalculatorHSM\CalculatorHSM.csproj", "{DA9CE249-A93C-41E5-A22A-3F2D18A2B43C}"
 EndProject
@@ -63,6 +66,9 @@ Global
 		{F2DF4102-828E-4E77-9001-16B3FE81843C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2DF4102-828E-4E77-9001-16B3FE81843C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DA9CE249-A93C-41E5-A22A-3F2D18A2B43C} = {6B10D6CE-BBE3-43C6-A2DC-C5930D1FD264}
 		{E62997C7-D539-46DD-A912-FD46EA5CEE46} = {6B10D6CE-BBE3-43C6-A2DC-C5930D1FD264}
@@ -71,5 +77,8 @@ Global
 		{C4DC0A10-0918-4B73-9F2C-B7F4A17110BF} = {6B10D6CE-BBE3-43C6-A2DC-C5930D1FD264}
 		{86F03AD4-EE90-469B-A445-6E110D6B3785} = {6B10D6CE-BBE3-43C6-A2DC-C5930D1FD264}
 		{F2DF4102-828E-4E77-9001-16B3FE81843C} = {6B10D6CE-BBE3-43C6-A2DC-C5930D1FD264}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2F3C1950-0FAA-4C56-9A43-8ED60BAF5574}
 	EndGlobalSection
 EndGlobal

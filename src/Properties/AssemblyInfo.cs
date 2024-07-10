@@ -29,7 +29,7 @@ using System.Reflection;
 // You can specify all the values or you can default the Revision and Build Numbers 
 // by using the '*' as shown below:
 
-[assembly: AssemblyVersion(version: "24.5.8.1")]
+[assembly: AssemblyVersion(version: "24.7.9.1")]
 
 //
 // In order to sign your assembly you must specify a key to use. Refer to the 

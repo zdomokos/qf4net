@@ -13,10 +13,11 @@ Updated version of https://sourceforge.net/projects/qf4net/</Description>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/zdomokos/qf4net</RepositoryUrl>
     <PackageTags>statecharts;statemachine;quantum-framework;</PackageTags>
-    <AssemblyVersion>24.5.8.1</AssemblyVersion>
+    <AssemblyVersion>24.7.9.1</AssemblyVersion>
     <FileVersion>24.5.8.1</FileVersion>
-    <Version>24.5.8</Version>
+    <Version>24.7.9</Version>
     <RepositoryType>git</RepositoryType>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\readme.md">

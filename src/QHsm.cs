@@ -184,10 +184,11 @@ namespace qf4net
             // We let the event bubble up the chain until it is handled by a state handler
             try
             {
+                int level = 0;
                 _mMySourceStateMethod = _mMyStateMethod;
                 while(_mMySourceStateMethod != null)
                 {
-                    StateTrace(_mMySourceStateMethod, qEvent.QSignal); // ZTG-added
+                    StateTrace(_mMySourceStateMethod, qEvent.QSignal, ++level); // ZTG-added
                     QState state = (QState)_mMySourceStateMethod.Invoke(this, new object[] { qEvent } );
                     if (state != null)
                     {
@@ -906,7 +907,7 @@ namespace qf4net
         #endregion
 
         #region ZTG-Added
-        protected virtual void StateTrace(MethodInfo state, Signal signal)
+        protected virtual void StateTrace(MethodInfo state, Signal signal, int level = 0)
         {
         }
         #endregion
