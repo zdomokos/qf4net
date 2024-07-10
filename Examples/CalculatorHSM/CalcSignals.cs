@@ -20,7 +20,7 @@ namespace CalculatorHSM
 
 	public sealed class CalcSignal
 	{
-		public static int GetSignal(char c)
+		public static Signal GetSignal(char c)
 		{
 			if (Char.IsDigit(c))
 			{

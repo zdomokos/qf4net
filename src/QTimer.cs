@@ -51,7 +51,7 @@ namespace qf4net
 	/// <summary>
 	/// Summary description for QTimer.
 	/// </summary>
-	public class QTimer
+	public class QTimer : IDisposable
 	{
 		private IQActive _mQActive;
 		private Timer _mTimer;
@@ -73,6 +73,11 @@ namespace qf4net
 				);
 		}
 
+		public void Dispose()
+		{
+			_mTimer?.Dispose();
+		}
+		
 		/// <summary>
 		/// Arms the <see cref="QTimer"/> to perform a one-time timeout.
 		/// </summary>
@@ -168,6 +173,5 @@ namespace qf4net
 				}
 			}
 		}
-
 	}
 }

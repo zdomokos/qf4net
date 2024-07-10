@@ -13,9 +13,9 @@ Updated version of https://sourceforge.net/projects/qf4net/</Description>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/zdomokos/qf4net</RepositoryUrl>
     <PackageTags>statecharts;statemachine;quantum-framework;</PackageTags>
-    <AssemblyVersion>23.6.2.1</AssemblyVersion>
-    <FileVersion>23.6.2.1</FileVersion>
-    <Version>23.6.2</Version>
+    <AssemblyVersion>24.5.8.1</AssemblyVersion>
+    <FileVersion>24.5.8.1</FileVersion>
+    <Version>24.5.8</Version>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
   <ItemGroup>
