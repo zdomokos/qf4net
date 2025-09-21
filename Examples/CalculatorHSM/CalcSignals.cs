@@ -1,72 +1,71 @@
 using System;
 using qf4net;
 
-namespace CalculatorHSM
+namespace CalculatorHSM;
+
+public class CalcSignals : QSignals
 {
-    public enum CalcSignals : int
-    {
-        ZeroDigit = 100, //QSignals.UserSig, //enum values must start at UserSig value or greater
-        NonZeroDigit,
-        DecimalPoint,
-        EqualSign,
-        Operator,
+    public static readonly Signal ZeroDigit    = new(nameof(ZeroDigit));
+    public static readonly Signal NonZeroDigit = new(nameof(NonZeroDigit));
+    public static readonly Signal DecimalPoint = new(nameof(DecimalPoint));
+    public static readonly Signal EqualSign    = new(nameof(EqualSign));
+    public static readonly Signal Operator     = new(nameof(Operator));
+    public static readonly Signal ClearAll     = new(nameof(ClearAll));
+    public static readonly Signal ClearEntry   = new(nameof(ClearEntry));
+    public static readonly Signal Quit         = new(nameof(Quit));
+}
 
-        //		IDC_PERCENT,
-        ClearAll,
-        ClearEntry,
-        Quit,
-    } //CalcSignals
-
-    public sealed class CalcSignal
+public sealed class CalcSignal
+{
+    public static Signal GetSignal(char c)
     {
-        public static Signal GetSignal(char c)
+        if (char.IsDigit(c))
         {
-            if (Char.IsDigit(c))
+            if (c == '0')
             {
-                if (c == '0')
-                {
-                    return (int)CalcSignals.ZeroDigit;
-                }
-                return (int)CalcSignals.NonZeroDigit;
+                return CalcSignals.ZeroDigit;
             }
 
-            if (c == '.')
-            {
-                return (int)CalcSignals.DecimalPoint;
-            }
+            return CalcSignals.NonZeroDigit;
+        }
 
-            if (c == '=')
-            {
-                return (int)CalcSignals.EqualSign;
-            }
+        if (c == '.')
+        {
+            return CalcSignals.DecimalPoint;
+        }
 
-            if (
+        if (c == '=')
+        {
+            return CalcSignals.EqualSign;
+        }
+
+        if (
                 c == '+'
-                || c == '-'
-                || c == '*'
-                || //c == 'x' || c == 'X' || //could add various multiplication characters
+             || c == '-'
+             || c == '*'
+             || //c == 'x' || c == 'X' || //could add various multiplication characters
                 c == '/'
             )
-            {
-                return (int)CalcSignals.Operator;
-            }
+        {
+            return CalcSignals.Operator;
+        }
 
-            if (c == 'C' || c == 'c')
-            {
-                return (int)CalcSignals.ClearAll;
-            }
+        if (c is 'C' or 'c')
+        {
+            return CalcSignals.ClearAll;
+        }
 
-            if (c == 'E' || c == 'e')
-            {
-                return (int)CalcSignals.ClearEntry;
-            }
+        if (c is 'E' or 'e')
+        {
+            return CalcSignals.ClearEntry;
+        }
 
-            if (c == 'Q' || c == 'q')
-            {
-                return (int)CalcSignals.Quit;
-            }
+        if (c is 'Q' or 'q')
+        {
+            return CalcSignals.Quit;
+        }
 
-            return -1;
-        } //GetSignal
-    } //CalcSignal
-} //namespace CalculatorHSM
+        return null; // TODO: this was -1, don't what the right signa is
+    } //GetSignal
+}     //CalcSignal
+//namespace CalculatorHSM

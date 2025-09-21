@@ -1,144 +1,139 @@
-using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
 
-namespace qf4net
+namespace qf4net;
+
+/// <summary>
+/// The base class for Active Objects.
+/// </summary>
+public class QEventLoop : IQActive
 {
+    public event Action ExecutionAborted;
+
+    private readonly IQEventQueue            _eventQueue;
+    private          Threading.IThread       _executionThread;
+    private readonly QHsm                    _hsm;
+    private          CancellationTokenSource _cancellationTokenSource;
+
     /// <summary>
-    /// The base class for Active Objects.
+    /// Initializes a new instance of the <see cref="QEventLoop"/> class.
     /// </summary>
-    public class QEventLoop : IQActive
+    public QEventLoop(QHsm hsm)
     {
-        public event Action ExecutionAborted;
+        _hsm        = hsm;
+        _eventQueue = EventQueueFactory.GetEventQueue();
+    }
 
-        private readonly IQEventQueue _eventQueue;
-        private int _priority;
-        private Threading.IThread _executionThread;
-        private QHsm _hsm;
-        private CancellationTokenSource _cancellationTokenSource;
+    #region IQEventLoop Members
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="QEventLoop"/> class.
-        /// </summary>
-        public QEventLoop(QHsm hsm)
+    /// <summary>
+    /// Start the <see cref="IQEventLoop"/> object's thread of execution. The caller needs to assign a unique
+    /// priority to every <see cref="IQEventLoop"/> object in the system.
+    /// </summary>
+    /// <param name="priority">The priority associated with this <see cref="IQEventLoop"/> object.</param>
+    // TODO: Are there more flexible ways to handle the priority? Does it really need to be unique in the whole process / system?
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public virtual void Start(int priority)
+    {
+        if (_executionThread != null)
         {
-            _hsm = hsm;
-            _eventQueue = EventQueueFactory.GetEventQueue();
+            throw new InvalidOperationException("This active object is already started. The Start method can only be invoked once.");
         }
 
-        #region IQEventLoop Members
-
-        /// <summary>
-        /// Start the <see cref="IQEventLoop"/> object's thread of execution. The caller needs to assign a unique
-        /// priority to every <see cref="IQEventLoop"/> object in the system.
-        /// </summary>
-        /// <param name="priority">The priority associated with this <see cref="IQEventLoop"/> object.</param>
-        // TODO: Are there more flexible ways to handle the priority? Does it really need to be unique in the whole process / system?
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public virtual void Start(int priority)
+        // Note: We use the datatype int for the priority since uint is not CLS compliant
+        if (priority < 0)
         {
-            if (_executionThread != null)
+            throw new ArgumentException("The priority of an Active Object cannot be negative.", nameof(priority));
+        }
+
+        Priority = priority;
+        // TODO: Leverage the priority
+        _cancellationTokenSource = new CancellationTokenSource();
+        _executionThread         = Threading.ThreadFactory.GetThread(0, DoEventLoop);
+        _executionThread.Start();
+    }
+
+    /// <summary>
+    /// The priority associated with this <see cref="IQEventLoop"/> object. Once the <see cref="IQEventLoop"/> object
+    /// is started the priority is non-negative. For an <see cref="IQEventLoop"/> object that has not yet been started
+    /// the value -1 is returned as the priority.
+    /// </summary>
+    public int Priority { get; private set; }
+
+    /// <summary>
+    /// Post the <see paramref="qEvent"/> directly to the <see cref="IQEventLoop"/> object's event queue
+    /// using the FIFO (First In First Out) policy.
+    /// </summary>
+    /// <param name="qEvent"></param>
+    public void PostFifo(IQEvent qEvent)
+    {
+        _eventQueue.EnqueueFifo(qEvent);
+    }
+
+    /// <summary>
+    /// Post the <see paramref="qEvent"/> directly to the <see cref="IQEventLoop"/> object's event queue
+    /// using the LIFO (Last In First Out) policy.
+    /// </summary>
+    /// <param name="qEvent"></param>
+    public void PostLifo(IQEvent qEvent)
+    {
+        _eventQueue.EnqueueLifo(qEvent);
+    }
+
+    #endregion
+
+    /// <summary>
+    /// This method is executed on the dedicated thread of this <see cref="QEventLoop"/> instance.
+    /// </summary>
+    private void DoEventLoop()
+    {
+        _hsm.Init();
+        // Once initialized we kick off our event loop
+        try
+        {
+            while (!_cancellationTokenSource.Token.IsCancellationRequested)
             {
-                throw new InvalidOperationException(
-                    "This active object is already started. The Start method can only be invoked once."
-                );
-            }
-
-            // Note: We use the datatype int for the priority since uint is not CLS compliant
-            if (priority < 0)
-            {
-                throw new ArgumentException(
-                    "The priority of an Active Object cannot be negative.",
-                    "priority"
-                );
-            }
-            _priority = priority;
-            // TODO: Leverage the priority
-            _cancellationTokenSource = new CancellationTokenSource();
-            _executionThread = Threading.ThreadFactory.GetThread(0, this.DoEventLoop);
-            _executionThread.Start();
-        }
-
-        /// <summary>
-        /// The priority associated with this <see cref="IQEventLoop"/> object. Once the <see cref="IQEventLoop"/> object
-        /// is started the priority is non-negative. For an <see cref="IQEventLoop"/> object that has not yet been started
-        /// the value -1 is returned as the priority.
-        /// </summary>
-        public int Priority => _priority;
-
-        /// <summary>
-        /// Post the <see paramref="qEvent"/> directly to the <see cref="IQEventLoop"/> object's event queue
-        /// using the FIFO (First In First Out) policy.
-        /// </summary>
-        /// <param name="qEvent"></param>
-        public void PostFifo(IQEvent qEvent)
-        {
-            _eventQueue.EnqueueFifo(qEvent);
-        }
-
-        /// <summary>
-        /// Post the <see paramref="qEvent"/> directly to the <see cref="IQEventLoop"/> object's event queue
-        /// using the LIFO (Last In First Out) policy.
-        /// </summary>
-        /// <param name="qEvent"></param>
-        public void PostLifo(IQEvent qEvent)
-        {
-            _eventQueue.EnqueueLifo(qEvent);
-        }
-
-        #endregion
-
-        /// <summary>
-        /// This method is executed on the dedicated thread of this <see cref="QEventLoop"/> instance.
-        /// </summary>
-        private void DoEventLoop()
-        {
-            _hsm.Init();
-            // Once initialized we kick off our event loop
-            try
-            {
-                while (!_cancellationTokenSource.Token.IsCancellationRequested)
+                var qEvent = _eventQueue.DeQueue(); // this blocks if there are no events in the queue
+                //Debug.WriteLine(String.Format("Dispatching {0} on thread {1}.", qEvent.ToString(), Thread.CurrentThread.Name));
+                if (qEvent.IsSignal(QSignals.Terminate))
                 {
-                    IQEvent qEvent = _eventQueue.DeQueue(); // this blocks if there are no events in the queue
-                    //Debug.WriteLine(String.Format("Dispatching {0} on thread {1}.", qEvent.ToString(), Thread.CurrentThread.Name));
-                    if (qEvent.IsSignal(QSignals.Terminate))
-                        break;
-                    _hsm.Dispatch(qEvent);
-                    // QF.Propagate(qEvent);
+                    break;
                 }
+
+                _hsm.Dispatch(qEvent);
+                // QF.Propagate(qEvent);
             }
-            catch (OperationCanceledException)
-            {
-                // Expected when cancellation is requested
-                _executionThread = null;
-            }
-
-            // The QEventLoop object ends
-            OnExecutionAborted();
         }
-
-        /// <summary>
-        /// Cancels the execution thread. Nothing happens thereafter!
-        /// </summary>
-        internal void Abort()
+        catch (OperationCanceledException)
         {
-            // QF.Remove(this);
-            _cancellationTokenSource?.Cancel();
-        }
-
-        internal void Join()
-        {
-            _executionThread.Join();
+            // Expected when cancellation is requested
             _executionThread = null;
         }
 
-        /// <summary>
-        /// Allows a deriving class to react to the fact that the execution
-        /// of the active object has been aborted.
-        /// </summary>
-        private void OnExecutionAborted()
-        {
-            ExecutionAborted?.Invoke();
-        }
+        // The QEventLoop object ends
+        OnExecutionAborted();
+    }
+
+    /// <summary>
+    /// Cancels the execution thread. Nothing happens thereafter!
+    /// </summary>
+    internal void Abort()
+    {
+        // QF.Remove(this);
+        _cancellationTokenSource?.Cancel();
+    }
+
+    internal void Join()
+    {
+        _executionThread.Join();
+        _executionThread = null;
+    }
+
+    /// <summary>
+    /// Allows a deriving class to react to the fact that the execution
+    /// of the active object has been aborted.
+    /// </summary>
+    private void OnExecutionAborted()
+    {
+        ExecutionAborted?.Invoke();
     }
 }

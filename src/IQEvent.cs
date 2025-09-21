@@ -43,30 +43,29 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-namespace qf4net
+namespace qf4net;
+
+/// <summary>
+/// Interface that a class that can be used for QEvent instances needs to implement.
+/// </summary>
+public interface IQEvent
 {
     /// <summary>
-    /// Interface that a class that can be used for QEvent instances needs to implement.
+    /// The identifier of the <see cref="IQEvent"/> type.
     /// </summary>
-    public interface IQEvent
-    {
-        /// <summary>
-        /// The identifier of the <see cref="IQEvent"/> type.
-        /// </summary>
-        Signal QSignal { get; }
+    Signal QSignal { get; }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="sig"></param>
-        /// <returns></returns>
-        bool IsSignal(Signal sig);
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="sig"></param>
+    /// <returns></returns>
+    bool IsSignal(Signal sig);
 
-        /// <summary>
-        /// The <see cref="IQEvent"/> instance in string form. It should be implemented to allow for simpler
-        /// debugging and logging.
-        /// </summary>
-        /// <returns>The string representation of the <see cref="IQEvent"/> instance.</returns>
-        string ToString();
-    }
+    /// <summary>
+    /// The <see cref="IQEvent"/> instance in string form. It should be implemented to allow for simpler
+    /// debugging and logging.
+    /// </summary>
+    /// <returns>The string representation of the <see cref="IQEvent"/> instance.</returns>
+    string ToString();
 }

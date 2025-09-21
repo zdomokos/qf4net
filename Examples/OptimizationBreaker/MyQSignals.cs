@@ -1,11 +1,9 @@
-using System;
 using qf4net;
 
-namespace OptimizationBreaker
+namespace OptimizationBreaker;
+
+public class MyQSignals : QSignals
 {
-    public enum MyQSignals : int
-    {
-        Sig1 = QSignals.UserSig,
-        Sig2,
-    };
+    public static readonly Signal Sig1 = new(nameof(Sig1));
+    public static readonly Signal Sig2 = new(nameof(Sig2));
 }

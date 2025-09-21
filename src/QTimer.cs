@@ -43,148 +43,121 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-using System;
-using System.Threading;
+namespace qf4net;
 
-namespace qf4net
+/// <summary>
+/// Summary description for QTimer.
+/// </summary>
+public class QTimer : IDisposable
 {
+    private readonly IQActive _qActive;
+    private readonly Timer    _timer;
+    private          IQEvent  _qEvent;
+
     /// <summary>
-    /// Summary description for QTimer.
+    /// Creates a new <see cref="QTimer"/> instance.
     /// </summary>
-    public class QTimer : IDisposable
+    /// <param name="qActive">The <see cref="IQActive"/> object that owns this <see cref="QTimer"/>; this is also
+    /// the <see cref="IQActive"/> object that will receive the timer based events.</param>
+    public QTimer(IQActive qActive)
     {
-        private IQActive _mQActive;
-        private Timer _mTimer;
-        private IQEvent _mQEvent;
+        _qActive = qActive;
+        _timer = new Timer(
+                           OnTimer,
+                           null,             // we don't need a state object
+                           Timeout.Infinite, // don't start yet
+                           Timeout.Infinite  // no periodic firing
+                          );
+    }
 
-        /// <summary>
-        /// Creates a new <see cref="QTimer"/> instance.
-        /// </summary>
-        /// <param name="qActive">The <see cref="IQActive"/> object that owns this <see cref="QTimer"/>; this is also
-        /// the <see cref="IQActive"/> object that will receive the timer based events.</param>
-        public QTimer(IQActive qActive)
-        {
-            _mQActive = qActive;
-            _mTimer = new Timer(
-                this.OnTimer,
-                null, // we don't need a state object
-                Timeout.Infinite, // don't start yet
-                Timeout.Infinite // no periodic firing
-            );
-        }
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
 
-        public void Dispose()
+    /// <summary>
+    /// Arms the <see cref="QTimer"/> to perform a one-time timeout.
+    /// </summary>
+    /// <param name="timeSpan">The <see cref="TimeSpan"/> to wait before the timeout occurs.</param>
+    /// <param name="qEvent">The <see cref="IQEvent"/> to post into the associated <see cref="IQActive"/>
+    /// object when the timeout occurs.</param>
+    public void FireIn(TimeSpan timeSpan, IQEvent qEvent)
+    {
+        lock (_timer)
         {
-            _mTimer?.Dispose();
-        }
-
-        /// <summary>
-        /// Arms the <see cref="QTimer"/> to perform a one-time timeout.
-        /// </summary>
-        /// <param name="timeSpan">The <see cref="TimeSpan"/> to wait before the timeout occurs.</param>
-        /// <param name="qEvent">The <see cref="IQEvent"/> to post into the associated <see cref="IQActive"/>
-        /// object when the timeout occurs.</param>
-        public void FireIn(TimeSpan timeSpan, IQEvent qEvent)
-        {
-            lock (_mTimer)
+            if (!(timeSpan > TimeSpan.Zero))
             {
-                if (qEvent == null)
-                {
-                    throw new ArgumentException(
-                        "The provided IQEvent instance must not be null",
-                        "qEvent"
-                    );
-                }
-
-                if (!(timeSpan > TimeSpan.Zero))
-                {
-                    throw new ArgumentException(
-                        "The provided timespan must be positive",
-                        "timeSpan"
-                    );
-                }
-
-                _mQEvent = qEvent;
-                _mTimer.Change(timeSpan, new TimeSpan(-1));
+                throw new ArgumentException("The provided timespan must be positive", nameof(timeSpan));
             }
+
+            _qEvent = qEvent ?? throw new ArgumentException("The provided IQEvent instance must not be null", nameof(qEvent));
+            _timer.Change(timeSpan, new TimeSpan(-1));
         }
+    }
 
-        /// <summary>
-        /// Arms the <see cref="QTimer"/> to perform a periodic timeout.
-        /// </summary>
-        /// <param name="timeSpan">The <see cref="TimeSpan"/> interval between individual timeouts.</param>
-        /// <param name="qEvent">The <see cref="IQEvent"/> to post into the associated <see cref="IQActive"/>
-        /// object when the timeout occurs.</param>
-        public void FireEvery(TimeSpan timeSpan, IQEvent qEvent)
+    /// <summary>
+    /// Arms the <see cref="QTimer"/> to perform a periodic timeout.
+    /// </summary>
+    /// <param name="timeSpan">The <see cref="TimeSpan"/> interval between individual timeouts.</param>
+    /// <param name="qEvent">The <see cref="IQEvent"/> to post into the associated <see cref="IQActive"/>
+    /// object when the timeout occurs.</param>
+    public void FireEvery(TimeSpan timeSpan, IQEvent qEvent)
+    {
+        lock (_timer)
         {
-            lock (_mTimer)
+            if (!(timeSpan > TimeSpan.Zero))
             {
-                if (qEvent == null)
-                {
-                    throw new ArgumentException(
-                        "The provided IQEvent instance must not be null",
-                        "qEvent"
-                    );
-                }
-
-                if (!(timeSpan > TimeSpan.Zero))
-                {
-                    throw new ArgumentException(
-                        "The provided timespan must be positive",
-                        "timeSpan"
-                    );
-                }
-
-                _mQEvent = qEvent;
-                _mTimer.Change(timeSpan, timeSpan);
+                throw new ArgumentException("The provided timespan must be positive", nameof(timeSpan));
             }
-        }
 
-        /// <summary>
-        /// Disarms the timer.
-        /// </summary>
-        public void Disarm()
+            _qEvent = qEvent ?? throw new ArgumentException("The provided IQEvent instance must not be null", nameof(qEvent));
+            _timer.Change(timeSpan, timeSpan);
+        }
+    }
+
+    /// <summary>
+    /// Disarms the timer.
+    /// </summary>
+    public void Disarm()
+    {
+        lock (_timer)
         {
-            lock (_mTimer)
+            _timer.Change(Timeout.Infinite, Timeout.Infinite);
+            // Since a timer performs the callback on a thread of the thread pool we could have a race condition
+            // between stopping (disarming) a timer and the callback being invoked afterwards.
+            // We circumvent this problem by changing the event to null.
+            _qEvent = null;
+        }
+    }
+
+    /// <summary>
+    /// Rearms the timer as a one-shot timer.
+    /// </summary>
+    /// <param name="timeSpan">The <see cref="TimeSpan"/> to wait before the timeout occurs.</param>
+    public void Rearm(TimeSpan timeSpan)
+    {
+        lock (_timer)
+        {
+            if (_qEvent == null)
             {
-                _mTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                // Since a timer performs the callback on a thread of the thread pool we could have a race condition
-                // between stopping (disarming) a timer and the callback being invoked afterwards.
-                // We circumvent this problem by changing the event to null.
-                _mQEvent = null;
+                throw new InvalidOperationException("The QTimer must first be armed before it can be re-armed.");
             }
-        }
 
-        /// <summary>
-        /// Rearms the timer as a one-shot timer.
-        /// </summary>
-        /// <param name="timeSpan">The <see cref="TimeSpan"/> to wait before the timeout occurs.</param>
-        public void Rearm(TimeSpan timeSpan)
-        {
-            lock (_mTimer)
-            {
-                if (_mQEvent == null)
-                {
-                    throw new InvalidOperationException(
-                        "The QTimer must first be armed before it can be re-armed."
-                    );
-                }
-                _mTimer.Change(timeSpan, new TimeSpan(-1));
-            }
+            _timer.Change(timeSpan, new TimeSpan(-1));
         }
+    }
 
-        /// <summary>
-        /// Callback for the timer event
-        /// </summary>
-        /// <param name="state"></param>
-        private void OnTimer(object state)
+    /// <summary>
+    /// Callback for the timer event
+    /// </summary>
+    /// <param name="state"></param>
+    private void OnTimer(object state)
+    {
+        lock (_timer)
         {
-            lock (_mTimer)
+            if (_qEvent != null)
             {
-                if (_mQEvent != null)
-                {
-                    _mQActive.PostFifo(_mQEvent);
-                }
+                _qActive.PostFifo(_qEvent);
             }
         }
     }

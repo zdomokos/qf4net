@@ -43,143 +43,133 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace qf4net
+namespace qf4net;
+
+/// <summary>
+/// QF singleton. This is the class that handles the delivery of events.
+/// </summary>
+public class Qf : IQf
 {
+    // Implementation of not-quite lazy, but thread-safe singleton pattern without using locks
+    // See http://www.yoda.arachsys.com/csharp/singleton.html for details
+    private static readonly Qf                          SInstance = new(); // holds reference to the singleton instance
+    private                 SortedList<int, IQActive>[] _signalSubscribers;
+
+    // Explicit static constructor to tell C# compiler
+    // not to mark type as beforefieldinit
+    static Qf() { }
+
+    private Qf() { }
+
     /// <summary>
-    /// QF singleton. This is the class that handles the delivery of events.
+    /// Allows a client application to get the instance of the singleton <see cref="IQf"/>.
     /// </summary>
-    public class Qf : IQf
+    /// <returns>Reference to the singleton <see cref="IQf"/> instance.</returns>
+    public static IQf Instance => SInstance;
+
+    #region IQF Members
+
+    /// <summary>
+    /// Initializes the the quantum framework. Must be called exactly once before any of the other methods on
+    /// <see cref="IQf"/> can be used.
+    /// </summary>
+    /// <param name="maxSignal">The maximal signal that the <see cref="IQf"/> must be able to handle.</param>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public void Initialize(int maxSignal)
     {
-        // Implementation of not-quite lazy, but thread-safe singleton pattern without using locks
-        // See http://www.yoda.arachsys.com/csharp/singleton.html for details
-        private static readonly Qf SInstance = new Qf(); // holds reference to the singleton instance
-        private SortedList<int, IQActive>[] _mSignalSubscribers;
-
-        // Explicit static constructor to tell C# compiler
-        // not to mark type as beforefieldinit
-        static Qf() { }
-
-        private Qf() { }
-
-        /// <summary>
-        /// Allows a client application to get the instance of the singleton <see cref="IQf"/>.
-        /// </summary>
-        /// <returns>Reference to the singleton <see cref="IQf"/> instance.</returns>
-        public static IQf Instance => SInstance;
-
-        #region IQF Members
-
-        /// <summary>
-        /// Initializes the the quantum framework. Must be called exactly once before any of the other methods on
-        /// <see cref="IQf"/> can be used.
-        /// </summary>
-        /// <param name="maxSignal">The maximal signal that the <see cref="IQf"/> must be able to handle.</param>
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public void Initialize(int maxSignal)
+        if (_signalSubscribers != null)
         {
-            if (_mSignalSubscribers != null)
-            {
-                // Initialize was called before
-                throw new InvalidOperationException(
-                    "The Initialize method can only be called once."
-                );
-            }
-            _mSignalSubscribers = new SortedList<int, IQActive>[maxSignal + 1];
+            // Initialize was called before
+            throw new InvalidOperationException( "The Initialize method can only be called once." );
         }
+        _signalSubscribers = new SortedList<int, IQActive>[maxSignal + 1];
+    }
 
-        /// <summary>
-        /// Allows an <see cref="IQActive"/> object to subscribe for a given signal.
-        /// </summary>
-        /// <param name="qActive">The subscribing <see cref="IQActive"/> object.</param>
-        /// <param name="qSignal">The signal to subscribe for.</param>
-        public void Subscribe(IQActive qActive, Signal qSignal)
+    /// <summary>
+    /// Allows an <see cref="IQActive"/> object to subscribe for a given signal.
+    /// </summary>
+    /// <param name="qActive">The subscribing <see cref="IQActive"/> object.</param>
+    /// <param name="qSignal">The signal to subscribe for.</param>
+    public void Subscribe(IQActive qActive, Signal qSignal)
+    {
+        //Debug.WriteLine(qActive.ToString() + " subscribes for signal " + qSignal.ToString());
+        lock (_signalSubscribers)
         {
-            //Debug.WriteLine(qActive.ToString() + " subscribes for signal " + qSignal.ToString());
-            lock (_mSignalSubscribers)
+            _signalSubscribers[qSignal] ??= [];
+            _signalSubscribers[qSignal].Add(qActive.Priority, qActive);
+        }
+    }
+
+    /// <summary>
+    /// Allows an <see cref="IQActive"/> object to unsubscribe for a given signal.
+    /// </summary>
+    /// <param name="qActive">The unsubscribing <see cref="IQActive"/> object.</param>
+    /// <param name="qSignal">The signal to unsubscribe.</param>
+    public void Unsubscribe(IQActive qActive, Signal qSignal)
+    {
+        lock (_signalSubscribers)
+        {
+            _signalSubscribers[qSignal].Remove(qActive.Priority);
+        }
+    }
+
+    /// <summary>
+    /// Allows an event source to publish an event.
+    /// </summary>
+    /// <param name="qEvent">The <see cref="QEvent"/> to publish.</param>
+    public void Publish(QEvent qEvent)
+    {
+        lock (_signalSubscribers)
+        {
+            if (qEvent.QSignal < _signalSubscribers.Length)
             {
-                if (_mSignalSubscribers[qSignal] == null)
+                var sortedSubscriberList = _signalSubscribers[
+                                                               qEvent.QSignal
+                                                              ];
+                if (sortedSubscriberList != null)
                 {
-                    // this is the first time that somebody subscribes for this signal
-                    _mSignalSubscribers[qSignal] = new SortedList<int, IQActive>();
-                }
-
-                _mSignalSubscribers[qSignal].Add(qActive.Priority, qActive);
-            }
-        }
-
-        /// <summary>
-        /// Allows an <see cref="IQActive"/> object to unsubscribe for a given signal.
-        /// </summary>
-        /// <param name="qActive">The unsubscribing <see cref="IQActive"/> object.</param>
-        /// <param name="qSignal">The signal to unsubscribe.</param>
-        public void Unsubscribe(IQActive qActive, Signal qSignal)
-        {
-            lock (_mSignalSubscribers)
-            {
-                _mSignalSubscribers[qSignal].Remove(qActive.Priority);
-            }
-        }
-
-        /// <summary>
-        /// Allows an event source to publish an event.
-        /// </summary>
-        /// <param name="qEvent">The <see cref="QEvent"/> to publish.</param>
-        public void Publish(QEvent qEvent)
-        {
-            lock (_mSignalSubscribers)
-            {
-                if (qEvent.QSignal < _mSignalSubscribers.Length)
-                {
-                    SortedList<int, IQActive> sortedSubscriberList = _mSignalSubscribers[
-                        qEvent.QSignal
-                    ];
-                    if (sortedSubscriberList != null)
+                    // For simplicity we do not use the event propagae pattern that Miro Samek uses in his implementation.
+                    // This has two consequences:
+                    // a) We rely on the Garbage Collector to clean up events that are no longer used
+                    // b) We don't have the restriction that only once instance of a given type (signal value) can be in use at any given time
+                    for (var i = 0; i < sortedSubscriberList.Count; i++)
                     {
-                        // For simplicity we do not use the event propagae pattern that Miro Samek uses in his implementation.
-                        // This has two consequences:
-                        // a) We rely on the Garbage Collector to clean up events that are no longer used
-                        // b) We don't have the restriction that only once instance of a given type (signal value) can be in use at any given time
-                        for (int i = 0; i < sortedSubscriberList.Count; i++)
-                        {
-                            IQActive subscribingQActive = sortedSubscriberList.Values[i];
-                            subscribingQActive.PostFifo(qEvent);
-                        }
+                        var subscribingQActive = sortedSubscriberList.Values[i];
+                        subscribingQActive.PostFifo(qEvent);
                     }
                 }
             }
         }
+    }
 
-        #endregion
+    #endregion
 
-        #region Helper class SubscriberList
+    #region Helper class SubscriberList
 
-        /// <summary>
-        /// This class encapsulates the storage of the inforamtion about subscribers for a given event type (signal)
-        /// </summary>
-        private class SubscriberList
+    /// <summary>
+    /// This class encapsulates the storage of the inforamtion about subscribers for a given event type (signal)
+    /// </summary>
+    private class SubscriberList
+    {
+        private readonly SortedList<int, IQActive> _mSubscriberList;
+
+        internal SubscriberList()
         {
-            private SortedList<int, IQActive> _mSubscriberList;
-
-            internal SubscriberList()
-            {
-                _mSubscriberList = new SortedList<int, IQActive>();
-            }
-
-            internal void AddSubscriber(IQActive qActive)
-            {
-                _mSubscriberList.Add(qActive.Priority, qActive);
-            }
-
-            internal void RemoveSubscriber(IQActive qActive)
-            {
-                _mSubscriberList.Remove(qActive.Priority);
-            }
+            _mSubscriberList = [];
         }
 
-        #endregion
+        internal void AddSubscriber(IQActive qActive)
+        {
+            _mSubscriberList.Add(qActive.Priority, qActive);
+        }
+
+        internal void RemoveSubscriber(IQActive qActive)
+        {
+            _mSubscriberList.Remove(qActive.Priority);
+        }
     }
+
+    #endregion
 }

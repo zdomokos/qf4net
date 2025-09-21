@@ -60,4 +60,4 @@ using System.Reflection;
 [assembly: AssemblyKeyName("")]
 
 [assembly: System.Runtime.InteropServices.ComVisible(false)]
-[assembly: System.CLSCompliant(true)]
+[assembly: CLSCompliant(true)]

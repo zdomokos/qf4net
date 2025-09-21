@@ -43,21 +43,20 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-namespace qf4net
+namespace qf4net;
+
+/// <summary>
+/// Helper class that encapsulates the creation of <see cref="IQEventQueue"/> instances. The use of a helper
+/// class (rather than directly newing up a new QEventQueue) allows us to introduce different implentation strategies
+/// event queues without affecting the client code.
+/// </summary>
+internal class EventQueueFactory
 {
     /// <summary>
-    /// Helper class that encapsulates the creation of <see cref="IQEventQueue"/> instances. The use of a helper
-    /// class (rather than directly newing up a new QEventQueue) allows us to introduce different implentation strategies
-    /// event queues without affecting the client code.
+    /// Hands out a <see cref="IQEventQueue"/> instance.
     /// </summary>
-    internal class EventQueueFactory
+    public static IQEventQueue GetEventQueue()
     {
-        /// <summary>
-        /// Hands out a <see cref="IQEventQueue"/> instance.
-        /// </summary>
-        public static IQEventQueue GetEventQueue()
-        {
-            return new QEventQueue();
-        }
+        return new QEventQueue();
     }
 }

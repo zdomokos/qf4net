@@ -43,96 +43,92 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-using System;
-using System.Threading;
+namespace qf4net.Threading;
 
-namespace qf4net.Threading
+internal class RegularThread : IThread
 {
-    internal class RegularThread : IThread
+    private readonly Thread _wrappedThread;
+
+    /// <summary>
+    /// Creates a new <see cref="ImpersonatingThread"/>
+    /// </summary>
+    /// <param name="start"></param>
+    public RegularThread(ThreadStart start)
     {
-        private Thread _mWrappedThread;
-
-        /// <summary>
-        /// Creates a new <see cref="ImpersonatingThread"/>
-        /// </summary>
-        /// <param name="start"></param>
-        public RegularThread(ThreadStart start)
+        if (start == null)
         {
-            if (start == null)
-            {
-                throw new ArgumentNullException("start");
-            }
-
-            _mWrappedThread = new Thread(start);
+            throw new ArgumentNullException(nameof(start));
         }
 
-        ///// <summary>
-        ///// Creates a new <see cref="ImpersonatingThread"/>
-        ///// </summary>
-        ///// <param name="start"></param>
-        //public RegularThread(ParameterizedThreadStart start)
-        //{
-        //    if (start == null)
-        //    {
-        //        throw new ArgumentNullException("start");
-        //    }
+        _wrappedThread = new Thread(start);
+    }
 
-        //    m_WrappedThread = new Thread(start);
-        //}
+    ///// <summary>
+    ///// Creates a new <see cref="ImpersonatingThread"/>
+    ///// </summary>
+    ///// <param name="start"></param>
+    //public RegularThread(ParameterizedThreadStart start)
+    //{
+    //    if (start == null)
+    //    {
+    //        throw new ArgumentNullException("start");
+    //    }
 
-        /// <summary>
-        /// Starts the thread
-        /// </summary>
-        public void Start()
-        {
-            _mWrappedThread.Start();
-        }
+    //    m_WrappedThread = new Thread(start);
+    //}
 
-        ///// <summary>
-        ///// Starts the thread
-        ///// </summary>
-        ///// <param name="parameter">An object that contains data to be used by the method the thread executes.</param>
-        //public void Start(object parameter)
-        //{
-        //    m_WrappedThread.Start(parameter);
-        //}
+    /// <summary>
+    /// Starts the thread
+    /// </summary>
+    public void Start()
+    {
+        _wrappedThread.Start();
+    }
 
-        /// <summary>
-        /// Blocks the calling thread until a thread terminates.
-        /// </summary>
-        public void Join()
-        {
-            _mWrappedThread.Join();
-        }
+    ///// <summary>
+    ///// Starts the thread
+    ///// </summary>
+    ///// <param name="parameter">An object that contains data to be used by the method the thread executes.</param>
+    //public void Start(object parameter)
+    //{
+    //    m_WrappedThread.Start(parameter);
+    //}
 
-        /// <summary>
-        /// Blocks the calling thread until a thread terminates or the specified time elapses.
-        /// </summary>
-        /// <param name="millisecondsTimeout"></param>
-        /// <returns></returns>
-        public bool Join(int millisecondsTimeout)
-        {
-            return _mWrappedThread.Join(millisecondsTimeout);
-        }
+    /// <summary>
+    /// Blocks the calling thread until a thread terminates.
+    /// </summary>
+    public void Join()
+    {
+        _wrappedThread.Join();
+    }
 
-        /// <summary>
-        /// Blocks the calling thread until a thread terminates or the specified time elapses.
-        /// </summary>
-        /// <param name="timeout"></param>
-        /// <returns></returns>
-        public bool Join(TimeSpan timeout)
-        {
-            return _mWrappedThread.Join(timeout);
-        }
+    /// <summary>
+    /// Blocks the calling thread until a thread terminates or the specified time elapses.
+    /// </summary>
+    /// <param name="millisecondsTimeout"></param>
+    /// <returns></returns>
+    public bool Join(int millisecondsTimeout)
+    {
+        return _wrappedThread.Join(millisecondsTimeout);
+    }
 
-        /// <summary>
-        /// This method is obsolete in .NET 8.0. Thread.Abort is no longer supported.
-        /// Use cancellation tokens instead for cooperative cancellation.
-        /// </summary>
-        [Obsolete("Thread.Abort is not supported in .NET 8.0. Use cancellation tokens for cooperative cancellation.")]
-        public void Abort()
-        {
-            throw new PlatformNotSupportedException("Thread.Abort is not supported in .NET 8.0. Use cancellation tokens for cooperative cancellation.");
-        }
+    /// <summary>
+    /// Blocks the calling thread until a thread terminates or the specified time elapses.
+    /// </summary>
+    /// <param name="timeout"></param>
+    /// <returns></returns>
+    public bool Join(TimeSpan timeout)
+    {
+        return _wrappedThread.Join(timeout);
+    }
+
+    /// <summary>
+    /// This method is obsolete in .NET 8.0. Thread.Abort is no longer supported.
+    /// Use cancellation tokens instead for cooperative cancellation.
+    /// </summary>
+    [Obsolete("Thread.Abort is not supported in .NET 8.0. Use cancellation tokens for cooperative cancellation.")]
+    public void Abort()
+    {
+        throw new PlatformNotSupportedException("Thread.Abort is not supported in .NET 8.0. Use cancellation tokens for cooperative cancellation.");
     }
 }

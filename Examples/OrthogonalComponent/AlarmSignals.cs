@@ -1,17 +1,16 @@
-using System;
 using qf4net;
 
-namespace OrthogonalComponentHsm
+namespace OrthogonalComponentHsm;
+
+public class AlarmClockSignals
 {
-    public class AlarmClockSignals
-    {
-        public static readonly Signal Time = new Signal("Time");
-        public static readonly Signal Start = new Signal("Start");
-        public static readonly Signal Alarm = new Signal("Alarm");
-        public static readonly Signal AlarmOn = new Signal("AlarmOn");
-        public static readonly Signal AlarmOff = new Signal("AlarmOff");
-        public static readonly Signal Mode12Hour = new Signal("Mode12Hour");
-        public static readonly Signal Mode24Hour = new Signal("Mode24Hour");
-        public static readonly Signal Terminate = new Signal("Terminate");
-    } //AlarmClockSignals
-} //namespace OrthogonalComponentHsm
+    public static readonly Signal Time       = new("Time");
+    public static readonly Signal Start      = new("Start");
+    public static readonly Signal Alarm      = new("Alarm");
+    public static readonly Signal AlarmOn    = new("AlarmOn");
+    public static readonly Signal AlarmOff   = new("AlarmOff");
+    public static readonly Signal Mode12Hour = new("Mode12Hour");
+    public static readonly Signal Mode24Hour = new("Mode24Hour");
+    public static readonly Signal Terminate  = new("Terminate");
+} //AlarmClockSignals
+//namespace OrthogonalComponentHsm

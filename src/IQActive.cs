@@ -43,59 +43,58 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-namespace qf4net
+namespace qf4net;
+
+/// <summary>
+/// Interface that Active Objects implement.
+/// </summary>
+public interface IQActive
 {
     /// <summary>
-    /// Interface that Active Objects implement.
+    /// Start the <see cref="IQActive"/> object's thread of execution. The caller needs to assign a unique
+    /// priority to every <see cref="IQActive"/> object in the system.
     /// </summary>
-    public interface IQActive
-    {
-        /// <summary>
-        /// Start the <see cref="IQActive"/> object's thread of execution. The caller needs to assign a unique
-        /// priority to every <see cref="IQActive"/> object in the system.
-        /// </summary>
-        /// <param name="priority">The priority associated with this <see cref="IQActive"/> object.</param>
-        // TODO: Are there more flexible ways to handle the priority? Does it really need to be unique in the whole process / system?
-        void Start(int priority);
+    /// <param name="priority">The priority associated with this <see cref="IQActive"/> object.</param>
+    // TODO: Are there more flexible ways to handle the priority? Does it really need to be unique in the whole process / system?
+    void Start(int priority);
 
-        /// <summary>
-        /// The priority associated with this <see cref="IQActive"/> object. Once the <see cref="IQActive"/> object
-        /// is started the priority is non-negative. For an <see cref="IQActive"/> object that has not yet been started
-        /// the value -1 is returned as the priority.
-        /// </summary>
-        int Priority { get; }
+    /// <summary>
+    /// The priority associated with this <see cref="IQActive"/> object. Once the <see cref="IQActive"/> object
+    /// is started the priority is non-negative. For an <see cref="IQActive"/> object that has not yet been started
+    /// the value -1 is returned as the priority.
+    /// </summary>
+    int Priority { get; }
 
-        /// <summary>
-        /// Post the <see paramref="qEvent"/> directly to the <see cref="IQActive"/> object's event queue
-        /// using the FIFO (First In First Out) policy.
-        /// </summary>
-        /// <param name="qEvent"></param>
-        void PostFifo(IQEvent qEvent);
+    /// <summary>
+    /// Post the <see paramref="qEvent"/> directly to the <see cref="IQActive"/> object's event queue
+    /// using the FIFO (First In First Out) policy.
+    /// </summary>
+    /// <param name="qEvent"></param>
+    void PostFifo(IQEvent qEvent);
 
-        /// <summary>
-        /// Post the <see paramref="qEvent"/> directly to the <see cref="IQActive"/> object's event queue
-        /// using the LIFO (Last In First Out) policy.
-        /// </summary>
-        /// <param name="qEvent"></param>
-        void PostLifo(IQEvent qEvent);
+    /// <summary>
+    /// Post the <see paramref="qEvent"/> directly to the <see cref="IQActive"/> object's event queue
+    /// using the LIFO (Last In First Out) policy.
+    /// </summary>
+    /// <param name="qEvent"></param>
+    void PostLifo(IQEvent qEvent);
 
-        ///// <summary>
-        ///// Determines whether the state machine is in the state specified by <see paramref="inquiredState"/>.
-        ///// </summary>
-        ///// <param name="inquiredState">The state to check for.</param>
-        ///// <returns>
-        ///// <see langword="true"/> if the state machine is in the specified state;
-        ///// <see langword="false"/> otherwise.
-        ///// </returns>
-        ///// <remarks>
-        ///// If the currently active state of a hierarchical state machine is s then it is in the
-        ///// state s AND all its parent states.
-        ///// </remarks>
-        //bool IsInState(QState inquiredState);
+    ///// <summary>
+    ///// Determines whether the state machine is in the state specified by <see paramref="inquiredState"/>.
+    ///// </summary>
+    ///// <param name="inquiredState">The state to check for.</param>
+    ///// <returns>
+    ///// <see langword="true"/> if the state machine is in the specified state;
+    ///// <see langword="false"/> otherwise.
+    ///// </returns>
+    ///// <remarks>
+    ///// If the currently active state of a hierarchical state machine is s then it is in the
+    ///// state s AND all its parent states.
+    ///// </remarks>
+    //bool IsInState(QState inquiredState);
 
-        ///// <summary>
-        ///// Returns the name of the (deepest) state that the state machine is currently in.
-        ///// </summary>
-        //string CurrentStateName { get; }
-    }
+    ///// <summary>
+    ///// Returns the name of the (deepest) state that the state machine is currently in.
+    ///// </summary>
+    //string CurrentStateName { get; }
 }

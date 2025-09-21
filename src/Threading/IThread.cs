@@ -43,49 +43,46 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-using System;
+namespace qf4net.Threading;
 
-namespace qf4net.Threading
+/// <summary>
+/// The interface of a thread
+/// </summary>
+public interface IThread
 {
     /// <summary>
-    /// The interface of a thread
+    /// Raises a ThreadAbortException in the thread on which it is invoked, to begin the process
+    /// of terminating the thread. Calling this method usually terminates the thread.
     /// </summary>
-    public interface IThread
-    {
-        /// <summary>
-        /// Raises a ThreadAbortException in the thread on which it is invoked, to begin the process
-        /// of terminating the thread. Calling this method usually terminates the thread.
-        /// </summary>
-        void Abort();
+    void Abort();
 
-        /// <summary>
-        /// Blocks the calling thread until a thread terminates.
-        /// </summary>
-        void Join();
+    /// <summary>
+    /// Blocks the calling thread until a thread terminates.
+    /// </summary>
+    void Join();
 
-        /// <summary>
-        /// Blocks the calling thread until a thread terminates or the specified time elapses.
-        /// </summary>
-        /// <param name="millisecondsTimeout"></param>
-        /// <returns></returns>
-        bool Join(int millisecondsTimeout);
+    /// <summary>
+    /// Blocks the calling thread until a thread terminates or the specified time elapses.
+    /// </summary>
+    /// <param name="millisecondsTimeout"></param>
+    /// <returns></returns>
+    bool Join(int millisecondsTimeout);
 
-        /// <summary>
-        /// Blocks the calling thread until a thread terminates or the specified time elapses.
-        /// </summary>
-        /// <param name="timeout"></param>
-        /// <returns></returns>
-        bool Join(TimeSpan timeout);
+    /// <summary>
+    /// Blocks the calling thread until a thread terminates or the specified time elapses.
+    /// </summary>
+    /// <param name="timeout"></param>
+    /// <returns></returns>
+    bool Join(TimeSpan timeout);
 
-        /// <summary>
-        /// Starts the thread
-        /// </summary>
-        void Start();
+    /// <summary>
+    /// Starts the thread
+    /// </summary>
+    void Start();
 
-        ///// <summary>
-        ///// Starts the thread
-        ///// </summary>
-        ///// <param name="parameter">An object that contains data to be used by the method the thread executes.</param>
-        //void Start(object parameter);
-    }
+    ///// <summary>
+    ///// Starts the thread
+    ///// </summary>
+    ///// <param name="parameter">An object that contains data to be used by the method the thread executes.</param>
+    //void Start(object parameter);
 }

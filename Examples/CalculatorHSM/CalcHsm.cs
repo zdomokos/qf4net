@@ -19,790 +19,885 @@
 using System;
 using qf4net;
 
-namespace CalculatorHSM
+namespace CalculatorHSM;
+// Define preprocessor variable STATIC_TRANS in order to use the implementation of the calculator that
+// uses static transitions which can be used even in cases where another state machine is derived from this
+// state machine
+
+/// <summary>
+/// Calculator state machine example for Rainer Hessmer's C# port of HQSM
+/// </summary>
+public sealed class Calc : QHsm
 {
-    // Define preprocessor variable STATIC_TRANS in order to use the implementation of the calculator that
-    // uses static transitions which can be used even in cases where another state machine is derived from this
-    // state machine
+#if (STATIC_TRANS)
+
+    #region Boiler plate static stuff
+
+    private static readonly TransitionChainStore STransitionChainStore = new(
+                                                                              System.Reflection.MethodBase.GetCurrentMethod().DeclaringType
+                                                                             );
+
+    static Calc()
+    {
+        STransitionChainStore.ShrinkToActualSize();
+    }
 
     /// <summary>
-    /// Calculator state machine example for Rainer Hessmer's C# port of HQSM
+    /// Getter for an optional <see cref="TransitionChainStore"/> that can hold cached
+    /// <see cref="TransitionChain"/> objects that are used to optimize static transitions.
     /// </summary>
-    public sealed class Calc : QHsm
+    protected override TransitionChainStore TransChainStore => STransitionChainStore;
+
+    #endregion
+
+#endif
+
+    //communication with main form is via these events:
+    public delegate void CalcDisplayHandler(object sender, CalcDisplayEventArgs e);
+
+    public event CalcDisplayHandler DisplayValue;
+    public event CalcDisplayHandler DisplayState;
+
+    public bool IsHandled { get; set; } //IsHandled
+
+    private       string _myDisplay;
+    private       double _myOperand1;
+    private       double _myOperand2;
+    private       char   _myOperator;
+    private const int    Precision = 14;
+
+    private readonly QState _calculate;
+    private readonly QState _ready;
+    private readonly QState _result;
+    private readonly QState _begin;
+    private readonly QState _negated1;
+    private readonly QState _operand1;
+    private readonly QState _zero1;
+    private readonly QState _int1;
+    private readonly QState _frac1;
+    private readonly QState _opEntered;
+    private readonly QState _negated2;
+    private readonly QState _operand2;
+    private readonly QState _zero2;
+    private readonly QState _int2;
+    private readonly QState _frac2;
+    private readonly QState _final;
+
+#if (STATIC_TRANS)
+    private static readonly int STranIdxCalculateCalculate = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxCalculateFinal     = STransitionChainStore.GetOpenSlot();
+#endif
+
+    private QState DoCalculate(IQEvent qevent)
     {
-#if (STATIC_TRANS)
-        #region Boiler plate static stuff
-
-        private static TransitionChainStore s_TransitionChainStore = new TransitionChainStore(
-            System.Reflection.MethodBase.GetCurrentMethod().DeclaringType
-        );
-
-        static Calc()
+        if (qevent.QSignal == QSignals.Entry)
         {
-            s_TransitionChainStore.ShrinkToActualSize();
+            OnDisplayState("calc");
+            return null;
         }
-
-        /// <summary>
-        /// Getter for an optional <see cref="TransitionChainStore"/> that can hold cached
-        /// <see cref="TransitionChain"/> objects that are used to optimize static transitions.
-        /// </summary>
-        protected override TransitionChainStore TransChainStore
+        else if (qevent.QSignal == QSignals.Init)
         {
-            get { return s_TransitionChainStore; }
+            Clear();
+            InitializeState(_ready);
+            return null;
         }
-
-        #endregion
-#endif
-
-        //communication with main form is via these events:
-        public delegate void CalcDisplayHandler(object sender, CalcDisplayEventArgs e);
-        public event CalcDisplayHandler DisplayValue;
-        public event CalcDisplayHandler DisplayState;
-
-        private bool isHandled;
-        public bool IsHandled
+        else if (qevent.QSignal == CalcSignals.ClearAll)
         {
-            get { return isHandled; }
-            set { isHandled = value; }
-        } //IsHandled
-
-        private string myDisplay;
-        private double myOperand1;
-        private double myOperand2;
-        private char myOperator;
-        private const int PRECISION = 14;
-
-        private QState Calculate;
-        private QState Ready;
-        private QState Result;
-        private QState Begin;
-        private QState Negated1;
-        private QState Operand1;
-        private QState Zero1;
-        private QState Int1;
-        private QState Frac1;
-        private QState OpEntered;
-        private QState Negated2;
-        private QState Operand2;
-        private QState Zero2;
-        private QState Int2;
-        private QState Frac2;
-        private QState Final;
-
+            Clear();
 #if (STATIC_TRANS)
-        private static int s_TranIdx_Calculate_Calculate = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Calculate_Final = s_TransitionChainStore.GetOpenSlot();
-#endif
-
-        private QState DoCalculate(IQEvent qevent)
-        {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("calc");
-                    return null;
-                case (int)QSignals.Init:
-                    Clear();
-                    InitializeState(Ready);
-                    return null;
-                case (int)CalcSignals.ClearAll:
-                    Clear();
-#if (STATIC_TRANS)
-                    TransitionTo(Calculate, s_TranIdx_Calculate_Calculate);
+            TransitionTo(_calculate, STranIdxCalculateCalculate);
 #else
                     TransitionTo(Calculate);
 #endif
-                    return null;
-                case (int)CalcSignals.Quit:
+            return null;
+        }
+        else if (qevent.QSignal == CalcSignals.Quit)
+        {
 #if (STATIC_TRANS)
-                    TransitionTo(Final, s_TranIdx_Calculate_Final);
+            TransitionTo(_final, STranIdxCalculateFinal);
 #else
                     TransitionTo(Final);
 #endif
-                    return null;
-            }
-            if (qevent.QSignal >= (int)QSignals.UserSig)
-            {
-                isHandled = false;
-            }
-            return this.TopState;
+            return null;
         }
 
+        if (qevent.QSignal >= (int)QSignals.UserSig)
+        {
+            IsHandled = false;
+        }
+
+        return TopState;
+    }
+
 #if (STATIC_TRANS)
-        private static int s_TranIdx_Ready_Zero1 = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Ready_Int1 = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Ready_Frac1 = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Ready_OpEntered = s_TransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxReadyZero1     = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxReadyInt1      = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxReadyFrac1     = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxReadyOpEntered = STransitionChainStore.GetOpenSlot();
 #endif
 
-        private QState DoReady(IQEvent qevent)
+    private QState DoReady(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
         {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("ready");
-                    return null;
-                case (int)QSignals.Init:
-                    InitializeState(Begin);
-                    return null;
-                case (int)CalcSignals.ZeroDigit:
-                    Clear();
+            OnDisplayState("ready");
+            return null;
+        }
+
+        if (qevent.QSignal == QSignals.Init)
+        {
+            InitializeState(_begin);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.ZeroDigit)
+        {
+            Clear();
 #if (STATIC_TRANS)
-                    TransitionTo(Zero1, s_TranIdx_Ready_Zero1);
+            TransitionTo(_zero1, STranIdxReadyZero1);
 #else
                     TransitionTo(Zero1);
 #endif
-                    return null;
-                case (int)CalcSignals.NonZeroDigit:
-                    Clear();
-                    Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.NonZeroDigit)
+        {
+            Clear();
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Int1, s_TranIdx_Ready_Int1);
+            TransitionTo(_int1, STranIdxReadyInt1);
 #else
                     TransitionTo(Int1);
 #endif
-                    return null;
-                case (int)CalcSignals.DecimalPoint:
-                    Clear();
-                    Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        {
+            Clear();
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Frac1, s_TranIdx_Ready_Frac1);
+            TransitionTo(_frac1, STranIdxReadyFrac1);
 #else
                     TransitionTo(Frac1);
 #endif
-                    return null;
-                case (int)CalcSignals.Operator:
-                    this.myOperand1 = double.Parse(myDisplay);
-                    myOperator = ((CalcEvent)qevent).KeyChar;
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.Operator)
+        {
+            _myOperand1 = double.Parse(_myDisplay);
+            _myOperator = ((CalcEvent)qevent).KeyChar;
 #if (STATIC_TRANS)
-                    TransitionTo(OpEntered, s_TranIdx_Ready_OpEntered);
+            TransitionTo(_opEntered, STranIdxReadyOpEntered);
 #else
                     TransitionTo(OpEntered);
 #endif
-                    return null;
-            }
-            return Calculate;
+            return null;
         }
 
-        private QState DoResult(IQEvent qevent)
+        return _calculate;
+    }
+
+    private QState DoResult(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
         {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("result");
-                    Eval();
-                    return null;
-            }
-            return Ready;
+            OnDisplayState("result");
+            Eval();
+            return null;
         }
+
+        return _ready;
+    }
 
 #if (STATIC_TRANS)
-        private static int s_TranIdx_Begin_Negated1 = s_TransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxBeginNegated1 = STransitionChainStore.GetOpenSlot();
 #endif
 
-        private QState DoBegin(IQEvent qevent)
+    private QState DoBegin(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
         {
-            switch (qevent.QSignal)
+            OnDisplayState("begin");
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.Operator)
+        {
+            if (((CalcEvent)qevent).KeyChar == '-')
             {
-                case (int)QSignals.Entry:
-                    OnDisplayState("begin");
-                    return null;
-                case (int)CalcSignals.Operator:
-                    if (((CalcEvent)qevent).KeyChar == '-')
-                    {
 #if (STATIC_TRANS)
-                        TransitionTo(Negated1, s_TranIdx_Begin_Negated1);
+                TransitionTo(_negated1, STranIdxBeginNegated1);
 #else
                         TransitionTo(Negated1);
 #endif
-                        return null; // event handled
-                    }
-                    //Uncomment the follow "else-if" block to get the same
-                    //behavior as the C version. It was commented out for
-                    //the following reason:
-                    //
-                    //Looking for a unary "+" introduces a small inconsistency:
-                    //Multiplication and division operators are accepted with
-                    //operand1 defaulting to zero. However, the addition operator
-                    //does not behave in the same way.
-                    //
-                    //else if (((CalcEvent)qevent).KeyChar == '+')
-                    //{      // unary "+"
-                    //	return null;							// event handled
-                    //}
-                    //
-                    //
-                    //One alternative is to ignore '+' '*' and '/' so they all behave
-                    //consistently
-                    //
-                    break; // event unhandled!
+                return null; // event handled
             }
-            return Ready;
-        }
+            //Uncomment the follow "else-if" block to get the same
+            //behavior as the C version. It was commented out for
+            //the following reason:
+            //
+            //Looking for a unary "+" introduces a small inconsistency:
+            //Multiplication and division operators are accepted with
+            //operand1 defaulting to zero. However, the addition operator
+            //does not behave in the same way.
+            //
+            //else if (((CalcEvent)qevent).KeyChar == '+')
+            //{      // unary "+"
+            //	return null;							// event handled
+            //}
+            //
+            //
+            //One alternative is to ignore '+' '*' and '/' so they all behave
+            //consistently
+            //
+        } // event unhandled!
+
+        return _ready;
+    }
 
 #if (STATIC_TRANS)
-        private static int s_TranIdx_Negated1_Begin = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Negated1_Zero1 = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Negated1_Int1 = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Negated1_Frac1 = s_TransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxNegated1Begin = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxNegated1Zero1 = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxNegated1Int1  = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxNegated1Frac1 = STransitionChainStore.GetOpenSlot();
 #endif
 
-        private QState DoNegated1(IQEvent qevent)
+    private QState DoNegated1(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
         {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("negated1");
-                    Negate();
-                    return null;
-                case (int)CalcSignals.ClearEntry:
-                    Clear();
+            OnDisplayState("negated1");
+            Negate();
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.ClearEntry)
+        {
+            Clear();
 #if (STATIC_TRANS)
-                    TransitionTo(Begin, s_TranIdx_Negated1_Begin);
+            TransitionTo(_begin, STranIdxNegated1Begin);
 #else
                     TransitionTo(Begin);
 #endif
-                    return null;
-                case (int)CalcSignals.ZeroDigit:
-                    Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.ZeroDigit)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Zero1, s_TranIdx_Negated1_Zero1);
+            TransitionTo(_zero1, STranIdxNegated1Zero1);
 #else
                     TransitionTo(Zero1);
 #endif
-                    return null;
-                case (int)CalcSignals.NonZeroDigit:
-                    Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.NonZeroDigit)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Int1, s_TranIdx_Negated1_Int1);
+            TransitionTo(_int1, STranIdxNegated1Int1);
 #else
                     TransitionTo(Int1);
 #endif
-                    return null;
-                case (int)CalcSignals.DecimalPoint:
-                    Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Frac1, s_TranIdx_Negated1_Frac1);
+            TransitionTo(_frac1, STranIdxNegated1Frac1);
 #else
                     TransitionTo(Frac1);
 #endif
-                    return null;
-            }
-            return Calculate;
+            return null;
         }
 
+        return _calculate;
+    }
+
 #if (STATIC_TRANS)
-        private static int s_TranIdx_Operand1_Begin = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Operand1_OpEntered = s_TransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxOperand1Begin     = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxOperand1OpEntered = STransitionChainStore.GetOpenSlot();
 #endif
 
-        private QState DoOperand1(IQEvent qevent)
+    private QState DoOperand1(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
         {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("operand1");
-                    return null;
-                case (int)CalcSignals.ClearEntry:
-                    Clear();
+            OnDisplayState("operand1");
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.ClearEntry)
+        {
+            Clear();
 #if (STATIC_TRANS)
-                    TransitionTo(Begin, s_TranIdx_Operand1_Begin);
+            TransitionTo(_begin, STranIdxOperand1Begin);
 #else
                     TransitionTo(Begin);
 #endif
-                    return null;
-                case (int)CalcSignals.Operator:
-                    this.myOperand1 = double.Parse(myDisplay);
-                    myOperator = ((CalcEvent)qevent).KeyChar;
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.Operator)
+        {
+            _myOperand1 = double.Parse(_myDisplay);
+            _myOperator = ((CalcEvent)qevent).KeyChar;
 #if (STATIC_TRANS)
-                    TransitionTo(OpEntered, s_TranIdx_Operand1_OpEntered);
+            TransitionTo(_opEntered, STranIdxOperand1OpEntered);
 #else
                     TransitionTo(OpEntered);
 #endif
-                    return null;
-            }
-            return Calculate;
+            return null;
         }
 
+        return _calculate;
+    }
+
 #if (STATIC_TRANS)
-        private static int s_TranIdx_Zero1_Int1 = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Zero1_Frac1 = s_TransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxZero1Int1  = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxZero1Frac1 = STransitionChainStore.GetOpenSlot();
 #endif
 
-        private QState DoZero1(IQEvent qevent)
+    private QState DoZero1(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
         {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("zero1");
-                    return null;
-                case (int)CalcSignals.NonZeroDigit:
-                    Insert(((CalcEvent)qevent).KeyChar);
+            OnDisplayState("zero1");
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.NonZeroDigit)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Int1, s_TranIdx_Zero1_Int1);
+            TransitionTo(_int1, STranIdxZero1Int1);
 #else
                     TransitionTo(Int1);
 #endif
-                    return null;
-                case (int)CalcSignals.DecimalPoint:
-                    Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Frac1, s_TranIdx_Zero1_Frac1);
+            TransitionTo(_frac1, STranIdxZero1Frac1);
 #else
                     TransitionTo(Frac1);
 #endif
-                    return null;
-            }
-            return Operand1;
+            return null;
         }
 
+        return _operand1;
+    }
+
 #if (STATIC_TRANS)
-        private static int s_TranIdx_Int1_Frac1 = s_TransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxInt1Frac1 = STransitionChainStore.GetOpenSlot();
 #endif
 
-        private QState DoInt1(IQEvent qevent)
+    private QState DoInt1(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
         {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("int1");
-                    return null;
-                case (int)CalcSignals.ZeroDigit:
-                case (int)CalcSignals.NonZeroDigit:
-                    Insert(((CalcEvent)qevent).KeyChar);
-                    return null;
-                case (int)CalcSignals.DecimalPoint:
-                    Insert(((CalcEvent)qevent).KeyChar);
+            OnDisplayState("int1");
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.ZeroDigit || qevent.QSignal ==CalcSignals.NonZeroDigit)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Frac1, s_TranIdx_Int1_Frac1);
+            TransitionTo(_frac1, STranIdxInt1Frac1);
 #else
                     TransitionTo(Frac1);
 #endif
-                    return null;
-            }
-            return Operand1;
+            return null;
         }
 
-        private QState DoFrac1(IQEvent qevent)
+        return _operand1;
+    }
+
+    private QState DoFrac1(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
         {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("frac1");
-                    return null;
-                case (int)CalcSignals.ZeroDigit:
-                case (int)CalcSignals.NonZeroDigit:
-                    Insert(((CalcEvent)qevent).KeyChar);
-                    return null;
-            }
-            return Operand1;
+            OnDisplayState("frac1");
+            return null;
         }
+
+        if (qevent.QSignal == CalcSignals.ZeroDigit || qevent.QSignal == CalcSignals.NonZeroDigit)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        return _operand1;
+    }
 
 #if (STATIC_TRANS)
-        private static int s_TranIdx_OpEntered_Negated2 = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_OpEntered_Zero2 = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_OpEntered_Int2 = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_OpEntered_Frac2 = s_TransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxOpEnteredNegated2 = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxOpEnteredZero2    = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxOpEnteredInt2     = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxOpEnteredFrac2    = STransitionChainStore.GetOpenSlot();
 #endif
 
-        private QState DoOpEntered(IQEvent qevent)
+    private QState DoOpEntered(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
         {
-            switch (qevent.QSignal)
+            OnDisplayState("opEntered");
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.Operator)
+        {
+            if (((CalcEvent)qevent).KeyChar == '-')
             {
-                case (int)QSignals.Entry:
-                    OnDisplayState("opEntered");
-                    return null;
-                case (int)CalcSignals.Operator:
-                    if (((CalcEvent)qevent).KeyChar == '-')
-                    {
-                        Clear();
+                Clear();
 #if (STATIC_TRANS)
-                        TransitionTo(Negated2, s_TranIdx_OpEntered_Negated2);
+                TransitionTo(_negated2, STranIdxOpEnteredNegated2);
 #else
                         TransitionTo(Negated2);
 #endif
-                    }
-                    return null;
-                case (int)CalcSignals.ZeroDigit:
-                    Clear();
+            }
+
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.ZeroDigit)
+        {
+            Clear();
 #if (STATIC_TRANS)
-                    TransitionTo(Zero2, s_TranIdx_OpEntered_Zero2);
+            TransitionTo(_zero2, STranIdxOpEnteredZero2);
 #else
                     TransitionTo(Zero2);
 #endif
-                    return null;
-                case (int)CalcSignals.NonZeroDigit:
-                    Clear();
-                    Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.NonZeroDigit)
+        {
+            Clear();
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Int2, s_TranIdx_OpEntered_Int2);
+            TransitionTo(_int2, STranIdxOpEnteredInt2);
 #else
                     TransitionTo(Int2);
 #endif
-                    return null;
-                case (int)CalcSignals.DecimalPoint:
-                    Clear();
-                    Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        {
+            Clear();
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Frac2, s_TranIdx_OpEntered_Frac2);
+            TransitionTo(_frac2, STranIdxOpEnteredFrac2);
 #else
                     TransitionTo(Frac2);
 #endif
-                    return null;
-            }
-            return Calculate;
+            return null;
         }
 
+        return _calculate;
+    }
+
 #if (STATIC_TRANS)
-        private static int s_TranIdx_Negated2_OpEntered = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Negated2_Zero2 = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Negated2_Int2 = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Negated2_Frac2 = s_TransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxNegated2OpEntered = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxNegated2Zero2     = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxNegated2Int2      = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxNegated2Frac2     = STransitionChainStore.GetOpenSlot();
 #endif
 
-        private QState DoNegated2(IQEvent qevent)
+    private QState DoNegated2(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
         {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("negated2");
-                    Negate();
-                    return null;
-                case (int)CalcSignals.ClearEntry:
+            OnDisplayState("negated2");
+            Negate();
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.ClearEntry)
+        {
 #if (STATIC_TRANS)
-                    TransitionTo(OpEntered, s_TranIdx_Negated2_OpEntered);
+            TransitionTo(_opEntered, STranIdxNegated2OpEntered);
 #else
                     TransitionTo(OpEntered);
 #endif
-                    return null;
-                case (int)CalcSignals.ZeroDigit:
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.ZeroDigit)
+        {
 #if (STATIC_TRANS)
-                    TransitionTo(Zero2, s_TranIdx_Negated2_Zero2);
+            TransitionTo(_zero2, STranIdxNegated2Zero2);
 #else
                     TransitionTo(Zero2);
 #endif
-                    return null;
-                case (int)CalcSignals.NonZeroDigit:
-                    Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.NonZeroDigit)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Int2, s_TranIdx_Negated2_Int2);
+            TransitionTo(_int2, STranIdxNegated2Int2);
 #else
                     TransitionTo(Int2);
 #endif
-                    return null;
-                case (int)CalcSignals.DecimalPoint:
-                    Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Frac2, s_TranIdx_Negated2_Frac2);
+            TransitionTo(_frac2, STranIdxNegated2Frac2);
 #else
                     TransitionTo(Frac2);
 #endif
-                    return null;
-            }
-            return Calculate;
+            return null;
         }
 
+        return _calculate;
+    }
+
 #if (STATIC_TRANS)
-        private static int s_TranIdx_Operand2_OpEntered = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Operand2_Result = s_TransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxOperand2OpEntered = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxOperand2Result    = STransitionChainStore.GetOpenSlot();
 #endif
 
-        private QState DoOperand2(IQEvent qevent)
+    private QState DoOperand2(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
         {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("operand2");
-                    return null;
-                case (int)CalcSignals.ClearEntry:
-                    Clear();
+            OnDisplayState("operand2");
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.ClearEntry)
+        {
+            Clear();
 #if (STATIC_TRANS)
-                    TransitionTo(OpEntered, s_TranIdx_Operand2_OpEntered);
+            TransitionTo(_opEntered, STranIdxOperand2OpEntered);
 #else
                     TransitionTo(OpEntered);
 #endif
-                    return null;
-                case (int)CalcSignals.Operator:
-                    this.myOperand2 = double.Parse(myDisplay);
-                    Eval();
-                    this.myOperand1 = double.Parse(myDisplay);
-                    myOperator = ((CalcEvent)qevent).KeyChar;
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.Operator)
+        {
+            _myOperand2 = double.Parse(_myDisplay);
+            Eval();
+            _myOperand1 = double.Parse(_myDisplay);
+            _myOperator = ((CalcEvent)qevent).KeyChar;
 #if (STATIC_TRANS)
-                    TransitionTo(OpEntered, s_TranIdx_Operand2_OpEntered);
+            TransitionTo(_opEntered, STranIdxOperand2OpEntered);
 #else
                     TransitionTo(OpEntered);
 #endif
-                    return null;
-                case (int)CalcSignals.EqualSign:
-                    this.myOperand2 = double.Parse(myDisplay);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.EqualSign)
+        {
+            _myOperand2 = double.Parse(_myDisplay);
 #if (STATIC_TRANS)
-                    TransitionTo(Result, s_TranIdx_Operand2_Result);
+            TransitionTo(_result, STranIdxOperand2Result);
 #else
                     TransitionTo(Result);
 #endif
-                    return null;
-            }
-            return Calculate;
+            return null;
         }
 
+        return _calculate;
+    }
+
 #if (STATIC_TRANS)
-        private static int s_TranIdx_Zero2_Int2 = s_TransitionChainStore.GetOpenSlot();
-        private static int s_TranIdx_Zero2_Frac2 = s_TransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxZero2Int2  = STransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxZero2Frac2 = STransitionChainStore.GetOpenSlot();
 #endif
 
-        private QState DoZero2(IQEvent qevent)
+    private QState DoZero2(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
         {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("zero2");
-                    return null;
-                case (int)CalcSignals.NonZeroDigit:
-                    Insert(((CalcEvent)qevent).KeyChar);
+            OnDisplayState("zero2");
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.NonZeroDigit)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Int2, s_TranIdx_Zero2_Int2);
+            TransitionTo(_int2, STranIdxZero2Int2);
 #else
                     TransitionTo(Int2);
 #endif
-                    return null;
-                case (int)CalcSignals.DecimalPoint:
-                    Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-                    TransitionTo(Frac2, s_TranIdx_Zero2_Frac2);
+            TransitionTo(_frac2, STranIdxZero2Frac2);
 #else
                     TransitionTo(Frac2);
 #endif
-                    return null;
-            }
-            return Operand2;
+            return null;
         }
+
+        return _operand2;
+    }
 
 #if (STATIC_TRANS)
-        private static int s_TranIdx_Int2_Frac2 = s_TransitionChainStore.GetOpenSlot();
+    private static readonly int STranIdxInt2Frac2 = STransitionChainStore.GetOpenSlot();
 #endif
 
-        private QState DoInt2(IQEvent qevent)
-        {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("int2");
-                    return null;
-                case (int)CalcSignals.ZeroDigit:
-                case (int)CalcSignals.NonZeroDigit:
-                    Insert(((CalcEvent)qevent).KeyChar);
-                    return null;
-                case (int)CalcSignals.DecimalPoint:
-                    Insert(((CalcEvent)qevent).KeyChar);
-#if (STATIC_TRANS)
-                    TransitionTo(Frac2, s_TranIdx_Int2_Frac2);
-#else
-                    TransitionTo(Frac2);
-#endif
-                    return null;
-            }
-            return Operand2;
-        }
-
-        private QState DoFrac2(IQEvent qevent)
-        {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("frac2");
-                    return null;
-                case (int)CalcSignals.ZeroDigit:
-                case (int)CalcSignals.NonZeroDigit:
-                    Insert(((CalcEvent)qevent).KeyChar);
-                    return null;
-            }
-            return Operand2;
-        }
-
-        //UNDONE: revise this code
-        private QState DoFinal(IQEvent qevent)
-        {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("HSM terminated");
-                    singleton = null;
-                    CalcForm.Instance.Close();
-                    System.Windows.Forms.Application.Exit();
-                    return null;
-            }
-            return this.TopState;
-        }
-
-        private void Clear()
-        {
-            this.myDisplay = " 0";
-            OnDisplayValue(myDisplay);
-        } //Clear
-
-        private void Insert(char keyChar)
-        {
-            if (this.myDisplay.Length < PRECISION)
-            {
-                if (keyChar != '.') //TODO: clean this logic up
-                {
-                    if (myDisplay == " 0")
-                    {
-                        this.myDisplay = " ";
-                    }
-                    else if (myDisplay == "-0")
-                    {
-                        this.myDisplay = "-";
-                    }
-                }
-                this.myDisplay += keyChar.ToString();
-                OnDisplayValue(myDisplay);
-            }
-        }
-
-        private void Negate()
-        {
-            string temp = myDisplay.Remove(0, 1);
-            myDisplay = temp.Insert(0, "-");
-            OnDisplayValue(myDisplay);
-        }
-
-        private void Eval()
-        {
-            double r = double.NaN;
-
-            switch (myOperator)
-            {
-                case '+':
-                    r = myOperand1 + myOperand2;
-                    break;
-                case '-':
-                    r = myOperand1 - myOperand2;
-                    break;
-                case '*':
-                    r = myOperand1 * myOperand2;
-                    break;
-                case '/':
-                    if (myOperand2 != 0.0)
-                    {
-                        r = myOperand1 / myOperand2;
-                    }
-                    else
-                    {
-                        System.Windows.Forms.MessageBox.Show(
-                            "Cannot Divide by 0",
-                            "Calculator HSM",
-                            System.Windows.Forms.MessageBoxButtons.OK,
-                            System.Windows.Forms.MessageBoxIcon.Error
-                        );
-                        r = 0.0;
-                    }
-                    break;
-                default:
-                    System.Diagnostics.Debug.Assert(false);
-                    break;
-            }
-            if (-1.0e10 < r && r < 1.0e10)
-            {
-                //sprintf(myDisplay, "%24.11g", r);
-                myDisplay = r.ToString(); //TODO: add formatting
-            }
-            else
-            {
-                System.Windows.Forms.MessageBox.Show(
-                    "Result out of range",
-                    "Calculator HSM",
-                    System.Windows.Forms.MessageBoxButtons.OK,
-                    System.Windows.Forms.MessageBoxIcon.Error
-                );
-                Clear();
-            }
-            OnDisplayValue(myDisplay);
-        }
-
-        private void OnDisplayState(string stateInfo)
-        {
-            if (DisplayState != null)
-            {
-                DisplayState(this, new CalcDisplayEventArgs(stateInfo));
-            }
-        } //OnDisplayState
-
-        private void OnDisplayValue(string valueInfo)
-        {
-            if (DisplayValue != null)
-            {
-                DisplayValue(this, new CalcDisplayEventArgs(valueInfo));
-            }
-        } //OnDisplayValue
-
-        /// <summary>
-        /// Is called inside of the function Init to give the deriving class a chance to
-        /// initialize the state machine.
-        /// </summary>
-        protected override void InitializeStateMachine()
-        {
-            InitializeState(Calculate); // initial transition
-        }
-
-        private Calc()
-        {
-            Calculate = new QState(this.DoCalculate);
-            Ready = new QState(this.DoReady);
-            Result = new QState(this.DoResult);
-            Begin = new QState(this.DoBegin);
-            Negated1 = new QState(this.DoNegated1);
-            Operand1 = new QState(this.DoOperand1);
-            Zero1 = new QState(this.DoZero1);
-            Int1 = new QState(this.DoInt1);
-            Frac1 = new QState(this.DoFrac1);
-            OpEntered = new QState(this.DoOpEntered);
-            Negated2 = new QState(this.DoNegated2);
-            Operand2 = new QState(this.DoOperand2);
-            Zero2 = new QState(this.DoZero2);
-            Int2 = new QState(this.DoInt2);
-            Frac2 = new QState(this.DoFrac2);
-            Final = new QState(this.DoFinal);
-        }
-
-        //
-        //Thread-safe implementation of singleton as a property
-        //
-        private static volatile Calc singleton = null;
-        private static object sync = new object(); //for static lock
-
-        public static Calc Instance
-        {
-            get
-            {
-                if (singleton == null)
-                {
-                    lock (sync)
-                    {
-                        if (singleton == null)
-                        {
-                            singleton = new Calc();
-                            singleton.Init();
-                        }
-                    }
-                }
-
-                return singleton;
-            }
-        } //Instance
-    } //class Calc
-
-    public class CalcDisplayEventArgs : EventArgs
+    private QState DoInt2(IQEvent qevent)
     {
-        private string s;
-        public string Message
+        if (qevent.QSignal == QSignals.Entry)
         {
-            get { return s; }
+            OnDisplayState("int2");
+            return null;
         }
 
-        public CalcDisplayEventArgs(string message)
+        if (qevent.QSignal == CalcSignals.ZeroDigit || qevent.QSignal == CalcSignals.NonZeroDigit)
         {
-            s = message;
+            Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
+#if (STATIC_TRANS)
+            TransitionTo(_frac2, STranIdxInt2Frac2);
+#else
+                    TransitionTo(Frac2);
+#endif
+            return null;
+        }
+
+        return _operand2;
+    }
+
+    private QState DoFrac2(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
+        {
+            OnDisplayState("frac2");
+            return null;
+        }
+
+        if (qevent.QSignal == CalcSignals.ZeroDigit || qevent.QSignal == CalcSignals.NonZeroDigit)
+        {
+            Insert(((CalcEvent)qevent).KeyChar);
+            return null;
+        }
+
+        return _operand2;
+    }
+
+    //UNDONE: revise this code
+    private QState DoFinal(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
+        {
+            OnDisplayState("HSM terminated");
+            _singleton = null;
+            CalcForm.Instance.Close();
+            System.Windows.Forms.Application.Exit();
+            return null;
+        }
+
+        return TopState;
+    }
+
+    private void Clear()
+    {
+        _myDisplay = " 0";
+        OnDisplayValue(_myDisplay);
+    } //Clear
+
+    private void Insert(char keyChar)
+    {
+        if (_myDisplay.Length < Precision)
+        {
+            if (keyChar != '.') //TODO: clean this logic up
+            {
+                if (_myDisplay == " 0")
+                {
+                    _myDisplay = " ";
+                }
+                else if (_myDisplay == "-0")
+                {
+                    _myDisplay = "-";
+                }
+            }
+
+            _myDisplay += keyChar.ToString();
+            OnDisplayValue(_myDisplay);
         }
     }
-} //namespace
+
+    private void Negate()
+    {
+        var temp = _myDisplay.Remove(0, 1);
+        _myDisplay = temp.Insert(0, "-");
+        OnDisplayValue(_myDisplay);
+    }
+
+    private void Eval()
+    {
+        var r = double.NaN;
+
+        switch (_myOperator)
+        {
+            case '+':
+                r = _myOperand1 + _myOperand2;
+                break;
+            case '-':
+                r = _myOperand1 - _myOperand2;
+                break;
+            case '*':
+                r = _myOperand1 * _myOperand2;
+                break;
+            case '/':
+                if (_myOperand2 != 0.0)
+                {
+                    r = _myOperand1 / _myOperand2;
+                }
+                else
+                {
+                    System.Windows.Forms.MessageBox.Show(
+                                                         "Cannot Divide by 0",
+                                                         "Calculator HSM",
+                                                         System.Windows.Forms.MessageBoxButtons.OK,
+                                                         System.Windows.Forms.MessageBoxIcon.Error
+                                                        );
+                    r = 0.0;
+                }
+
+                break;
+            default:
+                System.Diagnostics.Debug.Assert(false);
+                break;
+        }
+
+        if (-1.0e10 < r && r < 1.0e10)
+        {
+            //sprintf(myDisplay, "%24.11g", r);
+            _myDisplay = r.ToString(); //TODO: add formatting
+        }
+        else
+        {
+            System.Windows.Forms.MessageBox.Show(
+                                                 "Result out of range",
+                                                 "Calculator HSM",
+                                                 System.Windows.Forms.MessageBoxButtons.OK,
+                                                 System.Windows.Forms.MessageBoxIcon.Error
+                                                );
+            Clear();
+        }
+
+        OnDisplayValue(_myDisplay);
+    }
+
+    private void OnDisplayState(string stateInfo)
+    {
+        if (DisplayState != null)
+        {
+            DisplayState(this, new CalcDisplayEventArgs(stateInfo));
+        }
+    } //OnDisplayState
+
+    private void OnDisplayValue(string valueInfo)
+    {
+        if (DisplayValue != null)
+        {
+            DisplayValue(this, new CalcDisplayEventArgs(valueInfo));
+        }
+    } //OnDisplayValue
+
+    /// <summary>
+    /// Is called inside the function Init to give the deriving class a chance to
+    /// initialize the state machine.
+    /// </summary>
+    protected override void InitializeStateMachine()
+    {
+        InitializeState(_calculate); // initial transition
+    }
+
+    private Calc()
+    {
+        _calculate = DoCalculate;
+        _ready     = DoReady;
+        _result    = DoResult;
+        _begin     = DoBegin;
+        _negated1  = DoNegated1;
+        _operand1  = DoOperand1;
+        _zero1     = DoZero1;
+        _int1      = DoInt1;
+        _frac1     = DoFrac1;
+        _opEntered = DoOpEntered;
+        _negated2  = DoNegated2;
+        _operand2  = DoOperand2;
+        _zero2     = DoZero2;
+        _int2      = DoInt2;
+        _frac2     = DoFrac2;
+        _final     = DoFinal;
+    }
+
+    //
+    //Thread-safe implementation of singleton as a property
+    //
+    private static volatile Calc   _singleton;
+    private static readonly object Sync      = new(); //for static lock
+
+    public static Calc Instance
+    {
+        get
+        {
+            if (_singleton == null)
+            {
+                lock (Sync)
+                {
+                    if (_singleton == null)
+                    {
+                        _singleton = new Calc();
+                        _singleton.Init();
+                    }
+                }
+            }
+
+            return _singleton;
+        }
+    }
+}
+
+public class CalcDisplayEventArgs : EventArgs
+{
+    public string Message { get; }
+
+    public CalcDisplayEventArgs(string message)
+    {
+        Message = message;
+    }
+}

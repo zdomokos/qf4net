@@ -43,218 +43,198 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-using System.Threading;
+namespace qf4net;
 
-namespace qf4net
+/// <summary>
+/// Thread-safe event queue holding <see cref="QEvent"/> instances.
+/// </summary>
+public class QEventQueue : IQEventQueue
 {
+    private readonly LinkedEventList _eventList;
+
     /// <summary>
-    /// Thread-safe event queue holding <see cref="QEvent"/> instances.
+    /// Creates a new empty <see cref="QEventQueue"/>
     /// </summary>
-    public class QEventQueue : IQEventQueue
+    public QEventQueue()
     {
-        private LinkedEventList _mEventList;
+        _eventList = new LinkedEventList();
+    }
 
-        /// <summary>
-        /// Creates a new empty <see cref="QEventQueue"/>
-        /// </summary>
-        public QEventQueue()
+    /// <summary>
+    /// Returns <see langword="true"/> if the <see cref="QEventQueue"/> is empty
+    /// </summary>
+    public bool IsEmpty
+    {
+        get
         {
-            _mEventList = new LinkedEventList();
-        }
-
-        /// <summary>
-        /// Returns <see langword="true"/> if the <see cref="QEventQueue"/> is empty
-        /// </summary>
-        public bool IsEmpty
-        {
-            get
+            lock (_eventList)
             {
-                lock (_mEventList)
-                {
-                    return _mEventList.IsEmpty;
-                }
+                return _eventList.IsEmpty;
             }
         }
+    }
 
-        /// <summary>
-        /// Number of events in the queue
-        /// </summary>
-        public int Count
+    /// <summary>
+    /// Number of events in the queue
+    /// </summary>
+    public int Count
+    {
+        get
         {
-            get
+            lock (_eventList)
             {
-                lock (_mEventList)
-                {
-                    return _mEventList.Count;
-                }
+                return _eventList.Count;
             }
         }
+    }
 
-        /// <summary>
-        /// Inserts the <see paramref="qEvent"/> at the end of the queue (First In First Out).
-        /// </summary>
-        /// <param name="qEvent"></param>
-        public void EnqueueFifo(IQEvent qEvent)
+    /// <summary>
+    /// Inserts the <see paramref="qEvent"/> at the end of the queue (First In First Out).
+    /// </summary>
+    /// <param name="qEvent"></param>
+    public void EnqueueFifo(IQEvent qEvent)
+    {
+        lock (_eventList)
         {
-            lock (_mEventList)
+            _eventList.InsertNewTail(qEvent);
+            Monitor.Pulse(_eventList);
+        }
+    }
+
+    /// <summary>
+    /// Inserts the <see paramref="qEvent"/> at the beginning of the queue (First In First Out).
+    /// </summary>
+    /// <param name="qEvent"></param>
+    public void EnqueueLifo(IQEvent qEvent)
+    {
+        lock (_eventList)
+        {
+            _eventList.InsertNewHead(qEvent);
+            Monitor.Pulse(_eventList);
+        }
+    }
+
+    /// <summary>
+    /// Dequeues the first <see cref="QEvent"/> in the <see cref="QEventQueue"/>. If the <see cref="QEventQueue"/>
+    /// is currently empty then it blocks until a new <see cref="QEvent"/> is put into the <see cref="QEventQueue"/>.
+    /// </summary>
+    /// <returns>The first <see cref="QEvent"/> in the <see cref="QEventQueue"/>.</returns>
+    public IQEvent DeQueue()
+    {
+        lock (_eventList)
+        {
+            if (_eventList.IsEmpty)
             {
-                _mEventList.InsertNewTail(qEvent);
-                Monitor.Pulse(_mEventList);
+                // We wait for the next event to be put into the queue
+                Monitor.Wait(_eventList);
             }
+
+            return _eventList.RemoveHeadEvent();
+        }
+    }
+
+    /// <summary>
+    /// Allows the caller to peek at the head of the <see cref="QEventQueue"/>.
+    /// </summary>
+    /// <returns>The <see cref="IQEvent"/> at the head of the <see cref="QEventQueue"/> if it exists;
+    /// otherwise <see langword="null"/></returns>
+    public IQEvent Peek()
+    {
+        lock (_eventList)
+        {
+            if (_eventList.IsEmpty)
+            {
+                return null;
+            }
+
+            return _eventList.Head.QEvent;
+        }
+    }
+
+    #region Helper class LinkedEventList
+
+    /// <summary>
+    /// Simple single linked list for <see cref="QEvent"/> instances
+    /// </summary>
+    private class LinkedEventList
+    {
+        internal LinkedEventList()
+        {
+            Head  = null;
+            Tail  = null;
+            Count = 0;
         }
 
-        /// <summary>
-        /// Inserts the <see paramref="qEvent"/> at the beginning of the queue (First In First Out).
-        /// </summary>
-        /// <param name="qEvent"></param>
-        public void EnqueueLifo(IQEvent qEvent)
+        internal int Count { get; private set; }
+
+        internal bool IsEmpty => Count == 0;
+
+        internal void InsertNewHead(IQEvent qEvent)
         {
-            lock (_mEventList)
+            if (Count == 0)
             {
-                _mEventList.InsertNewHead(qEvent);
-                Monitor.Pulse(_mEventList);
+                // We create the first node in the linked list
+                Head = Tail = new EventNode(qEvent, null);
             }
+            else
+            {
+                var newHead = new EventNode(qEvent, Head);
+                Head = newHead;
+            }
+            Count++;
         }
 
-        /// <summary>
-        /// Dequeues the first <see cref="QEvent"/> in the <see cref="QEventQueue"/>. If the <see cref="QEventQueue"/>
-        /// is currently empty then it blocks until a new <see cref="QEvent"/> is put into the <see cref="QEventQueue"/>.
-        /// </summary>
-        /// <returns>The first <see cref="QEvent"/> in the <see cref="QEventQueue"/>.</returns>
-        public IQEvent DeQueue()
+        internal void InsertNewTail(IQEvent qEvent)
         {
-            lock (_mEventList)
+            if (Count == 0)
             {
-                if (_mEventList.IsEmpty)
-                {
-                    // We wait for the next event to be put into the queue
-                    Monitor.Wait(_mEventList);
-                }
-
-                return _mEventList.RemoveHeadEvent();
+                // We create the first node in the linked list
+                Head = Tail = new EventNode(qEvent, null);
             }
+            else
+            {
+                var newTail = new EventNode(qEvent, null);
+                Tail.NextNode = newTail;
+                Tail          = newTail;
+            }
+            Count++;
         }
 
-        /// <summary>
-        /// Allows the caller to peek at the head of the <see cref="QEventQueue"/>.
-        /// </summary>
-        /// <returns>The <see cref="IQEvent"/> at the head of the <see cref="QEventQueue"/> if it exists;
-        /// otherwise <see langword="null"/></returns>
-        public IQEvent Peek()
-        {
-            lock (_mEventList)
-            {
-                if (_mEventList.IsEmpty)
-                {
-                    return null;
-                }
-                else
-                {
-                    return _mEventList.Head.QEvent;
-                }
-            }
-        }
+        internal EventNode Head { get; private set; }
 
-        #region Helper class LinkedEventList
+        internal EventNode Tail { get; private set; }
 
         /// <summary>
-        /// Simple single linked list for <see cref="QEvent"/> instances
+        /// Removes the current head node from the linked list and returns its associated <see cref="QEvent"/>.
         /// </summary>
-        private class LinkedEventList
+        /// <returns></returns>
+        internal IQEvent RemoveHeadEvent()
         {
-            private EventNode _mHeadNode;
-            private EventNode _mTailNode;
-            private int _mCount;
-
-            internal LinkedEventList()
+            IQEvent qEvent = null;
+            if (Head != null)
             {
-                _mHeadNode = null;
-                _mTailNode = null;
-                _mCount = 0;
+                qEvent = Head.QEvent;
+                Head   = Head.NextNode;
+                Count--;
             }
-
-            internal int Count => _mCount;
-
-            internal bool IsEmpty => _mCount == 0;
-
-            internal void InsertNewHead(IQEvent qEvent)
-            {
-                if (_mCount == 0)
-                {
-                    // We create the first node in the linked list
-                    _mHeadNode = _mTailNode = new EventNode(qEvent, null);
-                }
-                else
-                {
-                    EventNode newHead = new EventNode(qEvent, _mHeadNode);
-                    _mHeadNode = newHead;
-                }
-                _mCount++;
-            }
-
-            internal void InsertNewTail(IQEvent qEvent)
-            {
-                if (_mCount == 0)
-                {
-                    // We create the first node in the linked list
-                    _mHeadNode = _mTailNode = new EventNode(qEvent, null);
-                }
-                else
-                {
-                    EventNode newTail = new EventNode(qEvent, null);
-                    _mTailNode.NextNode = newTail;
-                    _mTailNode = newTail;
-                }
-                _mCount++;
-            }
-
-            internal EventNode Head => _mHeadNode;
-            internal EventNode Tail => _mTailNode;
-
-            /// <summary>
-            /// Removes the current head node from the linked list and returns its associated <see cref="QEvent"/>.
-            /// </summary>
-            /// <returns></returns>
-            internal IQEvent RemoveHeadEvent()
-            {
-                IQEvent qEvent = null;
-                if (_mHeadNode != null)
-                {
-                    qEvent = _mHeadNode.QEvent;
-                    _mHeadNode = _mHeadNode.NextNode;
-                    _mCount--;
-                }
-                return qEvent;
-            }
-
-            #region Helper class EventNode
-
-            internal class EventNode
-            {
-                private IQEvent _mQEvent;
-                private EventNode _mNextNode;
-
-                internal EventNode(IQEvent qEvent, EventNode nextNode)
-                {
-                    _mQEvent = qEvent;
-                    _mNextNode = nextNode;
-                }
-
-                internal EventNode NextNode
-                {
-                    get => _mNextNode;
-                    set => _mNextNode = value;
-                }
-
-                internal IQEvent QEvent
-                {
-                    get => _mQEvent;
-                    set => _mQEvent = value;
-                }
-            }
-
-            #endregion
+            return qEvent;
         }
+
+        #region Helper class EventNode
+
+        internal class EventNode
+        {
+            internal EventNode(IQEvent qEvent, EventNode nextNode)
+            {
+                QEvent   = qEvent;
+                NextNode = nextNode;
+            }
+
+            internal EventNode NextNode { get; set; }
+            internal IQEvent   QEvent   { get; set; }
+        }
+
         #endregion
     }
+    #endregion
 }

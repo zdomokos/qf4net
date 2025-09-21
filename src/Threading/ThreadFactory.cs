@@ -44,45 +44,43 @@
 // -----------------------------------------------------------------------------
 
 using System.Runtime.CompilerServices;
-using System.Threading;
 
-namespace qf4net.Threading
+namespace qf4net.Threading;
+
+/// <summary>
+/// Helper class that encapsulates the creation of threads. By routing all
+/// thread requests through this class we have one point in the system where
+/// we can switch between various thread strategies like priority based
+/// thread pools.
+/// </summary>
+public static class ThreadFactory
 {
+    private static IThreadFactory _sThreadFactory = new DefaultThreadFactory();
+
+    //private static IThreadFactory s_ThreadFactory = new ImpersonatingThreadFactory();
+
     /// <summary>
-    /// Helper class that encapsulates the creation of threads. By routing all
-    /// thread requests through this class we have one point in the system where
-    /// we can switch between various thread strategies like priority based
-    /// thread pools.
+    /// Can be called to specify the <see cref="IThreadFactory"/> instance
+    /// that should be used to create new <see cref="Thread"/>s. If not called
+    /// then the <see cref="DefaultThreadFactory"/> will be used to create
+    /// <see cref="Thread"/>s.
     /// </summary>
-    public class ThreadFactory
+    /// <param name="threadFactory">The <see cref="IThreadFactory"/> instance
+    /// to use for creating new <see cref="Thread"/>s.</param>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public static void Initialize(IThreadFactory threadFactory)
     {
-        private static IThreadFactory _sThreadFactory = new DefaultThreadFactory();
+        _sThreadFactory = threadFactory;
+    }
 
-        //private static IThreadFactory s_ThreadFactory = new ImpersonatingThreadFactory();
-
-        /// <summary>
-        /// Can be called to specify the <see cref="IThreadFactory"/> instance
-        /// that should be used to create new <see cref="Thread"/>s. If not called
-        /// then the <see cref="DefaultThreadFactory"/> will be used to create
-        /// <see cref="Thread"/>s.
-        /// </summary>
-        /// <param name="threadFactory">The <see cref="IThreadFactory"/> instance
-        /// to use for creating new <see cref="Thread"/>s.</param>
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public static void Initialize(IThreadFactory threadFactory)
-        {
-            _sThreadFactory = threadFactory;
-        }
-
-        /// <summary>
-        /// Hands out a <see cref="Thread"/> instance.
-        /// </summary>
-        /// <param name="priority">The priority for the thread to be handed out.</param>
-        /// <param name="start">The <see cref="ThreadStart"/> delegate pointing to the method that the thread will start on.</param>
-        /// <returns></returns>
-        public static IThread GetThread(int priority, ThreadStart start)
-        {
-            return _sThreadFactory.GetThread(priority, start);
-        }
+    /// <summary>
+    /// Hands out a <see cref="Thread"/> instance.
+    /// </summary>
+    /// <param name="priority">The priority for the thread to be handed out.</param>
+    /// <param name="start">The <see cref="ThreadStart"/> delegate pointing to the method that the thread will start on.</param>
+    /// <returns></returns>
+    public static IThread GetThread(int priority, ThreadStart start)
+    {
+        return _sThreadFactory.GetThread(priority, start);
     }
 }

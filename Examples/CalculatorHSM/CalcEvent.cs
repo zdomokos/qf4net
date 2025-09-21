@@ -1,27 +1,18 @@
 using System;
 using qf4net;
 
-namespace CalculatorHSM
+namespace CalculatorHSM;
+
+public class CalcEvent : QEvent
 {
-    public class CalcEvent : QEvent
+    public char KeyChar { get; }
+
+    //This property isn't used
+    [Obsolete("Not used.", false)] public int Signal => QSignal;
+
+    public CalcEvent(char keyChar)
+        : base(CalcSignal.GetSignal(keyChar))
     {
-        private char keyChar;
-        public char KeyChar
-        {
-            get { return keyChar; }
-        }
-
-        //This property isn't used
-        [Obsolete("Not used.", false)]
-        public int Signal
-        {
-            get { return base.QSignal; }
-        }
-
-        public CalcEvent(char keyChar)
-            : base(CalcSignal.GetSignal(keyChar))
-        {
-            this.keyChar = keyChar;
-        } //ctor
-    } //CalcEvent
-} //namespace CalculatorHSM
+        KeyChar = keyChar;
+    }
+}

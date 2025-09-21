@@ -1,13 +1,11 @@
-using System;
 using qf4net;
 
-namespace DiningPhilosophers
+namespace DiningPhilosophers;
+
+public class DPPSignal
 {
-    public class DPPSignal
-    {
-        public static readonly Signal Hungry = new Signal("Hungry   ");
-        public static readonly Signal Done = new Signal("Done	");
-        public static readonly Signal Eat = new Signal("Eat		");
-        public static readonly Signal Timeout = new Signal("Timeout	");
-    };
-}
+    public static readonly Signal Hungry  = new("Hungry   ");
+    public static readonly Signal Done    = new("Done	");
+    public static readonly Signal Eat     = new("Eat		");
+    public static readonly Signal Timeout = new("Timeout	");
+};

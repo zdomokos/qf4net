@@ -16,65 +16,60 @@
 using System;
 using qf4net;
 
-namespace OrthogonalComponentHsm
+namespace OrthogonalComponentHsm;
+
+/// <summary>
+/// Orthogonal Component pattern example for Rainer Hessmer's C# port of HQSM. This code is adapted from
+/// Samek's Orthogonal Component pattern example in section 5.4. The compiler directive "USE_DOTNET_EVENTS
+/// includes code that uses Windows Events to send messages from the component (Alarm) to the container
+/// (AlarmClock). Without this directive, the component adds events directly to the container's queue.
+///
+/// </summary>
+public sealed class Alarm : QHsm //The C++ example uses an FSM. However, currently I only have a C# HSM available.
 {
-    /// <summary>
-    /// Orthogonal Component pattern example for Rainer Hessmer's C# port of HQSM. This code is adapted from
-    /// Samek's Orthogonal Component pattern example in section 5.4. The compiler directive "USE_DOTNET_EVENTS
-    /// includes code that uses Windows Events to send messages from the component (Alarm) to the container
-    /// (AlarmClock). Without this directive, the component adds events directly to the container's queue.
-    ///
-    /// </summary>
-    public sealed class Alarm : QHsm //The C++ example uses an FSM. However, currently I only have a C# HSM available.
-    {
 #if USE_DOTNET_EVENTS
         //communication with AlarmClock is via these events:
         public event AlarmClock.AlarmDisplayHandler AlarmActivated;
 #endif
-        public DateTime AlarmTime
+    public  DateTime AlarmTime { get; set; } //AlarmTime
+
+    //We signal the alarm if the time comparison is within a fraction of a second
+    private const long TimeErrorMargin = (long)(TimeSpan.TicksPerSecond * 0.75);
+
+    private readonly QState _on;
+    private readonly QState _off;
+
+    private QState DoOn(IQEvent qevent)
+    {
+        if (qevent.IsSignal(AlarmClockSignals.Time))
         {
-            get { return myAlarmTime; }
-            set { myAlarmTime = value; }
-        } //AlarmTime
-        private DateTime myAlarmTime;
-
-        //We signal the alarm if the time comparison is within a fraction of a second
-        private const long timeErrorMargin = (long)(TimeSpan.TicksPerSecond * 0.75);
-
-        private QState On;
-        private QState Off;
-
-        private QState DoOn(IQEvent qevent)
-        {
-            if (qevent.IsSignal(AlarmClockSignals.Time))
+            var t = (((TimeEvent)qevent).CurrentTime - AlarmTime);
+            if (Math.Abs(t.Ticks) < TimeErrorMargin)
             {
-                TimeSpan t = (((TimeEvent)qevent).CurrentTime - myAlarmTime);
-                if (Math.Abs(t.Ticks) < timeErrorMargin)
-                {
-                    OnAlarmActivated();
-                }
-                return null;
+                OnAlarmActivated();
             }
-            if (qevent.IsSignal(AlarmClockSignals.AlarmOff))
-            {
-                TransitionTo(Off);
-                return null;
-            }
-            return this.TopState;
+            return null;
         }
-
-        private QState DoOff(IQEvent qevent)
+        if (qevent.IsSignal(AlarmClockSignals.AlarmOff))
         {
-            if (qevent.IsSignal(AlarmClockSignals.AlarmOn))
-            {
-                TransitionTo(On);
-                return null;
-            }
-            return this.TopState;
+            TransitionTo(_off);
+            return null;
         }
+        return TopState;
+    }
 
-        private void OnAlarmActivated()
+    private QState DoOff(IQEvent qevent)
+    {
+        if (qevent.IsSignal(AlarmClockSignals.AlarmOn))
         {
+            TransitionTo(_on);
+            return null;
+        }
+        return TopState;
+    }
+
+    private void OnAlarmActivated()
+    {
 #if USE_DOTNET_EVENTS
             if (AlarmActivated != null)
             {
@@ -82,50 +77,49 @@ namespace OrthogonalComponentHsm
             }
 
 #else
-            AlarmClock.Instance.Enqueue(new AlarmInitEvent(AlarmClockSignals.Alarm));
+        AlarmClock.Instance.Enqueue(new AlarmInitEvent(AlarmClockSignals.Alarm));
 #endif
-        } //OnDisplayState
+    } //OnDisplayState
 
-        /// <summary>
-        /// Is called inside of the function Init to give the deriving class a chance to
-        /// initialize the state machine.
-        /// </summary>
-        protected override void InitializeStateMachine()
+    /// <summary>
+    /// Is called inside the function Init to give the deriving class a chance to
+    /// initialize the state machine.
+    /// </summary>
+    protected override void InitializeStateMachine()
+    {
+        InitializeState(_off); // initial transition
+    }
+
+    private Alarm()
+    {
+        _on  = DoOn;
+        _off = DoOff;
+    }
+
+    //
+    //Thread-safe implementation of singleton as a property
+    //
+    private static volatile Alarm  _singleton;
+    private static readonly object Sync      = new(); //for static lock
+
+    public static Alarm Instance
+    {
+        [System.Diagnostics.DebuggerStepThrough()]
+        get
         {
-            InitializeState(Off); // initial transition
-        } //init
-
-        private Alarm()
-        {
-            On = new QState(this.DoOn);
-            Off = new QState(this.DoOff);
-        } //ctor
-
-        //
-        //Thread-safe implementation of singleton as a property
-        //
-        private static volatile Alarm singleton = null;
-        private static object sync = new object(); //for static lock
-
-        public static Alarm Instance
-        {
-            [System.Diagnostics.DebuggerStepThrough()]
-            get
+            if (_singleton == null)
             {
-                if (singleton == null)
+                lock (Sync)
                 {
-                    lock (sync)
+                    if (_singleton == null)
                     {
-                        if (singleton == null)
-                        {
-                            singleton = new Alarm();
-                            singleton.Init();
-                        }
+                        _singleton = new Alarm();
+                        _singleton.Init();
                     }
                 }
-
-                return singleton;
             }
-        } //Instance
-    } //class Alarm
-} //namespace OrthogonalComponentHsm
+
+            return _singleton;
+        }
+    }
+}

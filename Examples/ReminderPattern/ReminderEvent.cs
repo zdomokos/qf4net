@@ -1,11 +1,10 @@
-using System;
 using qf4net;
 
-namespace ReminderHsm
+namespace ReminderHsm;
+
+public class ReminderEvent : QEvent
 {
-    public class ReminderEvent : QEvent
-    {
-        public ReminderEvent(ReminderSignals signal)
-            : base((int)signal) { } //ctor
-    } //ReminderEvent
-} //namespace ReminderHsm
+    public ReminderEvent(Signal signal)
+        : base(signal) { }
+}                               //ReminderEvent
+//namespace ReminderHsm

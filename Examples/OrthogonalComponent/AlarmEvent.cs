@@ -1,27 +1,22 @@
 using System;
 using qf4net;
 
-namespace OrthogonalComponentHsm
+namespace OrthogonalComponentHsm;
+
+public class AlarmInitEvent : QEvent
 {
-    public class AlarmInitEvent : QEvent
-    {
-        public AlarmInitEvent(Signal signal)
-            : base(signal) { } //ctor
-    } //AlarmInitEvent
+    public AlarmInitEvent(Signal signal)
+        : base(signal) { }
+}                          //AlarmInitEvent
 
-    public class TimeEvent : QEvent
-    {
-        public DateTime CurrentTime
-        {
-            get { return currentTime; }
-            set { currentTime = value; }
-        }
-        private DateTime currentTime;
+public class TimeEvent : QEvent
+{
+    public DateTime CurrentTime { get; set; }
 
-        public TimeEvent(DateTime currentTime, Signal signal)
-            : base(signal)
-        {
-            this.currentTime = currentTime;
-        } //ctor
-    } //TimeEvent
-} //namespace OrthogonalComponentHsm
+    public TimeEvent(DateTime currentTime, Signal signal)
+        : base(signal)
+    {
+        CurrentTime = currentTime;
+    }
+}     //TimeEvent
+//namespace OrthogonalComponentHsm

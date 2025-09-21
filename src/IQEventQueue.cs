@@ -43,40 +43,39 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-namespace qf4net
+namespace qf4net;
+
+/// <summary>
+/// Summary description for IEventQueue.
+/// </summary>
+public interface IQEventQueue
 {
     /// <summary>
-    /// Summary description for IEventQueue.
+    /// Inserts the <see paramref="qEvent"/> at the end of the queue (First In First Out).
     /// </summary>
-    public interface IQEventQueue
-    {
-        /// <summary>
-        /// Inserts the <see paramref="qEvent"/> at the end of the queue (First In First Out).
-        /// </summary>
-        /// <param name="qEvent"></param>
-        void EnqueueFifo(IQEvent qEvent);
+    /// <param name="qEvent"></param>
+    void EnqueueFifo(IQEvent qEvent);
 
-        /// <summary>
-        /// Inserts the <see paramref="qEvent"/> at the beginning of the queue (First In First Out).
-        /// </summary>
-        /// <param name="qEvent"></param>
-        void EnqueueLifo(IQEvent qEvent);
+    /// <summary>
+    /// Inserts the <see paramref="qEvent"/> at the beginning of the queue (First In First Out).
+    /// </summary>
+    /// <param name="qEvent"></param>
+    void EnqueueLifo(IQEvent qEvent);
 
-        /// <summary>
-        /// Returns <see langword="true"/> if the <see cref="IQEventQueue"/> is empty
-        /// </summary>
-        bool IsEmpty { get; }
+    /// <summary>
+    /// Returns <see langword="true"/> if the <see cref="IQEventQueue"/> is empty
+    /// </summary>
+    bool IsEmpty { get; }
 
-        /// <summary>
-        /// Number of events in the queue
-        /// </summary>
-        int Count { get; }
+    /// <summary>
+    /// Number of events in the queue
+    /// </summary>
+    int Count { get; }
 
-        /// <summary>
-        /// Dequeues the first <see cref="IQEvent"/> in the <see cref="IQEventQueue"/>. If the <see cref="IQEventQueue"/>
-        /// is currently empty then it blocks until the a new <see cref="IQEvent"/> is put into the <see cref="IQEventQueue"/>.
-        /// </summary>
-        /// <returns>The first <see cref="IQEvent"/> in the <see cref="IQEventQueue"/>.</returns>
-        IQEvent DeQueue();
-    }
+    /// <summary>
+    /// Dequeues the first <see cref="IQEvent"/> in the <see cref="IQEventQueue"/>. If the <see cref="IQEventQueue"/>
+    /// is currently empty then it blocks until the new <see cref="IQEvent"/> is put into the <see cref="IQEventQueue"/>.
+    /// </summary>
+    /// <returns>The first <see cref="IQEvent"/> in the <see cref="IQEventQueue"/>.</returns>
+    IQEvent DeQueue();
 }

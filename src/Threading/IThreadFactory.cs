@@ -26,21 +26,18 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-using System.Threading;
+namespace qf4net.Threading;
 
-namespace qf4net.Threading
+/// <summary>
+/// Common interface for factories that can create threads to be used to run an <see cref="IQActive"/>
+/// </summary>
+public interface IThreadFactory
 {
     /// <summary>
-    /// Common interface for factories that can create threads to be used to run an <see cref="IQActive"/>
+    /// Hands out a <see cref="Thread"/> instance.
     /// </summary>
-    public interface IThreadFactory
-    {
-        /// <summary>
-        /// Hands out a <see cref="Thread"/> instance.
-        /// </summary>
-        /// <param name="priority">The priority for the thread to be handed out.</param>
-        /// <param name="start">The <see cref="ThreadStart"/> delegate pointing to the method that the thread will start on.</param>
-        /// <returns></returns>
-        IThread GetThread(int priority, ThreadStart start);
-    }
+    /// <param name="priority">The priority for the thread to be handed out.</param>
+    /// <param name="start">The <see cref="ThreadStart"/> delegate pointing to the method that the thread will start on.</param>
+    /// <returns></returns>
+    IThread GetThread(int priority, ThreadStart start);
 }

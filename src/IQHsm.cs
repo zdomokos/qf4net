@@ -43,53 +43,52 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-namespace qf4net
+namespace qf4net;
+
+/// <summary>
+/// Delegate that all state handlers must be a type of
+/// </summary>
+public delegate QState QState(IQEvent qEvent);
+
+/// <summary>
+/// Interface implemented by a Hierarchical State Machine.
+/// </summary>
+public interface IQHsm
 {
     /// <summary>
-    /// Delegate that all state handlers must be a type of
+    /// Must only be called once by the client of the state machine to initialize the machine.
     /// </summary>
-    public delegate QState QState(IQEvent qEvent);
+    void Init();
 
     /// <summary>
-    /// Interface implemented by a Hierarchical State Machine.
+    /// Determines whether the state machine is in the state specified by <see paramref="inquiredState"/>.
     /// </summary>
-    public interface IQHsm
-    {
-        /// <summary>
-        /// Must only be called once by the client of the state machine to initialize the machine.
-        /// </summary>
-        void Init();
+    /// <param name="inquiredState">The state to check for.</param>
+    /// <returns>
+    /// <see langword="true"/> if the state machine is in the specified state;
+    /// <see langword="false"/> otherwise.
+    /// </returns>
+    /// <remarks>
+    /// If the currently active state of a hierarchical state machine is s then it is in the
+    /// state s AND all its parent states.
+    /// </remarks>
+    bool IsInState(QState inquiredState);
 
-        /// <summary>
-        /// Determines whether the state machine is in the state specified by <see paramref="inquiredState"/>.
-        /// </summary>
-        /// <param name="inquiredState">The state to check for.</param>
-        /// <returns>
-        /// <see langword="true"/> if the state machine is in the specified state;
-        /// <see langword="false"/> otherwise.
-        /// </returns>
-        /// <remarks>
-        /// If the currently active state of a hierarchical state machine is s then it is in the
-        /// state s AND all its parent states.
-        /// </remarks>
-        bool IsInState(QState inquiredState);
+    /// <summary>
+    /// Returns the name of the (deepest) state that the state machine is currently in.
+    /// </summary>
+    string CurrentStateName { get; }
 
-        /// <summary>
-        /// Returns the name of the (deepest) state that the state machine is currently in.
-        /// </summary>
-        string CurrentStateName { get; }
+    /// <summary>
+    /// Dispatches the specified event to this state machine
+    /// </summary>
+    /// <param name="qEvent">The <see cref="IQEvent"/> to dispatch.</param>
+    void Dispatch(IQEvent qEvent);
 
-        /// <summary>
-        /// Dispatches the specified event to this state machine
-        /// </summary>
-        /// <param name="qEvent">The <see cref="IQEvent"/> to dispatch.</param>
-        void Dispatch(IQEvent qEvent);
-
-        /// <summary>
-        /// Same as the method <see cref="Dispatch"/> but guarantees that the method can
-        /// be executed by only one thread at a time.
-        /// </summary>
-        /// <param name="qEvent">The <see cref="IQEvent"/> to dispatch.</param>
-        void DispatchSynchronized(IQEvent qEvent);
-    }
+    /// <summary>
+    /// Same as the method <see cref="Dispatch"/> but guarantees that the method can
+    /// be executed by only one thread at a time.
+    /// </summary>
+    /// <param name="qEvent">The <see cref="IQEvent"/> to dispatch.</param>
+    void DispatchSynchronized(IQEvent qEvent);
 }

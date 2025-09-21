@@ -1,40 +1,39 @@
 using System;
 using qf4net;
 
-namespace DiningPhilosophers
+namespace DiningPhilosophers;
+
+/// <summary>
+/// Summary description for Class1.
+/// </summary>
+internal class Class1
 {
+    private const int c_NumberOfPhilosophers = 5;
+
     /// <summary>
-    /// Summary description for Class1.
+    /// The main entry point for the application.
     /// </summary>
-    class Class1
+    [STAThread]
+    private static void Main(string[] args)
     {
-        private const int c_NumberOfPhilosophers = 5;
+        var _signals = new DPPSignal();
+        Qf.Instance.Initialize(Signal.MaxSignalCount);
 
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
-        [STAThread]
-        static void Main(string[] args)
+        IQActive table        = new Table(c_NumberOfPhilosophers);
+        var      philosophers = new IQActive[c_NumberOfPhilosophers];
+
+        for (var i = 0; i < c_NumberOfPhilosophers; i++)
         {
-            DPPSignal _signals = new DPPSignal();
-            Qf.Instance.Initialize(Signal.MaxSignalCount);
+            philosophers[i] = new Philosopher(i);
+        }
 
-            IQActive table = new Table(c_NumberOfPhilosophers);
-            IQActive[] philosophers = new IQActive[c_NumberOfPhilosophers];
-
-            for (int i = 0; i < c_NumberOfPhilosophers; i++)
-            {
-                philosophers[i] = new Philosopher(i);
-            }
-
-            Console.WriteLine(
-                c_NumberOfPhilosophers + " philosophers gather around a table thinking ..."
-            );
-            table.Start(c_NumberOfPhilosophers);
-            for (int i = 0; i < c_NumberOfPhilosophers; i++)
-            {
-                philosophers[i].Start(i);
-            }
+        Console.WriteLine(
+                          c_NumberOfPhilosophers + " philosophers gather around a table thinking ..."
+                         );
+        table.Start(c_NumberOfPhilosophers);
+        for (var i = 0; i < c_NumberOfPhilosophers; i++)
+        {
+            philosophers[i].Start(i);
         }
     }
 }

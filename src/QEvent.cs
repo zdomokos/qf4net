@@ -43,61 +43,55 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-namespace qf4net
+namespace qf4net;
+
+/// <summary>
+///
+/// </summary>
+public class QEvent : IQEvent
 {
     /// <summary>
-    ///
+    /// Default constructor - initializes all fields to default values
     /// </summary>
-    public class QEvent : IQEvent
+    public QEvent(Signal qSignal)
     {
-        private readonly Signal _qSignal;
+        System.Diagnostics.Debug.Assert(qSignal is not null, "QEvent created with null signal");
+        QSignal = qSignal;
+    }
 
-        /// <summary>
-        /// Default constructor - initializes all fields to default values
-        /// </summary>
-        public QEvent(Signal qSignal)
-        {
-            System.Diagnostics.Debug.Assert(
-                (object)qSignal != null,
-                "QEvent created with null signal"
-            );
-            _qSignal = qSignal;
-        }
+    /// <summary>
+    /// The identifier of the <see cref="QEvent"/> type.
+    /// </summary>
+    public Signal QSignal { get; }
 
-        /// <summary>
-        /// The identifier of the <see cref="QEvent"/> type.
-        /// </summary>
-        public Signal QSignal => _qSignal;
+    /// <summary>
+    /// IsSignal
+    /// </summary>
+    /// <param name="sig"></param>
+    /// <returns></returns>
+    public bool IsSignal(Signal sig)
+    {
+        return sig == QSignal;
+    }
 
-        /// <summary>
-        /// IsSignal
-        /// </summary>
-        /// <param name="sig"></param>
-        /// <returns></returns>
-        public bool IsSignal(Signal sig)
-        {
-            return sig == _qSignal;
-        }
+    /// <summary>
+    /// The QSignal in string form. It allows for simpler debugging and logging.
+    /// </summary>
+    /// <returns>The signal as string.</returns>
+    public override string ToString()
+    {
+        return QSignal.ToString();
+    }
 
-        /// <summary>
-        /// The QSignal in string form. It allows for simpler debugging and logging.
-        /// </summary>
-        /// <returns>The signal as string.</returns>
-        public override string ToString()
-        {
-            return _qSignal.ToString();
-        }
+    public object EventObject { get; set; }
 
-        public object EventObject { get; set; }
+    public override bool Equals(object obj)
+    {
+        return IsSignal(((QEvent)obj)?.QSignal);
+    }
 
-        public override bool Equals(object obj)
-        {
-            return IsSignal(((QEvent)obj)?._qSignal);
-        }
-
-        public override int GetHashCode()
-        {
-            return _qSignal;
-        }
+    public override int GetHashCode()
+    {
+        return QSignal;
     }
 }

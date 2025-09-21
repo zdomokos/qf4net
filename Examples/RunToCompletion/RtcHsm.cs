@@ -16,322 +16,340 @@
 using System;
 using qf4net;
 
-namespace RunToCompletionHsm
+namespace RunToCompletionHsm;
+
+/// <summary>
+/// Used instead of the delegate implementation shown in the other file
+/// to keep track of the states in the event of an abort.
+/// </summary>
+public enum LastCompletedStep
 {
-    /// <summary>
-    /// Used instead of the delegate implementation shown in the other file
-    /// to keep track of the states in the event of an abort.
-    /// </summary>
-    public enum LastCompletedStep
+    None,          //no steps run yet
+    CantInterrupt, //step 0 (very first work to be done -- can't interrupt it)
+    SlowOne,       //step 1 -- part 1 of long op that user may want to cancel
+    SlowTwo,       //step 2 -- part 2 of long op that user may want to cancel
+}
+
+/// <summary>
+/// RTC state machine example for Rainer Hessmer's C# port of HQSM
+///
+/// The purpose of this example is to answer the question:
+/// "Is it possible to implement a run to completion statechart that
+/// allows the user to abort long actions prior to their completion?"
+///
+/// In this example we assume the operations must be done in sequence, but the user
+/// may want to stop temporarily to do other work and then resume this sequence
+/// without going all the way back to the beginning.
+///
+/// This example should be compatible with static transitions, but that feature wasn't tested.
+/// Several shortcuts are taken with regard to communication between threads and
+/// the threading immplementation in general.
+/// </summary>
+public sealed class RunToCompletion : QHsm
+{
+    //communication with main form is via this event:
+    public delegate void RtcDisplayHandler(object sender, RtcDisplayEventArgs e);
+
+    public event RtcDisplayHandler DisplayState;
+
+    public bool IsHandled { get; set; } //IsHandled
+
+    private int _bigValue = 100000000;
+
+    public int BigValue
     {
-        None, //no steps run yet
-        CantInterrupt, //step 0 (very first work to be done -- can't interrupt it)
-        SlowOne, //step 1 -- part 1 of long op that user may want to cancel
-        SlowTwo, //step 2 -- part 2 of long op that user may want to cancel
+        set => _bigValue = value;
     }
 
+    private LastCompletedStep _lastCompleted = LastCompletedStep.None;
+
+    private readonly QState _dispatching;
+    private readonly QState _cantInterrupt; //step 0 (very first work to be done -- can't interrupt it)
+    private readonly QState _interruptible; //superstate for SlowOne & SlowTwo (doesn't include much functionality in this example)
+    private readonly QState _slowOne;       //step 1 -- part 1 of long op that user may want to cancel
+    private readonly QState _slowTwo;       //step 2 -- part 2 of long op that user may want to cancel
+    private readonly QState _completed;     //all finished with parts 0, 1 and 2
+    private          QState _final;
+
+    private QState DoDispatching(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
+        {
+            OnDisplayState("Dispatching State");
+            //lastCompleted = LastCompletedStep.None;
+            return null;
+        }
+
+        if (qevent.QSignal == RtcSignals.Start)
+        {
+            switch (_lastCompleted)
+            {
+                case LastCompletedStep.None:
+                case LastCompletedStep.SlowTwo:
+                    TransitionTo(_cantInterrupt);
+                    break;
+                case LastCompletedStep.CantInterrupt:
+                    TransitionTo(_slowOne);
+                    break;
+                case LastCompletedStep.SlowOne:
+                    TransitionTo(_slowTwo);
+                    break;
+            }
+
+            return null;
+        }
+
+        if (qevent.QSignal >= (int)QSignals.UserSig)
+        {
+            IsHandled = false;
+        }
+
+        return TopState;
+    }
+
+    private QState DoCantInterrupt(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
+        {
+            OnDisplayState("CantInterrupt");
+            return null;
+        }
+
+        if (qevent.QSignal == RtcSignals.Start)
+        {
+            var completedOk = DoSomeUninterruptibleWork();
+            if (completedOk)
+            {
+                _lastCompleted = LastCompletedStep.CantInterrupt;
+            }
+
+            TransitionTo(_slowOne);
+            return null;
+        }
+
+        return TopState;
+    }
+
+    private QState DoSlowOne(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
+        {
+            OnDisplayState("SlowOne");
+            return null;
+        }
+
+        if (qevent.QSignal == RtcSignals.Start)
+        {
+            var completedOk1 = DoSomeInterruptibleWork1();
+            if (completedOk1)
+            {
+                _lastCompleted = LastCompletedStep.SlowOne;
+                TransitionTo(_slowTwo);
+            }
+            else
+            {
+                TransitionTo(_dispatching);
+            }
+
+            return null;
+        }
+
+        return _interruptible;
+    }
+
+    private QState DoSlowTwo(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
+        {
+            OnDisplayState("SlowTwo");
+            return null;
+        }
+
+        if (qevent.QSignal == RtcSignals.Start)
+        {
+            var completedOk2 = DoSomeInterruptibleWork2();
+            if (completedOk2)
+            {
+                _lastCompleted = LastCompletedStep.SlowTwo; //not really needed
+                TransitionTo(_completed);
+            }
+            else
+            {
+                TransitionTo(_dispatching);
+            }
+
+            return null;
+        }
+
+        return _interruptible;
+    }
+
+    private QState DoInterruptible(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
+        {
+            OnDisplayState("Interruptible");
+            return null;
+        }
+
+        if (qevent.QSignal == RtcSignals.Abort)
+        {
+            SendAbortSignal();
+            TransitionTo(_dispatching);
+            return null;
+        }
+
+        return TopState;
+    }
+
+    private QState DoCompleted(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
+        {
+            OnDisplayState("Completed");
+            _lastCompleted = LastCompletedStep.None;
+            return null;
+        }
+
+        if (qevent.QSignal == RtcSignals.Start)
+        {
+            TransitionTo(_cantInterrupt);
+            return null;
+        }
+
+        return TopState;
+    }
+
+    //UNDONE: revise this code
+    private QState DoFinal(IQEvent qevent)
+    {
+        if (qevent.QSignal == QSignals.Entry)
+        {
+            OnDisplayState("HSM terminated");
+            _singleton = null;
+            MainForm.Instance.Close();
+            System.Windows.Forms.Application.Exit();
+            return null;
+        }
+
+        return TopState;
+    }
+
+    private void OnDisplayState(string stateInfo)
+    {
+        if (DisplayState != null)
+        {
+            DisplayState(this, new RtcDisplayEventArgs(stateInfo));
+        }
+    } //OnDisplayState
+
+    private bool DoSomeUninterruptibleWork()
+    {
+        // do lots of looping
+        for (var i = 0; i < _bigValue; ++i)
+        {
+            double y = i + i;
+        }
+
+        return true;
+    } //DoSomeUninterruptibleWork
+
+    private bool DoSomeInterruptibleWork1()
+    {
+        var isAborted = Abort.Status;
+
+        for (var i = 0; i < _bigValue; ++i)
+        {
+            if (Abort.Status)
+            {
+                isAborted = true;
+                OnDisplayState("<<Aborted>>");
+                break;
+            }
+
+            double y = i * i * i;
+        }
+
+        return !isAborted;
+    } //DoSomeInterruptibleWork1
+
+    private bool DoSomeInterruptibleWork2()
+    {
+        var isAborted = Abort.Status;
+
+        for (var i = 0; i < _bigValue; ++i)
+        {
+            if (Abort.Status)
+            {
+                isAborted = true;
+                OnDisplayState("<<Aborted>>");
+                break;
+            }
+
+            double y = i * i * i;
+        }
+
+        return !isAborted;
+    } //DoSomeInterruptibleWork2
+
+    private void SendAbortSignal() //not used
+    {
+        Abort.Status = true;
+    } //SendAbortSignal
+
     /// <summary>
-    /// RTC state machine example for Rainer Hessmer's C# port of HQSM
-    ///
-    /// The purpose of this example is to answer the question:
-    /// "Is it possible to implement a run to completion statechart that
-    /// allows the user to abort long actions prior to their completion?"
-    ///
-    /// In this example we assume the operations must be done in sequence, but the user
-    /// may want to stop temporarily to do other work and then resume this sequence
-    /// without going all the way back to the beginning.
-    ///
-    /// This example should be compatible with static transitions, but that feature wasn't tested.
-    /// Several shortcuts are taken with regard to communication between threads and
-    /// the threading immplementation in general.
+    /// Is called inside the function Init to give the deriving class a chance to
+    /// initialize the state machine.
     /// </summary>
-    public sealed class RunToCompletion : QHsm
+    protected override void InitializeStateMachine()
     {
-        //communication with main form is via this event:
-        public delegate void RtcDisplayHandler(object sender, RtcDisplayEventArgs e);
-        public event RtcDisplayHandler DisplayState;
+        InitializeState(_dispatching); // initial transition
+    }
 
-        private bool isHandled;
-        public bool IsHandled
-        {
-            get { return isHandled; }
-            set { isHandled = value; }
-        } //IsHandled
-
-        private int bigValue = 100000000;
-        public int BigValue
-        {
-            set { bigValue = value; }
-        }
-
-        private LastCompletedStep lastCompleted = LastCompletedStep.None;
-
-        private QState Dispatching;
-        private QState CantInterrupt; //step 0 (very first work to be done -- can't interrupt it)
-        private QState Interruptible; //superstate for SlowOne & SlowTwo (doesn't include much functionality in this example)
-        private QState SlowOne; //step 1 -- part 1 of long op that user may want to cancel
-        private QState SlowTwo; //step 2 -- part 2 of long op that user may want to cancel
-        private QState Completed; //all finished with parts 0, 1 and 2
-        private QState Final;
-
-        private QState DoDispatching(IQEvent qevent)
-        {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("Dispatching State");
-                    //lastCompleted = LastCompletedStep.None;
-                    return null;
-                case (int)RtcSignals.Start:
-                    switch (this.lastCompleted)
-                    {
-                        case LastCompletedStep.None:
-                        case LastCompletedStep.SlowTwo:
-                            TransitionTo(CantInterrupt);
-                            break;
-                        case LastCompletedStep.CantInterrupt:
-                            TransitionTo(SlowOne);
-                            break;
-                        case LastCompletedStep.SlowOne:
-                            TransitionTo(SlowTwo);
-                            break;
-                    }
-                    return null;
-            }
-            if (qevent.QSignal >= (int)QSignals.UserSig)
-            {
-                isHandled = false;
-            }
-            return this.TopState;
-        }
-
-        private QState DoCantInterrupt(IQEvent qevent)
-        {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("CantInterrupt");
-                    return null;
-                case (int)RtcSignals.Start:
-                    bool completedOK = DoSomeUninterruptibleWork();
-                    if (completedOK)
-                    {
-                        this.lastCompleted = LastCompletedStep.CantInterrupt;
-                    }
-                    TransitionTo(SlowOne);
-                    return null;
-            }
-            return TopState;
-        }
-
-        private QState DoSlowOne(IQEvent qevent)
-        {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("SlowOne");
-                    return null;
-                case (int)RtcSignals.Start:
-                    bool completedOK1 = DoSomeInterruptibleWork1();
-                    if (completedOK1)
-                    {
-                        this.lastCompleted = LastCompletedStep.SlowOne;
-                        TransitionTo(SlowTwo);
-                    }
-                    else
-                    {
-                        TransitionTo(Dispatching);
-                    }
-                    return null;
-            }
-            return Interruptible;
-        }
-
-        private QState DoSlowTwo(IQEvent qevent)
-        {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("SlowTwo");
-                    return null;
-                case (int)RtcSignals.Start:
-                    bool completedOK2 = DoSomeInterruptibleWork2();
-                    if (completedOK2)
-                    {
-                        this.lastCompleted = LastCompletedStep.SlowTwo; //not really needed
-                        TransitionTo(Completed);
-                    }
-                    else
-                    {
-                        TransitionTo(Dispatching);
-                    }
-                    return null;
-            }
-            return Interruptible;
-        }
-
-        private QState DoInterruptible(IQEvent qevent)
-        {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("Interruptible");
-                    return null;
-                case (int)RtcSignals.Abort:
-                    SendAbortSignal();
-                    TransitionTo(Dispatching);
-                    return null;
-            }
-            return TopState;
-        }
-
-        private QState DoCompleted(IQEvent qevent)
-        {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("Completed");
-                    lastCompleted = LastCompletedStep.None;
-                    return null;
-                case (int)RtcSignals.Start:
-                    TransitionTo(CantInterrupt);
-                    return null;
-            }
-            return TopState;
-        }
-
-        //UNDONE: revise this code
-        private QState DoFinal(IQEvent qevent)
-        {
-            switch (qevent.QSignal)
-            {
-                case (int)QSignals.Entry:
-                    OnDisplayState("HSM terminated");
-                    singleton = null;
-                    MainForm.Instance.Close();
-                    System.Windows.Forms.Application.Exit();
-                    return null;
-            }
-            return this.TopState;
-        }
-
-        private void OnDisplayState(string stateInfo)
-        {
-            if (DisplayState != null)
-            {
-                DisplayState(this, new RtcDisplayEventArgs(stateInfo));
-            }
-        } //OnDisplayState
-
-        private bool DoSomeUninterruptibleWork()
-        {
-            // do lots of looping
-            for (int i = 0; i < bigValue; ++i)
-            {
-                double y = (double)(i + i);
-            }
-            return true;
-        } //DoSomeUninterruptibleWork
-
-        private bool DoSomeInterruptibleWork1()
-        {
-            bool isAborted = Abort.Status;
-
-            for (int i = 0; i < bigValue; ++i)
-            {
-                if (Abort.Status)
-                {
-                    isAborted = true;
-                    OnDisplayState("<<Aborted>>");
-                    break;
-                }
-                double y = (double)(i * i * i);
-            }
-
-            return !isAborted;
-        } //DoSomeInterruptibleWork1
-
-        private bool DoSomeInterruptibleWork2()
-        {
-            bool isAborted = Abort.Status;
-
-            for (int i = 0; i < bigValue; ++i)
-            {
-                if (Abort.Status)
-                {
-                    isAborted = true;
-                    OnDisplayState("<<Aborted>>");
-                    break;
-                }
-                double y = (double)(i * i * i);
-            }
-
-            return !isAborted;
-        } //DoSomeInterruptibleWork2
-
-        private void SendAbortSignal() //not used
-        {
-            Abort.Status = true;
-        } //SendAbortSignal
-
-        /// <summary>
-        /// Is called inside of the function Init to give the deriving class a chance to
-        /// initialize the state machine.
-        /// </summary>
-        protected override void InitializeStateMachine()
-        {
-            InitializeState(Dispatching); // initial transition
-        }
-
-        private RunToCompletion()
-        {
-            Dispatching = new QState(this.DoDispatching);
-            CantInterrupt = new QState(this.DoCantInterrupt);
-            Interruptible = new QState(this.DoInterruptible);
-            SlowOne = new QState(this.DoSlowOne);
-            SlowTwo = new QState(this.DoSlowTwo);
-            Completed = new QState(this.DoCompleted);
-            Final = new QState(this.DoFinal);
-        }
-
-        //
-        //Thread-safe implementation of singleton as a property
-        //
-        private static volatile RunToCompletion singleton = null;
-        private static object sync = new object(); //for static lock
-
-        public static RunToCompletion Instance
-        {
-            get
-            {
-                if (singleton == null)
-                {
-                    lock (sync)
-                    {
-                        if (singleton == null)
-                        {
-                            singleton = new RunToCompletion();
-                            singleton.Init();
-                        }
-                    }
-                }
-
-                return singleton;
-            }
-        } //Instance
-    } //class RunToCompletion
-
-    public class RtcDisplayEventArgs : EventArgs
+    private RunToCompletion()
     {
-        private string s;
-        public string Message
-        {
-            get { return s; }
-        }
+        _dispatching   = DoDispatching;
+        _cantInterrupt = DoCantInterrupt;
+        _interruptible = DoInterruptible;
+        _slowOne       = DoSlowOne;
+        _slowTwo       = DoSlowTwo;
+        _completed     = DoCompleted;
+        _final         = DoFinal;
+    }
 
-        public RtcDisplayEventArgs(string message)
+    //
+    //Thread-safe implementation of singleton as a property
+    //
+    private static volatile RunToCompletion _singleton;
+    private static readonly object          Sync = new(); //for static lock
+
+    public static RunToCompletion Instance
+    {
+        get
         {
-            s = message;
+            if (_singleton == null)
+            {
+                lock (Sync)
+                {
+                    if (_singleton == null)
+                    {
+                        _singleton = new RunToCompletion();
+                        _singleton.Init();
+                    }
+                }
+            }
+
+            return _singleton;
         }
     }
-} //namespace
+}
+
+public class RtcDisplayEventArgs : EventArgs
+{
+    public string Message { get; }
+
+    public RtcDisplayEventArgs(string message)
+    {
+        Message = message;
+    }
+}

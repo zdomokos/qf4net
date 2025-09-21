@@ -43,35 +43,31 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-using System;
-using System.Threading;
+namespace qf4net.Threading;
 
-namespace qf4net.Threading
+/// <summary>
+/// A factory of impersonating threads.
+/// </summary>
+public class ImpersonatingThreadFactory : IThreadFactory
 {
     /// <summary>
-    /// A factory of impersonating threads.
+    /// Hands out a <see cref="IThread"/> instance.
     /// </summary>
-    public class ImpersonatingThreadFactory : IThreadFactory
+    /// <param name="priority">The priority for the thread to be handed out.</param>
+    /// <param name="start">The <see cref="ThreadStart"/> delegate pointing to the method that the thread will start on.</param>
+    /// <returns></returns>
+    public IThread GetThread(int priority, ThreadStart start)
     {
-        /// <summary>
-        /// Hands out a <see cref="IThread"/> instance.
-        /// </summary>
-        /// <param name="priority">The priority for the thread to be handed out.</param>
-        /// <param name="start">The <see cref="ThreadStart"/> delegate pointing to the method that the thread will start on.</param>
-        /// <returns></returns>
-        public IThread GetThread(int priority, ThreadStart start)
+        // Note: We use the datatype int for the priority since uint is not CLS compliant
+        if (priority < 0)
         {
-            // Note: We use the datatype int for the priority since uint is not CLS compliant
-            if (priority < 0)
-            {
-                throw new ArgumentException(
-                    "The priority of a thread cannot be negative.",
-                    "priority"
-                );
-            }
-
-            // TODO: Take priority into account
-            return new ImpersonatingThread(start);
+            throw new ArgumentException(
+                                        "The priority of a thread cannot be negative.",
+                                        nameof(priority)
+                                       );
         }
+
+        // TODO: Take priority into account
+        return new ImpersonatingThread(start);
     }
 }

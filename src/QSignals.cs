@@ -45,127 +45,115 @@
 
 using System.Threading;
 
-namespace qf4net
+namespace qf4net;
+
+/// <summary>
+/// QSignal class - an enum replacement.
+/// </summary>
+public class Signal
 {
-    /// <summary>
-    /// QSignal class - an enum replacement.
-    /// </summary>
-    public class Signal
+    public Signal(string name)
     {
-        public Signal(string name)
-        {
-            _signalName = name;
-            _signalValue = _maxSignalCount;
-            _maxSignalCount = Interlocked.Increment(ref _maxSignalCount);
-        }
-
-        public static int MaxSignalCount => _maxSignalCount;
-
-        public static implicit operator int(Signal sig)
-        {
-            return sig._signalValue;
-        }
-
-        public static bool operator ==(Signal lhs, Signal rhs)
-        {
-            return lhs._signalValue == rhs._signalValue;
-        }
-
-        public static bool operator !=(Signal lhs, Signal rhs)
-        {
-            return !(lhs._signalValue == rhs._signalValue);
-        }
-
-        public override bool Equals(object obj)
-        {
-            //Check for null and compare run-time types.
-            if (obj == null || GetType() != obj.GetType())
-                return false;
-
-            var sig = (Signal)obj;
-            return _signalValue == sig._signalValue;
-        }
-
-        public override int GetHashCode()
-        {
-            return _signalValue;
-        }
-
-        public override string ToString()
-        {
-            return _signalName;
-        }
-
-        private static int _maxSignalCount;
-        readonly int _signalValue;
-        readonly string _signalName;
+        _signalName     = name;
+        _signalValue    = _maxSignalCount;
+        _maxSignalCount = Interlocked.Increment(ref _maxSignalCount);
     }
 
-    public enum SignalId : int
+    public static int MaxSignalCount => _maxSignalCount;
+
+    public static implicit operator int(Signal sig)
     {
-        /// <summary>
-        /// Signal that is used to retrieve the super state (must not be used externally).
-        /// </summary>
-        Empty,
+        return sig?._signalValue ?? 0;
+    }
 
-        /// <summary>
-        ///
-        /// </summary>
-        Init,
+    public static bool operator ==(Signal lhs, Signal rhs)
+    {
+        if (ReferenceEquals(lhs, rhs))
+        {
+            return true;
+        }
 
-        /// <summary>
-        ///
-        /// </summary>
-        Entry,
+        if (lhs is null || rhs is null)
+        {
+            return false;
+        }
 
-        /// <summary>
-        ///
-        /// </summary>
-        Exit,
+        return lhs._signalValue == rhs._signalValue;
+    }
 
-        /// <summary>
-        /// Entry in the enumeration that marks the first slot that is available for custom signals.
-        /// </summary>
-        Terminate,
-        UserSig,
-    };
+    public static bool operator !=(Signal lhs, Signal rhs)
+    {
+        return !(lhs == rhs);
+    }
+
+    public override bool Equals(object obj)
+    {
+        //Check for null and compare run-time types.
+        if (obj == null || GetType() != obj.GetType())
+        {
+            return false;
+        }
+
+        var sig = (Signal)obj;
+        return _signalValue == sig._signalValue;
+    }
+
+    public override int GetHashCode()
+    {
+        return _signalValue;
+    }
+
+    public override string ToString()
+    {
+        return _signalName;
+    }
+
+    private static int _maxSignalCount;
+
+    private readonly int    _signalValue;
+    private readonly string _signalName;
+}
+
+public enum SignalId
+{
+    /// <summary>
+    /// Signal that is used to retrieve the super state (must not be used externally).
+    /// </summary>
+    Empty,
 
     /// <summary>
-    /// An class that holds the signals that are intrinsically used by
-    /// the hierarchical state machine base class <see cref="QHsm"/> and hence are
-    /// reserved.
+    ///
     /// </summary>
-    public static class QSignals
-    {
-        public static readonly Signal Empty = new Signal(SignalId.Empty.ToString());
-        public static readonly Signal Init = new Signal(SignalId.Init.ToString());
-        public static readonly Signal Entry = new Signal(SignalId.Entry.ToString());
-        public static readonly Signal Exit = new Signal(SignalId.Exit.ToString());
-        public static readonly Signal Terminate = new Signal(SignalId.Terminate.ToString());
-        public static readonly Signal UserSig = new Signal("UserSig");
-    };
+    Init,
 
-    //	public enum QSignals : int
-    //	{
-    //		/// <summary>
-    //		/// Signal that is used to retrieve the super state (must not be used externally).
-    //		/// </summary>
-    //		Empty,
-    //		/// <summary>
-    //		///
-    //		/// </summary>
-    //		Init,
-    //		/// <summary>
-    //		///
-    //		/// </summary>
-    //		Entry,
-    //		/// <summary>
-    //		///
-    //		/// </summary>
-    //		Exit,
-    //		/// <summary>
-    //		/// Entry in the enumeration that marks the first slot that is available for custom signals.
-    //		/// </summary>
-    //		UserSig
-    //	};
-}
+    /// <summary>
+    ///
+    /// </summary>
+    Entry,
+
+    /// <summary>
+    ///
+    /// </summary>
+    Exit,
+
+    /// <summary>
+    /// Entry in the enumeration that marks the first slot that is available for custom signals.
+    /// </summary>
+    Terminate,
+    UserSig,
+};
+
+/// <summary>
+/// A class that holds the signals that are intrinsically used by
+/// the hierarchical state machine base class <see cref="QHsm"/> and hence are
+/// reserved.
+/// </summary>
+public class QSignals
+{
+    public static readonly Signal Empty     = new(nameof(SignalId.Empty));
+    public static readonly Signal Init      = new(nameof(SignalId.Init));
+    public static readonly Signal Entry     = new(nameof(SignalId.Entry));
+    public static readonly Signal Exit      = new(nameof(SignalId.Exit));
+    public static readonly Signal Terminate = new(nameof(SignalId.Terminate));
+    public static readonly Signal UserSig   = new("UserSig");
+};
