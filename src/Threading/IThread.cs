@@ -2,10 +2,10 @@
 //                            qf4net Library
 //
 // Port of Samek's Quantum Framework to C#. The implementation takes the liberty
-// to depart from Miro Samek's code where the specifics of desktop systems 
+// to depart from Miro Samek's code where the specifics of desktop systems
 // (compared to embedded systems) seem to warrant a different approach.
 // Please see accompanying documentation for details.
-// 
+//
 // Reference:
 // Practical Statecharts in C/C++; Quantum Programming for Embedded Systems
 // Author: Miro Samek, Ph.D.
@@ -16,18 +16,18 @@
 // Copyright (C) 2003-2004, The qf4net Team
 // All rights reserved
 // Lead: Rainer Hessmer, Ph.D. (rainer@hessmer.org)
-// 
+//
 //
 //   Redistribution and use in source and binary forms, with or without
 //   modification, are permitted provided that the following conditions
 //   are met:
 //
 //     - Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer. 
+//        notice, this list of conditions and the following disclaimer.
 //
 //     - Neither the name of the qf4net-Team, nor the names of its contributors
 //        may be used to endorse or promote products derived from this
-//        software without specific prior written permission. 
+//        software without specific prior written permission.
 //
 //   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 //   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -47,45 +47,45 @@ using System;
 
 namespace qf4net.Threading
 {
-	/// <summary>
-	/// The interface of a thread
-	/// </summary>
-	public interface IThread
-	{
-		/// <summary>
-		/// Raises a ThreadAbortException in the thread on which it is invoked, to begin the process
-		/// of terminating the thread. Calling this method usually terminates the thread. 
-		/// </summary>
-		void Abort();
+    /// <summary>
+    /// The interface of a thread
+    /// </summary>
+    public interface IThread
+    {
+        /// <summary>
+        /// Raises a ThreadAbortException in the thread on which it is invoked, to begin the process
+        /// of terminating the thread. Calling this method usually terminates the thread.
+        /// </summary>
+        void Abort();
 
-		/// <summary>
-		/// Blocks the calling thread until a thread terminates.
-		/// </summary>
-		void Join();
-		
-		/// <summary>
-		/// Blocks the calling thread until a thread terminates or the specified time elapses. 
-		/// </summary>
-		/// <param name="millisecondsTimeout"></param>
-		/// <returns></returns>
-		bool Join(int millisecondsTimeout);
+        /// <summary>
+        /// Blocks the calling thread until a thread terminates.
+        /// </summary>
+        void Join();
 
-		/// <summary>
-		/// Blocks the calling thread until a thread terminates or the specified time elapses.
-		/// </summary>
-		/// <param name="timeout"></param>
-		/// <returns></returns>
-		bool Join(TimeSpan timeout);
+        /// <summary>
+        /// Blocks the calling thread until a thread terminates or the specified time elapses.
+        /// </summary>
+        /// <param name="millisecondsTimeout"></param>
+        /// <returns></returns>
+        bool Join(int millisecondsTimeout);
 
-		/// <summary>
-		/// Starts the thread
-		/// </summary>
-		void Start();
+        /// <summary>
+        /// Blocks the calling thread until a thread terminates or the specified time elapses.
+        /// </summary>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
+        bool Join(TimeSpan timeout);
 
-		///// <summary>
-		///// Starts the thread
-		///// </summary>
-		///// <param name="parameter">An object that contains data to be used by the method the thread executes.</param>
-		//void Start(object parameter);
-	}
+        /// <summary>
+        /// Starts the thread
+        /// </summary>
+        void Start();
+
+        ///// <summary>
+        ///// Starts the thread
+        ///// </summary>
+        ///// <param name="parameter">An object that contains data to be used by the method the thread executes.</param>
+        //void Start(object parameter);
+    }
 }

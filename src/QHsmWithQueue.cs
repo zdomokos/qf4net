@@ -2,10 +2,10 @@
 //                            qf4net Library
 //
 // Port of Samek's Quantum Framework to C#. The implementation takes the liberty
-// to depart from Miro Samek's code where the specifics of desktop systems 
+// to depart from Miro Samek's code where the specifics of desktop systems
 // (compared to embedded systems) seem to warrant a different approach.
 // Please see accompanying documentation for details.
-// 
+//
 // Reference:
 // Practical Statecharts in C/C++; Quantum Programming for Embedded Systems
 // Author: Miro Samek, Ph.D.
@@ -16,18 +16,18 @@
 // Copyright (C) 2003-2004, The qf4net Team
 // All rights reserved
 // Lead: Rainer Hessmer, Ph.D. (rainer@hessmer.org)
-// 
+//
 //
 //   Redistribution and use in source and binary forms, with or without
 //   modification, are permitted provided that the following conditions
 //   are met:
 //
 //     - Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer. 
+//        notice, this list of conditions and the following disclaimer.
 //
 //     - Neither the name of the qf4net-Team, nor the names of its contributors
 //        may be used to endorse or promote products derived from this
-//        software without specific prior written permission. 
+//        software without specific prior written permission.
 //
 //   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 //   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -43,86 +43,80 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-
-using System.Collections;
+using System.Collections.Generic;
 
 namespace qf4net
 {
-	/// <summary>
-	/// Designed to allow a state machine to post NEW messages to itself during the handling of a dispatch call. 
-	/// The assumption is that most environments (Windows, XWindows) will support event handling and that the 
-	/// only time this mechanism will be required is for self-posting. Therefore, the public interface is limited 
-	/// to a single method, DispatchQ. And this method could actually be modified to version or override the 
-	/// base class Dispatch method...
-	/// </summary>
-	public abstract class QHsmQ : QHsm
-	{
-		/// <summary>
-		/// FIFO event queue
-		/// </summary>
-		private Queue _mEventQueue;
+    /// <summary>
+    /// Designed to allow a state machine to post NEW messages to itself during the handling of a dispatch call.
+    /// The assumption is that most environments (Windows, XWindows) will support event handling and that the
+    /// only time this mechanism will be required is for self-posting. Therefore, the public interface is limited
+    /// to a single method, DispatchQ. And this method could actually be modified to version or override the
+    /// base class Dispatch method...
+    /// </summary>
+    public abstract class QHsmQ : QHsm
+    {
+        /// <summary>
+        /// FIFO event queue
+        /// </summary>
+        private Queue<QEvent> _mEventQueue;
 
-		/// <summary>
-		/// Constructor for the Quantum Hierarchical State Machine with Queue
-		/// </summary>
-		public QHsmQ()
-		{
-			_mEventQueue = new Queue();
-		}
+        /// <summary>
+        /// Constructor for the Quantum Hierarchical State Machine with Queue
+        /// </summary>
+        public QHsmQ()
+        {
+            _mEventQueue = new Queue<QEvent>();
+        }
 
+        /// <summary>
+        /// Designed to be used only for self-posting, but this design could easily be changed
+        /// by making this method public.
+        /// </summary>
+        /// <param name="qEvent">New message posted to self during processing</param>
+        protected void Enqueue(QEvent qEvent)
+        {
+            _mEventQueue.Enqueue(qEvent);
+        }
 
-		/// <summary>
-		/// Designed to be used only for self-posting, but this design could easily be changed
-		/// by making this method public.
-		/// </summary>
-		/// <param name="qEvent">New message posted to self during processing</param>
-		protected void Enqueue(QEvent qEvent)
-		{
-			_mEventQueue.Enqueue(qEvent);
-		}
+        /// <summary>
+        /// Dequeues and dispatches the queued events to this state machine
+        /// </summary>
+        protected void DispatchQ()
+        {
+            if (_isDispatching)
+            {
+                return;
+            }
 
-		/// <summary>
-		/// Dequeues and dispatches the queued events to this state machine
-		/// </summary>
-		protected void DispatchQ()
-		{
-			if (_isDispatching)
-			{
-				return;
-			}
+            _isDispatching = true;
+            while (_mEventQueue.Count > 0)
+            {
+                //new events may be added (self-posted) during the dispatch handling of this first event
+                base.Dispatch(_mEventQueue.Dequeue());
+            }
+            _isDispatching = false;
+        } //DispatchQ
 
-			_isDispatching = true;
-			while (_mEventQueue.Count > 0)
-			{
-				//new events may be added (self-posted) during the dispatch handling of this first event
-				base.Dispatch((QEvent)_mEventQueue.Dequeue());
-			}
-			_isDispatching = false;
+        private bool _isDispatching;
 
-		}//DispatchQ
+        /// <summary>
+        /// Enqueues the first event then dequeues and dispatches all queued events to this state machine.
+        /// Designed to be called in place of base.Dispatch in the event self-posting is to be
+        /// supported.
+        /// </summary>
+        public void DispatchQ(QEvent qEvent)
+        {
+            _mEventQueue.Enqueue(qEvent);
+            DispatchQ();
+        } //DispatchQ
 
-		private bool _isDispatching;
-
-		/// <summary>
-		/// Enqueues the first event then dequeues and dispatches all queued events to this state machine.
-		/// Designed to be called in place of base.Dispatch in the event self-posting is to be 
-		/// supported.
-		/// </summary>
-		public void DispatchQ(QEvent qEvent)
-		{
-			_mEventQueue.Enqueue(qEvent);
-			DispatchQ();
-
-		}//DispatchQ
-
-		/// <summary>
-		/// Empties the event queue
-		/// </summary>
-		protected void ClearQ()
-		{
-			_mEventQueue.Clear();
-		}
-
-	}//QHsmQ
-
-}//namespace ReminderHsm
+        /// <summary>
+        /// Empties the event queue
+        /// </summary>
+        protected void ClearQ()
+        {
+            _mEventQueue.Clear();
+        }
+    } //QHsmQ
+} //namespace ReminderHsm

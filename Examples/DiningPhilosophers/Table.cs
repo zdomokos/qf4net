@@ -5,54 +5,56 @@ using qf4net;
 
 namespace DiningPhilosophers
 {
-	/// <summary>
-	/// The active object that represents the table
-	/// </summary>
-	public class Table : QActive
-	{
-		private QState m_StateServing;
-		private int m_NumberOfPhilosophers;
-		private bool[] m_ForkIsUsed;
-		private bool[] m_PhilosopherIsHungry;
-		
-		public Table(int numberOfPhilosophers)
-		{
-			m_NumberOfPhilosophers = numberOfPhilosophers;
-			m_ForkIsUsed = new bool[m_NumberOfPhilosophers];
-			m_PhilosopherIsHungry = new bool[m_NumberOfPhilosophers];
+    /// <summary>
+    /// The active object that represents the table
+    /// </summary>
+    public class Table : QActive
+    {
+        private QState m_StateServing;
+        private int m_NumberOfPhilosophers;
+        private bool[] m_ForkIsUsed;
+        private bool[] m_PhilosopherIsHungry;
 
-			for(int i = 0; i < m_NumberOfPhilosophers; i++)
-			{
-				m_ForkIsUsed[i] = false;
-				m_PhilosopherIsHungry[i] = false;
-			}
+        public Table(int numberOfPhilosophers)
+        {
+            m_NumberOfPhilosophers = numberOfPhilosophers;
+            m_ForkIsUsed = new bool[m_NumberOfPhilosophers];
+            m_PhilosopherIsHungry = new bool[m_NumberOfPhilosophers];
 
-			m_StateServing = new QState(this.Serving);
-		}
+            for (int i = 0; i < m_NumberOfPhilosophers; i++)
+            {
+                m_ForkIsUsed[i] = false;
+                m_PhilosopherIsHungry[i] = false;
+            }
 
-		/// <summary>
-		/// Is called inside of the function Init to give the deriving class a chance to
-		/// initialize the state machine.
-		/// </summary>
-		protected override void InitializeStateMachine()
-		{
-			Thread.CurrentThread.Name = this.ToString();
-			// Subscribe for the relevant events raised by philosophers
-			Qf.Instance.Subscribe(this, DPPSignal.Hungry);
-			Qf.Instance.Subscribe(this, DPPSignal.Done);
+            m_StateServing = new QState(this.Serving);
+        }
 
-			InitializeState(m_StateServing); // initial transition			
-		}
+        /// <summary>
+        /// Is called inside of the function Init to give the deriving class a chance to
+        /// initialize the state machine.
+        /// </summary>
+        protected override void InitializeStateMachine()
+        {
+            Thread.CurrentThread.Name = this.ToString();
+            // Subscribe for the relevant events raised by philosophers
+            Qf.Instance.Subscribe(this, DPPSignal.Hungry);
+            Qf.Instance.Subscribe(this, DPPSignal.Done);
 
-				
-		private QState Serving(IQEvent qEvent)
-		{
-			int philosopherId;
+            InitializeState(m_StateServing); // initial transition
+        }
 
-			if (qEvent.IsSignal(DPPSignal.Hungry))
+        private QState Serving(IQEvent qEvent)
+        {
+            int philosopherId;
+
+            if (qEvent.IsSignal(DPPSignal.Hungry))
             {
                 philosopherId = GetPhilosopherId(qEvent);
-                Debug.Assert(!m_PhilosopherIsHungry[philosopherId], "Philosopher must not be already hungry");
+                Debug.Assert(
+                    !m_PhilosopherIsHungry[philosopherId],
+                    "Philosopher must not be already hungry"
+                );
 
                 Console.WriteLine(String.Format("Philosopher {0} is hungry.", philosopherId));
 
@@ -64,12 +66,14 @@ namespace DiningPhilosophers
                 {
                     // The philosopher has to wait for free forks
                     m_PhilosopherIsHungry[philosopherId] = true; // mark philosopher as hungry
-                    Console.WriteLine(String.Format("Philosopher {0} has to wait for forks.", philosopherId));
+                    Console.WriteLine(
+                        String.Format("Philosopher {0} has to wait for forks.", philosopherId)
+                    );
                 }
                 return null;
             }
 
-			if (qEvent.IsSignal(DPPSignal.Done))
+            if (qEvent.IsSignal(DPPSignal.Done))
             {
                 philosopherId = GetPhilosopherId(qEvent);
                 Console.WriteLine(String.Format("Philosopher {0} is done eating.", philosopherId));
@@ -98,59 +102,69 @@ namespace DiningPhilosophers
 
                 return null;
             }
-			return this.TopState;
-		}
+            return this.TopState;
+        }
 
-		private int GetPhilosopherId(IQEvent qEvent)
-		{
-			int philosopherId = ((TableEvent)qEvent).PhilosopherId;
-			Debug.Assert(philosopherId < m_NumberOfPhilosophers, "Philosopher id must be < number of philosophers");
-			return philosopherId;
-		}
+        private int GetPhilosopherId(IQEvent qEvent)
+        {
+            int philosopherId = ((TableEvent)qEvent).PhilosopherId;
+            Debug.Assert(
+                philosopherId < m_NumberOfPhilosophers,
+                "Philosopher id must be < number of philosophers"
+            );
+            return philosopherId;
+        }
 
-		private void LetPhilosopherEat(int philosopherId)
-		{
-			UseForks(philosopherId);
-			TableEvent tableEvent = new TableEvent(DPPSignal.Eat, philosopherId);
-			Debug.WriteLine(String.Format("Table publishes Eat event for Philosopher {0}.", philosopherId));
+        private void LetPhilosopherEat(int philosopherId)
+        {
+            UseForks(philosopherId);
+            TableEvent tableEvent = new TableEvent(DPPSignal.Eat, philosopherId);
+            Debug.WriteLine(
+                String.Format("Table publishes Eat event for Philosopher {0}.", philosopherId)
+            );
 
-			Qf.Instance.Publish(tableEvent);
-			Console.WriteLine(String.Format("Philosopher {0} is eating.", philosopherId));
-		}
+            Qf.Instance.Publish(tableEvent);
+            Console.WriteLine(String.Format("Philosopher {0} is eating.", philosopherId));
+        }
 
+        private int LeftIndex(int index)
+        {
+            return (index + 1) % m_NumberOfPhilosophers;
+        }
 
-		private int LeftIndex(int index)
-		{
-			return (index  + 1) % m_NumberOfPhilosophers; 
-		}
+        private int RightIndex(int index)
+        {
+            return (index - 1 + m_NumberOfPhilosophers) % m_NumberOfPhilosophers;
+        }
 
-		private int RightIndex(int index)
-		{
-			return (index  - 1 + m_NumberOfPhilosophers) % m_NumberOfPhilosophers; 
-		}
+        private bool ForksFree(int philosopherId)
+        {
+            return (
+                m_ForkIsUsed[philosopherId] == false
+                && m_ForkIsUsed[LeftIndex(philosopherId)] == false
+            );
+        }
 
-		private bool ForksFree(int philosopherId)
-		{
-			return (m_ForkIsUsed[philosopherId] == false && m_ForkIsUsed[LeftIndex(philosopherId)] == false);
-		}
+        private void UseForks(int philosopherId)
+        {
+            m_ForkIsUsed[philosopherId] = true;
+            m_ForkIsUsed[LeftIndex(philosopherId)] = true;
+        }
 
-		private void UseForks(int philosopherId)
-		{
-			m_ForkIsUsed[philosopherId] = true;
-			m_ForkIsUsed[LeftIndex(philosopherId)] = true;
-		}
+        private void FreeForks(int philosopherId)
+        {
+            m_ForkIsUsed[philosopherId] = false;
+            m_ForkIsUsed[LeftIndex(philosopherId)] = false;
+        }
 
-		private void FreeForks(int philosopherId)
-		{
-			m_ForkIsUsed[philosopherId] = false;
-			m_ForkIsUsed[LeftIndex(philosopherId)] = false;
-		}
- 
-		public override string ToString()
-		{
-			return "Table";
-		}
+        public override string ToString()
+        {
+            return "Table";
+        }
 
-		protected override void HsmUnhandledException(Exception e) { throw new NotImplementedException(); }
-	}
+        protected override void HsmUnhandledException(Exception e)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

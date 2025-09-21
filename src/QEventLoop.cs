@@ -1,6 +1,6 @@
 using System;
-using System.Threading;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace qf4net
 {
@@ -15,9 +15,10 @@ namespace qf4net
         private int _priority;
         private Threading.IThread _executionThread;
         private QHsm _hsm;
+        private CancellationTokenSource _cancellationTokenSource;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QEventLoop"/> class. 
+        /// Initializes a new instance of the <see cref="QEventLoop"/> class.
         /// </summary>
         public QEventLoop(QHsm hsm)
         {
@@ -29,7 +30,7 @@ namespace qf4net
 
         /// <summary>
         /// Start the <see cref="IQEventLoop"/> object's thread of execution. The caller needs to assign a unique
-        /// priority to every <see cref="IQEventLoop"/> object in the system. 
+        /// priority to every <see cref="IQEventLoop"/> object in the system.
         /// </summary>
         /// <param name="priority">The priority associated with this <see cref="IQEventLoop"/> object.</param>
         // TODO: Are there more flexible ways to handle the priority? Does it really need to be unique in the whole process / system?
@@ -38,16 +39,22 @@ namespace qf4net
         {
             if (_executionThread != null)
             {
-                throw new InvalidOperationException("This active object is already started. The Start method can only be invoked once.");
+                throw new InvalidOperationException(
+                    "This active object is already started. The Start method can only be invoked once."
+                );
             }
 
             // Note: We use the datatype int for the priority since uint is not CLS compliant
             if (priority < 0)
             {
-                throw new ArgumentException("The priority of an Active Object cannot be negative.", "priority");
+                throw new ArgumentException(
+                    "The priority of an Active Object cannot be negative.",
+                    "priority"
+                );
             }
             _priority = priority;
             // TODO: Leverage the priority
+            _cancellationTokenSource = new CancellationTokenSource();
             _executionThread = Threading.ThreadFactory.GetThread(0, this.DoEventLoop);
             _executionThread.Start();
         }
@@ -61,7 +68,7 @@ namespace qf4net
 
         /// <summary>
         /// Post the <see paramref="qEvent"/> directly to the <see cref="IQEventLoop"/> object's event queue
-        /// using the FIFO (First In First Out) policy. 
+        /// using the FIFO (First In First Out) policy.
         /// </summary>
         /// <param name="qEvent"></param>
         public void PostFifo(IQEvent qEvent)
@@ -71,7 +78,7 @@ namespace qf4net
 
         /// <summary>
         /// Post the <see paramref="qEvent"/> directly to the <see cref="IQEventLoop"/> object's event queue
-        /// using the LIFO (Last In First Out) policy. 
+        /// using the LIFO (Last In First Out) policy.
         /// </summary>
         /// <param name="qEvent"></param>
         public void PostLifo(IQEvent qEvent)
@@ -90,7 +97,7 @@ namespace qf4net
             // Once initialized we kick off our event loop
             try
             {
-                while (true)
+                while (!_cancellationTokenSource.Token.IsCancellationRequested)
                 {
                     IQEvent qEvent = _eventQueue.DeQueue(); // this blocks if there are no events in the queue
                     //Debug.WriteLine(String.Format("Dispatching {0} on thread {1}.", qEvent.ToString(), Thread.CurrentThread.Name));
@@ -100,10 +107,9 @@ namespace qf4net
                     // QF.Propagate(qEvent);
                 }
             }
-            catch (ThreadAbortException)
+            catch (OperationCanceledException)
             {
-                // We use the method Thread.Abort() in this.Abort() to exit from the event loop
-                Thread.ResetAbort();
+                // Expected when cancellation is requested
                 _executionThread = null;
             }
 
@@ -112,12 +118,12 @@ namespace qf4net
         }
 
         /// <summary>
-        /// Aborts the execution thread. Nothing happens thereafter!
+        /// Cancels the execution thread. Nothing happens thereafter!
         /// </summary>
         internal void Abort()
         {
             // QF.Remove(this);
-            _executionThread.Abort();
+            _cancellationTokenSource?.Cancel();
         }
 
         internal void Join()
@@ -127,7 +133,7 @@ namespace qf4net
         }
 
         /// <summary>
-        /// Allows a deriving class to react to the fact that the execution 
+        /// Allows a deriving class to react to the fact that the execution
         /// of the active object has been aborted.
         /// </summary>
         private void OnExecutionAborted()

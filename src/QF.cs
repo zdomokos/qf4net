@@ -2,10 +2,10 @@
 //                            qf4net Library
 //
 // Port of Samek's Quantum Framework to C#. The implementation takes the liberty
-// to depart from Miro Samek's code where the specifics of desktop systems 
+// to depart from Miro Samek's code where the specifics of desktop systems
 // (compared to embedded systems) seem to warrant a different approach.
 // Please see accompanying documentation for details.
-// 
+//
 // Reference:
 // Practical Statecharts in C/C++; Quantum Programming for Embedded Systems
 // Author: Miro Samek, Ph.D.
@@ -16,18 +16,18 @@
 // Copyright (C) 2003-2004, The qf4net Team
 // All rights reserved
 // Lead: Rainer Hessmer, Ph.D. (rainer@hessmer.org)
-// 
+//
 //
 //   Redistribution and use in source and binary forms, with or without
 //   modification, are permitted provided that the following conditions
 //   are met:
 //
 //     - Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer. 
+//        notice, this list of conditions and the following disclaimer.
 //
 //     - Neither the name of the qf4net-Team, nor the names of its contributors
 //        may be used to endorse or promote products derived from this
-//        software without specific prior written permission. 
+//        software without specific prior written permission.
 //
 //   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 //   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -43,9 +43,8 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace qf4net
@@ -58,17 +57,13 @@ namespace qf4net
         // Implementation of not-quite lazy, but thread-safe singleton pattern without using locks
         // See http://www.yoda.arachsys.com/csharp/singleton.html for details
         private static readonly Qf SInstance = new Qf(); // holds reference to the singleton instance
-        private SortedList[] _mSignalSubscribers;
+        private SortedList<int, IQActive>[] _mSignalSubscribers;
 
         // Explicit static constructor to tell C# compiler
         // not to mark type as beforefieldinit
-        static Qf()
-        {
-        }
+        static Qf() { }
 
-        private Qf()
-        {
-        }
+        private Qf() { }
 
         /// <summary>
         /// Allows a client application to get the instance of the singleton <see cref="IQf"/>.
@@ -89,9 +84,11 @@ namespace qf4net
             if (_mSignalSubscribers != null)
             {
                 // Initialize was called before
-                throw new InvalidOperationException("The Initialize method can only be called once.");
+                throw new InvalidOperationException(
+                    "The Initialize method can only be called once."
+                );
             }
-            _mSignalSubscribers = new SortedList[maxSignal + 1];
+            _mSignalSubscribers = new SortedList<int, IQActive>[maxSignal + 1];
         }
 
         /// <summary>
@@ -107,7 +104,7 @@ namespace qf4net
                 if (_mSignalSubscribers[qSignal] == null)
                 {
                     // this is the first time that somebody subscribes for this signal
-                    _mSignalSubscribers[qSignal] = new SortedList();
+                    _mSignalSubscribers[qSignal] = new SortedList<int, IQActive>();
                 }
 
                 _mSignalSubscribers[qSignal].Add(qActive.Priority, qActive);
@@ -128,7 +125,7 @@ namespace qf4net
         }
 
         /// <summary>
-        /// Allows an event source to publish an event. 
+        /// Allows an event source to publish an event.
         /// </summary>
         /// <param name="qEvent">The <see cref="QEvent"/> to publish.</param>
         public void Publish(QEvent qEvent)
@@ -137,7 +134,9 @@ namespace qf4net
             {
                 if (qEvent.QSignal < _mSignalSubscribers.Length)
                 {
-                    SortedList sortedSubscriberList = _mSignalSubscribers[qEvent.QSignal];
+                    SortedList<int, IQActive> sortedSubscriberList = _mSignalSubscribers[
+                        qEvent.QSignal
+                    ];
                     if (sortedSubscriberList != null)
                     {
                         // For simplicity we do not use the event propagae pattern that Miro Samek uses in his implementation.
@@ -146,7 +145,7 @@ namespace qf4net
                         // b) We don't have the restriction that only once instance of a given type (signal value) can be in use at any given time
                         for (int i = 0; i < sortedSubscriberList.Count; i++)
                         {
-                            IQActive subscribingQActive = (IQActive)sortedSubscriberList.GetByIndex(i);
+                            IQActive subscribingQActive = sortedSubscriberList.Values[i];
                             subscribingQActive.PostFifo(qEvent);
                         }
                     }
@@ -159,15 +158,15 @@ namespace qf4net
         #region Helper class SubscriberList
 
         /// <summary>
-        /// This class encapsulates the storage of the inforamtion about subscribers for a given event type (signal) 
+        /// This class encapsulates the storage of the inforamtion about subscribers for a given event type (signal)
         /// </summary>
         private class SubscriberList
         {
-            private SortedList _mSubscriberList;
+            private SortedList<int, IQActive> _mSubscriberList;
 
             internal SubscriberList()
             {
-                _mSubscriberList = new SortedList();
+                _mSubscriberList = new SortedList<int, IQActive>();
             }
 
             internal void AddSubscriber(IQActive qActive)

@@ -3,7 +3,7 @@
 // Samek's Quantum Hierarchical State Machine.
 //
 // Author: David Shields (david@shields.net)
-// 
+//
 // References:
 // Practical Statecharts in C/C++; Quantum Programming for Embedded Systems
 // Author: Miro Samek, Ph.D.
@@ -19,13 +19,12 @@ using qf4net;
 
 namespace OrthogonalComponentHsm
 {
-
     /// <summary>
-    /// Orthogonal Component pattern example for Rainer Hessmer's C# port of HQSM. This code is adapted from 
+    /// Orthogonal Component pattern example for Rainer Hessmer's C# port of HQSM. This code is adapted from
     /// Samek's Orthogonal Component pattern example in section 5.4. The compiler directive "USE_DOTNET_EVENTS"
     /// includes code that uses Windows Events to send messages from the component (Alarm) to the container
-    /// (AlarmClock). Without this directive, the component adds events directly to the container's queue. 
-    /// 
+    /// (AlarmClock). Without this directive, the component adds events directly to the container's queue.
+    ///
     /// </summary>
     public sealed class AlarmClock : QHsmQ //this base class provides an event queue
     {
@@ -36,33 +35,27 @@ namespace OrthogonalComponentHsm
         public event AlarmDisplayHandler DisplayAlarmAlert;
 
         private TimerCallback timerDelegate;
-        private Timer timer;
+        private System.Threading.Timer timer;
 
-        public bool IsHandled
-        {
-            get { return isHandled; }
-            set { isHandled = value; }
-        }//IsHandled
-        private bool isHandled;
+        public bool IsHandled { get; set; }
 
         private DateTime myCurrentTime;
 
         public DateTime AlarmTime
         {
-            get { return myAlarm.AlarmTime; }
-            set { myAlarm.AlarmTime = value; }
-        }//AlarmTime
+            get => myAlarm.AlarmTime;
+            set => myAlarm.AlarmTime = value;
+        }
 
         private Alarm myAlarm; //state machine component (a singleton)
         private readonly string format12hr = "hh:mm:ss tt";
         private readonly string format24hr = "HH:mm:ss";
-        private int tickFrequency = 100;//at 100, the clock runs 10x faster than real time
+        private int tickFrequency = 100; //at 100, the clock runs 10x faster than real time
 
-        private QState TimeKeeping;
-        private QState Mode12Hour;
-        private QState Mode24Hour;
-        private QState Final;
-
+        private QState TimeKeeping { get; }
+        private QState Mode12Hour { get; }
+        private QState Mode24Hour { get; }
+        private QState Final { get; }
 
         private QState DoTimeKeeping(IQEvent qevent)
         {
@@ -101,10 +94,12 @@ namespace OrthogonalComponentHsm
                 OnDisplayAlarmAlert();
                 return null;
             }
-            if (qevent.IsSignal(AlarmClockSignals.AlarmOn) ||
-                qevent.IsSignal(AlarmClockSignals.AlarmOff))
+            if (
+                qevent.IsSignal(AlarmClockSignals.AlarmOn)
+                || qevent.IsSignal(AlarmClockSignals.AlarmOff)
+            )
             {
-                myAlarm.Dispatch(qevent);// dispatch event to orthogonal component
+                myAlarm.Dispatch(qevent); // dispatch event to orthogonal component
                 return null;
             }
             if (qevent.IsSignal(QSignals.Exit))
@@ -125,7 +120,6 @@ namespace OrthogonalComponentHsm
             return this.TopState;
         }
 
-
         private QState DoMode24Hour(IQEvent qevent)
         {
             if (qevent.IsSignal(QSignals.Entry))
@@ -143,7 +137,6 @@ namespace OrthogonalComponentHsm
             }
             return this.TimeKeeping;
         }
-
 
         private QState DoMode12Hour(IQEvent qevent)
         {
@@ -163,7 +156,6 @@ namespace OrthogonalComponentHsm
             return this.TimeKeeping;
         }
 
-
         private QState DoFinal(IQEvent qevent)
         {
             if (qevent.IsSignal(QSignals.Entry))
@@ -182,11 +174,11 @@ namespace OrthogonalComponentHsm
         }
 
 #if USE_DOTNET_EVENTS
-		private void AlarmActivated(object sender, AlarmClockEventArgs e)
-		{
-			//Posts message to self
-			DispatchQ(new AlarmInitEvent(AlarmClockSignals.Alarm));
-		}
+        private void AlarmActivated(object sender, AlarmClockEventArgs e)
+        {
+            //Posts message to self
+            DispatchQ(new AlarmInitEvent(AlarmClockSignals.Alarm));
+        }
 #endif
 
         private void OnDisplayState(string s)
@@ -200,7 +192,7 @@ namespace OrthogonalComponentHsm
             {
                 DisplayTimeOfDay(this, new AlarmClockEventArgs(timeString));
             }
-        }//OnDisplayState
+        } //OnDisplayState
 
         private void OnDisplayAlarmTime(string timeString)
         {
@@ -208,7 +200,7 @@ namespace OrthogonalComponentHsm
             {
                 DisplayAlarmTime(this, new AlarmClockEventArgs(timeString));
             }
-        }//OnDisplayPoll
+        } //OnDisplayPoll
 
         private void OnDisplayAlarmAlert()
         {
@@ -218,8 +210,7 @@ namespace OrthogonalComponentHsm
             {
                 DisplayAlarmAlert(this, null);
             }
-        }//OnDisplayProc
-
+        } //OnDisplayProc
 
         /// <summary>
         /// Is called inside of the function Init to give the deriving class a chance to
@@ -227,8 +218,8 @@ namespace OrthogonalComponentHsm
         /// </summary>
         protected override void InitializeStateMachine()
         {
-            InitializeState(TimeKeeping); // initial transition			
-        }//init
+            InitializeState(TimeKeeping); // initial transition
+        } //init
 
         private AlarmClock()
         {
@@ -240,20 +231,17 @@ namespace OrthogonalComponentHsm
             // Create the delegate that invokes methods for the timer.
             timerDelegate = new TimerCallback(GenerateTimerTickEvent);
 
-            myAlarm = Alarm.Instance;//we could instead just use "Alarm.Instance" and eliminate "myAlarm"
-
+            myAlarm = Alarm.Instance; // we could instead just use "Alarm.Instance" and eliminate "myAlarm"
 #if USE_DOTNET_EVENTS
-			myAlarm.AlarmActivated += new AlarmClock.AlarmDisplayHandler(AlarmActivated);
+            myAlarm.AlarmActivated += new AlarmClock.AlarmDisplayHandler(AlarmActivated);
 #endif
-
-        }//ctor
-
+        }
 
         //
         //Thread-safe implementation of singleton as a property
         //
         private static volatile AlarmClock singleton = null;
-        private static object sync = new object();//for static lock
+        private static object sync = new object(); //for static lock
 
         public static AlarmClock Instance
         {
@@ -274,7 +262,7 @@ namespace OrthogonalComponentHsm
 
                 return singleton;
             }
-        }//Instance
+        } //Instance
 
         /// <summary>
         /// Clean up any resources being used.
@@ -284,15 +272,19 @@ namespace OrthogonalComponentHsm
             this.timer.Dispose();
             singleton = null;
         }
-
-    }//class AlarmClock
-
+    } //class AlarmClock
 
     public class AlarmClockEventArgs : EventArgs
     {
         private string s;
-        public string Message { get { return s; } }
+        public string Message
+        {
+            get { return s; }
+        }
 
-        public AlarmClockEventArgs(string message) { s = message; }
+        public AlarmClockEventArgs(string message)
+        {
+            s = message;
+        }
     }
-}//namespace OrthogonalComponentHsm
+} //namespace OrthogonalComponentHsm

@@ -2,10 +2,10 @@
 //                            qf4net Library
 //
 // Port of Samek's Quantum Framework to C#. The implementation takes the liberty
-// to depart from Miro Samek's code where the specifics of desktop systems 
+// to depart from Miro Samek's code where the specifics of desktop systems
 // (compared to embedded systems) seem to warrant a different approach.
 // Please see accompanying documentation for details.
-// 
+//
 // Reference:
 // Practical Statecharts in C/C++; Quantum Programming for Embedded Systems
 // Author: Miro Samek, Ph.D.
@@ -16,18 +16,18 @@
 // Copyright (C) 2003-2004, The qf4net Team
 // All rights reserved
 // Lead: Rainer Hessmer, Ph.D. (rainer@hessmer.org)
-// 
+//
 //
 //   Redistribution and use in source and binary forms, with or without
 //   modification, are permitted provided that the following conditions
 //   are met:
 //
 //     - Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer. 
+//        notice, this list of conditions and the following disclaimer.
 //
 //     - Neither the name of the qf4net-Team, nor the names of its contributors
 //        may be used to endorse or promote products derived from this
-//        software without specific prior written permission. 
+//        software without specific prior written permission.
 //
 //   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 //   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -48,27 +48,30 @@ using System.Threading;
 
 namespace qf4net.Threading
 {
-	/// <summary>
-	/// A factory of impersonating threads.
-	/// </summary>
-	public class ImpersonatingThreadFactory : IThreadFactory
-	{
-		/// <summary>
-		/// Hands out a <see cref="IThread"/> instance.
-		/// </summary>
-		/// <param name="priority">The priority for the thread to be handed out.</param>
-		/// <param name="start">The <see cref="ThreadStart"/> delegate pointing to the method that the thread will start on.</param>
-		/// <returns></returns>
-		public IThread GetThread(int priority, ThreadStart start)
-		{
-			// Note: We use the datatype int for the priority since uint is not CLS compliant
-			if (priority < 0)
-			{
-				throw new ArgumentException("The priority of a thread cannot be negative.", "priority");
-			}
+    /// <summary>
+    /// A factory of impersonating threads.
+    /// </summary>
+    public class ImpersonatingThreadFactory : IThreadFactory
+    {
+        /// <summary>
+        /// Hands out a <see cref="IThread"/> instance.
+        /// </summary>
+        /// <param name="priority">The priority for the thread to be handed out.</param>
+        /// <param name="start">The <see cref="ThreadStart"/> delegate pointing to the method that the thread will start on.</param>
+        /// <returns></returns>
+        public IThread GetThread(int priority, ThreadStart start)
+        {
+            // Note: We use the datatype int for the priority since uint is not CLS compliant
+            if (priority < 0)
+            {
+                throw new ArgumentException(
+                    "The priority of a thread cannot be negative.",
+                    "priority"
+                );
+            }
 
-			// TODO: Take priority into account
-			return new ImpersonatingThread(start);
-		}
-	}
+            // TODO: Take priority into account
+            return new ImpersonatingThread(start);
+        }
+    }
 }
