@@ -63,13 +63,6 @@ public sealed class RunToCompletion : QHsm
 
     private LastCompletedStep _lastCompleted = LastCompletedStep.None;
 
-    private readonly QState _dispatching;
-    private readonly QState _cantInterrupt; //step 0 (very first work to be done -- can't interrupt it)
-    private readonly QState _interruptible; //superstate for SlowOne & SlowTwo (doesn't include much functionality in this example)
-    private readonly QState _slowOne;       //step 1 -- part 1 of long op that user may want to cancel
-    private readonly QState _slowTwo;       //step 2 -- part 2 of long op that user may want to cancel
-    private readonly QState _completed;     //all finished with parts 0, 1 and 2
-    private          QState _final;
 
     private QState DoDispatching(IQEvent qevent)
     {
@@ -86,13 +79,13 @@ public sealed class RunToCompletion : QHsm
             {
                 case LastCompletedStep.None:
                 case LastCompletedStep.SlowTwo:
-                    TransitionTo(_cantInterrupt);
+                    TransitionTo(DoCantInterrupt);
                     break;
                 case LastCompletedStep.CantInterrupt:
-                    TransitionTo(_slowOne);
+                    TransitionTo(DoSlowOne);
                     break;
                 case LastCompletedStep.SlowOne:
-                    TransitionTo(_slowTwo);
+                    TransitionTo(DoSlowTwo);
                     break;
             }
 
@@ -123,7 +116,7 @@ public sealed class RunToCompletion : QHsm
                 _lastCompleted = LastCompletedStep.CantInterrupt;
             }
 
-            TransitionTo(_slowOne);
+            TransitionTo(DoSlowOne);
             return null;
         }
 
@@ -144,17 +137,17 @@ public sealed class RunToCompletion : QHsm
             if (completedOk1)
             {
                 _lastCompleted = LastCompletedStep.SlowOne;
-                TransitionTo(_slowTwo);
+                TransitionTo(DoSlowTwo);
             }
             else
             {
-                TransitionTo(_dispatching);
+                TransitionTo(DoDispatching);
             }
 
             return null;
         }
 
-        return _interruptible;
+        return DoInterruptible;
     }
 
     private QState DoSlowTwo(IQEvent qevent)
@@ -171,17 +164,17 @@ public sealed class RunToCompletion : QHsm
             if (completedOk2)
             {
                 _lastCompleted = LastCompletedStep.SlowTwo; //not really needed
-                TransitionTo(_completed);
+                TransitionTo(DoCompleted);
             }
             else
             {
-                TransitionTo(_dispatching);
+                TransitionTo(DoDispatching);
             }
 
             return null;
         }
 
-        return _interruptible;
+        return DoInterruptible;
     }
 
     private QState DoInterruptible(IQEvent qevent)
@@ -195,7 +188,7 @@ public sealed class RunToCompletion : QHsm
         if (qevent.QSignal == RtcSignals.Abort)
         {
             SendAbortSignal();
-            TransitionTo(_dispatching);
+            TransitionTo(DoDispatching);
             return null;
         }
 
@@ -213,7 +206,7 @@ public sealed class RunToCompletion : QHsm
 
         if (qevent.QSignal == RtcSignals.Start)
         {
-            TransitionTo(_cantInterrupt);
+            TransitionTo(DoCantInterrupt);
             return null;
         }
 
@@ -303,18 +296,11 @@ public sealed class RunToCompletion : QHsm
     /// </summary>
     protected override void InitializeStateMachine()
     {
-        InitializeState(_dispatching); // initial transition
+        InitializeState(DoDispatching); // initial transition
     }
 
     private RunToCompletion()
     {
-        _dispatching   = DoDispatching;
-        _cantInterrupt = DoCantInterrupt;
-        _interruptible = DoInterruptible;
-        _slowOne       = DoSlowOne;
-        _slowTwo       = DoSlowTwo;
-        _completed     = DoCompleted;
-        _final         = DoFinal;
     }
 
     //

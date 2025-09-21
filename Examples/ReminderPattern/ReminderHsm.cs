@@ -45,24 +45,19 @@ public sealed class Reminder : QHsmQ
     private int myPollCtr;
     private int myProcCtr;
 
-    private readonly QState Polling;
-    private readonly QState Processing;
-    private readonly QState Idle;
-    private readonly QState Busy;
-    private readonly QState Final;
 
     private QState DoPolling(IQEvent qevent)
     {
         if (qevent.QSignal == QSignals.Entry)
         {
             MainForm.Instance.SetTimer();
-            OnDisplayState("Polling");
+            OnDisplayState("DoPolling");
             return null;
         }
 
         if (qevent.QSignal == QSignals.Init)
         {
-            InitializeState(Processing);
+            InitializeState(DoProcessing);
             return null;
         }
 
@@ -79,7 +74,7 @@ public sealed class Reminder : QHsmQ
 
         if (qevent.QSignal == ReminderSignals.Terminate)
         {
-            TransitionTo(Final);
+            TransitionTo(DoFinal);
             return null;
         }
 
@@ -100,41 +95,41 @@ public sealed class Reminder : QHsmQ
     {
         if (qevent.QSignal == QSignals.Entry)
         {
-            OnDisplayState("Processing");
+            OnDisplayState("DoProcessing");
             return null;
         }
 
         if (qevent.QSignal == QSignals.Init)
         {
-            InitializeState(Idle);
+            InitializeState(DoIdle);
             return null;
         }
 
-        return Polling;
+        return DoPolling;
     }
 
     private QState DoIdle(IQEvent qevent)
     {
         if (qevent.QSignal == QSignals.Entry)
         {
-            OnDisplayState("Idle");
+            OnDisplayState("DoIdle");
             return null;
         }
 
         if (qevent.QSignal == ReminderSignals.DataReady)
         {
-            TransitionTo(Busy);
+            TransitionTo(DoBusy);
             return null;
         }
 
-        return Processing;
+        return DoProcessing;
     }
 
     private QState DoBusy(IQEvent qevent)
     {
         if (qevent.QSignal == QSignals.Entry)
         {
-            OnDisplayState("Busy");
+            OnDisplayState("DoBusy");
             return null;
         }
 
@@ -143,13 +138,13 @@ public sealed class Reminder : QHsmQ
             OnDisplayProc(++myProcCtr);
             if ((myPollCtr & 0x1) == 0) //using Samek's C-style technique
             {
-                TransitionTo(Idle);
+                TransitionTo(DoIdle);
             }
 
             return null;
         }
 
-        return Processing;
+        return DoProcessing;
     }
 
     //UNDONE: revise this code
@@ -197,16 +192,11 @@ public sealed class Reminder : QHsmQ
     /// </summary>
     protected override void InitializeStateMachine()
     {
-        InitializeState(Polling); // initial transition
+        InitializeState(DoPolling); // initial transition
     }
 
     private Reminder()
     {
-        Polling    = DoPolling;
-        Processing = DoProcessing;
-        Idle       = DoIdle;
-        Busy       = DoBusy;
-        Final      = DoFinal;
     }
 
     //

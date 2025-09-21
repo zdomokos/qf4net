@@ -36,8 +36,6 @@ public sealed class Alarm : QHsm //The C++ example uses an FSM. However, current
     //We signal the alarm if the time comparison is within a fraction of a second
     private const long TimeErrorMargin = (long)(TimeSpan.TicksPerSecond * 0.75);
 
-    private readonly QState _on;
-    private readonly QState _off;
 
     private QState DoOn(IQEvent qevent)
     {
@@ -52,7 +50,7 @@ public sealed class Alarm : QHsm //The C++ example uses an FSM. However, current
         }
         if (qevent.IsSignal(AlarmClockSignals.AlarmOff))
         {
-            TransitionTo(_off);
+            TransitionTo(DoOff);
             return null;
         }
         return TopState;
@@ -62,7 +60,7 @@ public sealed class Alarm : QHsm //The C++ example uses an FSM. However, current
     {
         if (qevent.IsSignal(AlarmClockSignals.AlarmOn))
         {
-            TransitionTo(_on);
+            TransitionTo(DoOn);
             return null;
         }
         return TopState;
@@ -87,13 +85,11 @@ public sealed class Alarm : QHsm //The C++ example uses an FSM. However, current
     /// </summary>
     protected override void InitializeStateMachine()
     {
-        InitializeState(_off); // initial transition
+        InitializeState(DoOff); // initial transition
     }
 
     private Alarm()
     {
-        _on  = DoOn;
-        _off = DoOff;
     }
 
     //
