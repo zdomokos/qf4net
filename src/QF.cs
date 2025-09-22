@@ -153,21 +153,21 @@ public class Qf : IQf
     /// </summary>
     private class SubscriberList
     {
-        private readonly SortedList<int, IQActive> _mSubscriberList;
+        private readonly SortedList<int, IQActive> _subscriberList;
 
         internal SubscriberList()
         {
-            _mSubscriberList = [];
+            _subscriberList = [];
         }
 
         internal void AddSubscriber(IQActive qActive)
         {
-            _mSubscriberList.Add(qActive.Priority, qActive);
+            _subscriberList.Add(qActive.Priority, qActive);
         }
 
         internal void RemoveSubscriber(IQActive qActive)
         {
-            _mSubscriberList.Remove(qActive.Priority);
+            _subscriberList.Remove(qActive.Priority);
         }
     }
 

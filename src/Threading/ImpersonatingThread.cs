@@ -52,10 +52,10 @@ namespace qf4net.Threading;
 /// </summary>
 internal class ImpersonatingThread : IThread
 {
-    private readonly Thread _mWrappedThread;
+    private readonly Thread _wrappedThread;
 
     // private IntPtr _mSecurityToken;
-    private readonly ThreadStart _mThreadStart;
+    private readonly ThreadStart _threadStart;
 
     //private ParameterizedThreadStart m_ParameterizedThreadStart;
 
@@ -65,8 +65,8 @@ internal class ImpersonatingThread : IThread
     /// <param name="start"></param>
     public ImpersonatingThread(ThreadStart start)
     {
-        _mWrappedThread = new Thread(InternalStart);
-        _mThreadStart   = start ?? throw new ArgumentNullException(nameof(start));
+        _wrappedThread = new Thread(InternalStart);
+        _threadStart   = start ?? throw new ArgumentNullException(nameof(start));
     }
 
     ///// <summary>
@@ -90,7 +90,7 @@ internal class ImpersonatingThread : IThread
     public void Start()
     {
         InitializeSecurityToken();
-        _mWrappedThread.Start();
+        _wrappedThread.Start();
     }
 
     ///// <summary>
@@ -135,7 +135,7 @@ internal class ImpersonatingThread : IThread
             //    s_Log.Error("Failed to impersonate user from the security token " + m_SecurityToken.ToString(), ex);
             //    throw;
             //}
-            _mThreadStart();
+            _threadStart();
         }
         finally
         {
@@ -174,7 +174,7 @@ internal class ImpersonatingThread : IThread
     /// </summary>
     public void Join()
     {
-        _mWrappedThread.Join();
+        _wrappedThread.Join();
     }
 
     /// <summary>
@@ -184,7 +184,7 @@ internal class ImpersonatingThread : IThread
     /// <returns></returns>
     public bool Join(int millisecondsTimeout)
     {
-        return _mWrappedThread.Join(millisecondsTimeout);
+        return _wrappedThread.Join(millisecondsTimeout);
     }
 
     /// <summary>
@@ -194,7 +194,7 @@ internal class ImpersonatingThread : IThread
     /// <returns></returns>
     public bool Join(TimeSpan timeout)
     {
-        return _mWrappedThread.Join(timeout);
+        return _wrappedThread.Join(timeout);
     }
 
     /// <summary>

@@ -145,8 +145,7 @@ public abstract class QHsm : IQHsm
         return false; // no match found
     }
 
-    public MethodInfo StateMethod { get; private set; }
-
+    public MethodInfo StateMethod       { get; private set; }
     public MethodInfo SourceStateMethod { get; private set; }
 
     /// <summary>
@@ -245,6 +244,7 @@ public abstract class QHsm : IQHsm
     /// </summary>
     protected QState TopState => _sTopState;
 
+
     #region Helper functions for the predefined signals
 
     private MethodInfo Trigger(MethodInfo stateMethod, Signal qSignal)
@@ -252,7 +252,6 @@ public abstract class QHsm : IQHsm
         StateTrace(stateMethod, qSignal); // ZTG-added
 
         var state = (QState)stateMethod.Invoke(this, [new QEvent(qSignal)]);
-
         return state?.Method;
     }
 
@@ -271,11 +270,7 @@ public abstract class QHsm : IQHsm
     /// This function is used to record the transition chain for a static transition that is executed
     /// the first time.
     /// </remarks>
-    private MethodInfo Trigger(
-            MethodInfo receiverStateMethod,
-            Signal qSignal,
-            TransitionChainRecorder recorder
-        )
+    private MethodInfo Trigger(MethodInfo receiverStateMethod, Signal qSignal, TransitionChainRecorder recorder)
     {
         var stateMethod = Trigger(receiverStateMethod, qSignal);
         if (stateMethod == null && recorder != null)
@@ -359,10 +354,7 @@ public abstract class QHsm : IQHsm
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
-    private void TransitionToSynchronized(
-            QState targetState,
-            ref TransitionChain transitionChain
-        )
+    private void TransitionToSynchronized(QState targetState, ref TransitionChain transitionChain)
     {
         if (transitionChain != null)
         {
@@ -438,25 +430,10 @@ public abstract class QHsm : IQHsm
     /// transition that was not recorded yet. In this case the function will record the transition steps
     /// as they are determined.
     /// </remarks>
-    private void TransitionFromSourceToTarget(
-            MethodInfo targetStateMethod,
-            TransitionChainRecorder recorder
-        )
+    private void TransitionFromSourceToTarget(MethodInfo targetStateMethod, TransitionChainRecorder recorder)
     {
-        List<MethodInfo> statesTargetToLca;
-        int              indexFirstStateToEnter;
-        ExitUpToLca(
-                    targetStateMethod,
-                    out statesTargetToLca,
-                    out indexFirstStateToEnter,
-                    recorder
-                   );
-        TransitionDownToTargetState(
-                                    targetStateMethod,
-                                    statesTargetToLca,
-                                    indexFirstStateToEnter,
-                                    recorder
-                                   );
+        ExitUpToLca(targetStateMethod, out var statesTargetToLca, out var indexFirstStateToEnter, recorder);
+        TransitionDownToTargetState(targetStateMethod, statesTargetToLca, indexFirstStateToEnter, recorder);
     }
 
     /// <summary>
@@ -591,7 +568,7 @@ public abstract class QHsm : IQHsm
 
         StateMethod = targetStateMethod;
 
-        // At last we are ready to initialize the target state.
+        // At last, we are ready to initialize the target state.
         // If the specified target state handles init then the effective
         // target state is deeper than the target state specified in
         // the transition.
@@ -671,11 +648,9 @@ public abstract class QHsm : IQHsm
     /// </summary>
     private class TransitionChainRecorder
     {
-        private readonly List<TransitionStep> _mTransitionSteps = [];
-
         internal void Record(MethodInfo stateMethod, Signal qSignal)
         {
-            _mTransitionSteps.Add(new TransitionStep(stateMethod, qSignal));
+            _transitionSteps.Add(new TransitionStep(stateMethod, qSignal));
         }
 
         /// <summary>
@@ -685,8 +660,10 @@ public abstract class QHsm : IQHsm
         internal TransitionChain GetRecordedTransitionChain()
         {
             // We turn the List into a strongly typed array
-            return new TransitionChain(_mTransitionSteps);
+            return new TransitionChain(_transitionSteps);
         }
+
+        private readonly List<TransitionStep> _transitionSteps = [];
     }
 
     #endregion
@@ -698,81 +675,65 @@ public abstract class QHsm : IQHsm
     /// </summary>
     protected class TransitionChain
     {
-        private readonly MethodInfo[] _mStateMethodChain;
-
-        //  holds the transitions that need to be performed from the LCA down to the target state
-
-        private readonly BitArray _mActionBits;
+        // holds the transitions that need to be performed from the LCA down to the target state
+        private readonly MethodInfo[] _stateMethodChain;
 
         // holds the actions that need to be performed on each transition in two bits:
         // 0x1: Init; 0x2: Entry, 0x3: Exit
+        private readonly BitArray _actionBits;
 
         internal TransitionChain(List<TransitionStep> transitionSteps)
         {
-            _mStateMethodChain = new MethodInfo[transitionSteps.Count];
-            _mActionBits       = new BitArray(transitionSteps.Count * 2);
+            _stateMethodChain = new MethodInfo[transitionSteps.Count];
+            _actionBits       = new BitArray(transitionSteps.Count * 2);
 
             for (var i = 0; i < transitionSteps.Count; i++)
             {
                 var transitionStep = transitionSteps[i];
 
-                _mStateMethodChain[i] = transitionStep.StateMethod;
+                _stateMethodChain[i] = transitionStep.StateMethod;
                 var bitPos = i * 2;
 
                 if (QSignals.Empty == transitionStep.QSignal)
                 {
-                    _mActionBits[bitPos]   = false;
-                    _mActionBits[++bitPos] = false;
+                    _actionBits[bitPos]   = false;
+                    _actionBits[++bitPos] = false;
                 }
                 else if (QSignals.Init == transitionStep.QSignal)
                 {
-                    _mActionBits[bitPos]   = false;
-                    _mActionBits[++bitPos] = true;
+                    _actionBits[bitPos]   = false;
+                    _actionBits[++bitPos] = true;
                 }
                 else if (QSignals.Entry == transitionStep.QSignal)
                 {
-                    _mActionBits[bitPos]   = true;
-                    _mActionBits[++bitPos] = false;
+                    _actionBits[bitPos]   = true;
+                    _actionBits[++bitPos] = false;
                 }
                 else if (QSignals.Exit == transitionStep.QSignal)
                 {
-                    _mActionBits[bitPos]   = true;
-                    _mActionBits[++bitPos] = true;
+                    _actionBits[bitPos]   = true;
+                    _actionBits[++bitPos] = true;
                 }
             }
         }
 
-        internal int Length => _mStateMethodChain.Length;
+        internal int Length => _stateMethodChain.Length;
 
         internal TransitionStep this[int index]
         {
             get
             {
                 var transitionStep = new TransitionStep();
-                transitionStep.StateMethod = _mStateMethodChain[index];
+                transitionStep.StateMethod = _stateMethodChain[index];
 
                 var bitPos = index * 2;
-                if (_mActionBits[bitPos])
+                if (_actionBits[bitPos])
                 {
-                    if (_mActionBits[bitPos + 1])
-                    {
-                        transitionStep.QSignal = QSignals.Exit;
-                    }
-                    else
-                    {
-                        transitionStep.QSignal = QSignals.Entry;
-                    }
+                    transitionStep.QSignal = _actionBits[bitPos + 1] ? QSignals.Exit : QSignals.Entry;
                 }
                 else
                 {
-                    if (_mActionBits[bitPos + 1])
-                    {
-                        transitionStep.QSignal = QSignals.Init;
-                    }
-                    else
-                    {
-                        transitionStep.QSignal = QSignals.Empty;
-                    }
+                    transitionStep.QSignal = _actionBits[bitPos + 1] ? QSignals.Init : QSignals.Empty;
                 }
 
                 return transitionStep;
@@ -804,7 +765,7 @@ public abstract class QHsm : IQHsm
     {
         private const int CDefaultCapacity = 16;
 
-        private TransitionChain[] _mItems;
+        private TransitionChain[] _items;
 
         /// <summary>
         /// Constructs a <see cref="TransitionChainStore"/>. The internal array for holding
@@ -869,11 +830,11 @@ public abstract class QHsm : IQHsm
         {
             if (slotsRequiredByBaseQHsm == 0)
             {
-                _mItems = new TransitionChain[CDefaultCapacity];
+                _items = new TransitionChain[CDefaultCapacity];
             }
             else
             {
-                _mItems = new TransitionChain[2 * slotsRequiredByBaseQHsm];
+                _items = new TransitionChain[2 * slotsRequiredByBaseQHsm];
             }
 
             Size = slotsRequiredByBaseQHsm;
@@ -885,7 +846,7 @@ public abstract class QHsm : IQHsm
         /// <returns>The index of the new slot.</returns>
         public int GetOpenSlot()
         {
-            if (Size >= _mItems.Length)
+            if (Size >= _items.Length)
             {
                 // We no longer have room in the items array to hold a new slot
                 IncreaseCapacity();
@@ -895,23 +856,23 @@ public abstract class QHsm : IQHsm
         }
 
         /// <summary>
-        /// Reallocates the internal array <see cref="_mItems"/> to an array twice the previous capacity.
+        /// Reallocates the internal array <see cref="_items"/> to an array twice the previous capacity.
         /// </summary>
         private void IncreaseCapacity()
         {
             int newCapacity;
-            if (_mItems.Length == 0)
+            if (_items.Length == 0)
             {
                 newCapacity = CDefaultCapacity;
             }
             else
             {
-                newCapacity = _mItems.Length * 2;
+                newCapacity = _items.Length * 2;
             }
 
             var newItems = new TransitionChain[newCapacity];
-            Array.Copy(_mItems, 0, newItems, 0, _mItems.Length);
-            _mItems = newItems;
+            Array.Copy(_items, 0, newItems, 0, _items.Length);
+            _items = newItems;
         }
 
         /// <summary>
@@ -921,14 +882,14 @@ public abstract class QHsm : IQHsm
         public void ShrinkToActualSize()
         {
             var newItems = new TransitionChain[Size];
-            Array.Copy(_mItems, 0, newItems, 0, Size);
-            _mItems = newItems;
+            Array.Copy(_items, 0, newItems, 0, Size);
+            _items = newItems;
         }
 
         /// <summary>
         /// Provides access to the array that holds the persisted <see cref="TransitionChain"/> objects.
         /// </summary>
-        public TransitionChain[] TransitionChains => _mItems;
+        public TransitionChain[] TransitionChains => _items;
 
         /// <summary>
         /// The size of the <see cref="TransitionChainStore"/>; i.e., the actual number of used slots.
