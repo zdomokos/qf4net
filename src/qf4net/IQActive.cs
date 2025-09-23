@@ -56,7 +56,7 @@ public interface IQActive
     /// </summary>
     /// <param name="priority">The priority associated with this <see cref="IQActive"/> object.</param>
     // TODO: Are there more flexible ways to handle the priority? Does it really need to be unique in the whole process / system?
-    void Start(int priority);
+    Task StartAsync(int priority);
 
     /// <summary>
     /// The priority associated with this <see cref="IQActive"/> object. Once the <see cref="IQActive"/> object

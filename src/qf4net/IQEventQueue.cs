@@ -78,4 +78,13 @@ public interface IQEventQueue
     /// </summary>
     /// <returns>The first <see cref="IQEvent"/> in the <see cref="IQEventQueue"/>.</returns>
     IQEvent DeQueue();
+
+    /// <summary>
+    /// Dequeues the first <see cref="IQEvent"/> in the <see cref="IQEventQueue"/>. If the <see cref="IQEventQueue"/>
+    /// is currently empty then it blocks until the new <see cref="IQEvent"/> is put into the <see cref="IQEventQueue"/>
+    /// or cancellation is requested.
+    /// </summary>
+    /// <param name="cancellationToken">Token to observe for cancellation requests.</param>
+    /// <returns>The first <see cref="IQEvent"/> in the <see cref="IQEventQueue"/>, or null if cancelled.</returns>
+    IQEvent DeQueue(CancellationToken cancellationToken);
 }

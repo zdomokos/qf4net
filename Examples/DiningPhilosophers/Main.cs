@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using qf4net;
 
 namespace DiningPhilosophers;
@@ -17,18 +18,22 @@ internal class Class1
     private static void Main(string[] args)
     {
         IQActive table = new Table(c_NumberOfPhilosophers);
-        var philosophers = new IQActive[c_NumberOfPhilosophers];
+        IQActive[] philosophers = [];
 
         for (var i = 0; i < c_NumberOfPhilosophers; i++)
         {
             philosophers[i] = new Philosopher(i);
         }
 
-        Console.WriteLine(c_NumberOfPhilosophers + " philosophers gather around a table thinking ...");
-        table.Start(c_NumberOfPhilosophers);
+        Console.WriteLine($"{c_NumberOfPhilosophers} philosophers gather around a table thinking ...");
+        table.StartAsync(c_NumberOfPhilosophers);
         for (var i = 0; i < c_NumberOfPhilosophers; i++)
         {
-            philosophers[i].Start(i);
+            philosophers[i].StartAsync(i);
         }
+
+        // Keep the application running
+        Console.WriteLine("Running for 30 seconds...");
+        Task.Delay(30000).Wait();
     }
 }

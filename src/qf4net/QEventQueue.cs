@@ -134,6 +134,39 @@ public class QEventQueue : IQEventQueue
     }
 
     /// <summary>
+    /// Dequeues the first <see cref="QEvent"/> in the <see cref="QEventQueue"/>. If the <see cref="QEventQueue"/>
+    /// is currently empty then it blocks until a new <see cref="QEvent"/> is put into the <see cref="QEventQueue"/>
+    /// or cancellation is requested.
+    /// </summary>
+    /// <param name="cancellationToken">Token to observe for cancellation requests.</param>
+    /// <returns>The first <see cref="QEvent"/> in the <see cref="QEventQueue"/>, or null if cancelled.</returns>
+    public IQEvent DeQueue(CancellationToken cancellationToken)
+    {
+        lock (_eventList)
+        {
+            while (_eventList.IsEmpty)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return null;
+                }
+
+                // Wait with a timeout to allow periodic cancellation checks
+                if (!Monitor.Wait(_eventList, 100))
+                {
+                    // Timeout occurred, check cancellation token again
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return null;
+                    }
+                }
+            }
+
+            return _eventList.RemoveHeadEvent();
+        }
+    }
+
+    /// <summary>
     /// Allows the caller to peek at the head of the <see cref="QEventQueue"/>.
     /// </summary>
     /// <returns>The <see cref="IQEvent"/> at the head of the <see cref="QEventQueue"/> if it exists;

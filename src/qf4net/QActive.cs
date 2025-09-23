@@ -44,7 +44,6 @@
 // -----------------------------------------------------------------------------
 
 using System.Runtime.CompilerServices;
-using qf4net.Threading;
 
 namespace qf4net;
 
@@ -64,30 +63,65 @@ public abstract class QActive : QHsm, IQActive
     #region IQActive Members
 
     /// <summary>
-    /// Start the <see cref="IQActive"/> object's thread of execution. The caller needs to assign a unique
+    /// Start the <see cref="IQActive"/> object's execution. The caller needs to assign a unique
     /// priority to every <see cref="IQActive"/> object in the system.
     /// </summary>
     /// <param name="priority">The priority associated with this <see cref="IQActive"/> object.</param>
-    // TODO: Are there more flexible ways to handle the priority? Does it really need to be unique in the whole process / system?
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public virtual void Start(int priority)
+    public Task StartAsync(int priority)
     {
-        if (_executionThread != null)
+        if (_executionTask != null)
         {
-            throw new InvalidOperationException("This active object is already started. The Start method can only be invoked once.");
+            throw new InvalidOperationException(
+                "This active object is already started. The Start method can only be invoked once."
+            );
         }
 
-        // Note: We use the datatype int for the priority since uint is not CLS compliant
         if (priority < 0)
         {
-            throw new ArgumentException("The priority of an Active Object cannot be negative.", nameof(priority));
+            throw new ArgumentException(
+                "The priority of an Active Object cannot be negative.",
+                nameof(priority)
+            );
         }
 
         Priority = priority;
-        // TODO: Leverage the priority
+
         _cancellationTokenSource = new CancellationTokenSource();
-        _executionThread         = ThreadFactory.GetThread(0, DoEventLoop);
-        _executionThread.Start();
+        _executionTask = Task.Factory.StartNew(
+            DoEventLoop,
+            _cancellationTokenSource.Token,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default
+        );
+
+        _isInitialized = true;
+        return _executionTask;
+    }
+
+    public void Start(int priority)
+    {
+        if (_isInitialized)
+        {
+            throw new InvalidOperationException(
+                "This active object is already started. The Start method can only be invoked once."
+            );
+        }
+
+        if (priority < 0)
+        {
+            throw new ArgumentException(
+                "The priority of an Active Object cannot be negative.",
+                nameof(priority)
+            );
+        }
+
+        Priority = priority;
+
+        _cancellationTokenSource = new CancellationTokenSource();
+        _isInitialized = true;
+
+        DoEventLoop();
     }
 
     /// <summary>
@@ -132,7 +166,12 @@ public abstract class QActive : QHsm, IQActive
             {
                 try
                 {
-                    var qEvent = _eventQueue.DeQueue(); // this blocks if there are no events in the queue
+                    var qEvent = _eventQueue.DeQueue(_cancellationTokenSource.Token);
+                    if (qEvent == null) // Cancelled
+                    {
+                        break;
+                    }
+
                     //Debug.WriteLine(String.Format("Dispatching {0} on thread {1}.", qEvent.ToString(), Thread.CurrentThread.Name));
                     if (qEvent.IsSignal(QSignals.Terminate))
                     {
@@ -156,7 +195,6 @@ public abstract class QActive : QHsm, IQActive
         catch (OperationCanceledException)
         {
             // Expected when cancellation is requested
-            _executionThread = null;
         }
 
         // The QActive object ends
@@ -174,8 +212,8 @@ public abstract class QActive : QHsm, IQActive
 
     protected void Join()
     {
-        _executionThread.Join();
-        _executionThread = null;
+        _executionTask?.Wait();
+        _executionTask = null;
     }
 
     /// <summary>
@@ -189,7 +227,8 @@ public abstract class QActive : QHsm, IQActive
     /// </summary>
     protected abstract void HsmUnhandledException(Exception e);
 
-    private readonly IQEventQueue            _eventQueue;
-    private          IThread                 _executionThread;
-    private          CancellationTokenSource _cancellationTokenSource;
+    private readonly IQEventQueue _eventQueue;
+    private Task _executionTask;
+    private CancellationTokenSource _cancellationTokenSource;
+    private bool _isInitialized = false;
 }

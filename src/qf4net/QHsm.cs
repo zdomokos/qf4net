@@ -48,7 +48,6 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-
 namespace qf4net;
 
 /// <summary>
@@ -95,7 +94,7 @@ public abstract class QHsm : IQHsm
     public void Init()
     {
         Debug.Assert(StateMethod == _sTopState.Method); // HSM not executed yet
-        var stateMethod = StateMethod;                  // save m_StateHandler in a temporary
+        var stateMethod = StateMethod; // save m_StateHandler in a temporary
 
         InitializeStateMachine(); // We call into the deriving class
         // initial transition must go *one* level deep
@@ -131,10 +130,10 @@ public abstract class QHsm : IQHsm
     {
         MethodInfo stateMethod;
         for (
-                stateMethod = StateMethod;
-                stateMethod != null;
-                stateMethod = GetSuperStateMethod(stateMethod)
-            )
+            stateMethod = StateMethod;
+            stateMethod != null;
+            stateMethod = GetSuperStateMethod(stateMethod)
+        )
         {
             if (stateMethod == inquiredState.Method) // do the states match?
             {
@@ -145,7 +144,7 @@ public abstract class QHsm : IQHsm
         return false; // no match found
     }
 
-    public MethodInfo StateMethod       { get; private set; }
+    public MethodInfo StateMethod { get; private set; }
     public MethodInfo SourceStateMethod { get; private set; }
 
     /// <summary>
@@ -158,12 +157,12 @@ public abstract class QHsm : IQHsm
         get
         {
             MethodInfo stateMethod;
-            var        nest = "";
+            var nest = "";
             for (
-                    stateMethod = StateMethod;
-                    stateMethod != null;
-                    stateMethod = GetSuperStateMethod(stateMethod)
-                )
+                stateMethod = StateMethod;
+                stateMethod != null;
+                stateMethod = GetSuperStateMethod(stateMethod)
+            )
             {
                 nest = nest != "" ? $"[{stateMethod.Name}]->{nest}" : $"[{stateMethod.Name}]";
             }
@@ -186,8 +185,7 @@ public abstract class QHsm : IQHsm
             while (SourceStateMethod != null)
             {
                 StateTrace(SourceStateMethod, qEvent.Signal, ++level); // ZTG-added
-                var state = (QState)
-                    SourceStateMethod.Invoke(this, [qEvent]);
+                var state = (QState)SourceStateMethod.Invoke(this, [qEvent]);
                 if (state != null)
                 {
                     SourceStateMethod = state.Method;
@@ -207,7 +205,7 @@ public abstract class QHsm : IQHsm
             while (e != null)
             {
                 exceptionMessages += $"{e.Message}{Environment.NewLine}";
-                e                 =  e.InnerException;
+                e = e.InnerException;
             }
 
             var message =
@@ -244,7 +242,6 @@ public abstract class QHsm : IQHsm
     /// </summary>
     protected QState TopState => _sTopState;
 
-
     #region Helper functions for the predefined signals
 
     private MethodInfo Trigger(MethodInfo stateMethod, Signal qSignal)
@@ -270,7 +267,11 @@ public abstract class QHsm : IQHsm
     /// This function is used to record the transition chain for a static transition that is executed
     /// the first time.
     /// </remarks>
-    private MethodInfo Trigger(MethodInfo receiverStateMethod, Signal qSignal, TransitionChainRecorder recorder)
+    private MethodInfo Trigger(
+        MethodInfo receiverStateMethod,
+        Signal qSignal,
+        TransitionChainRecorder recorder
+    )
     {
         var stateMethod = Trigger(receiverStateMethod, qSignal);
         if (stateMethod == null && recorder != null)
@@ -288,8 +289,7 @@ public abstract class QHsm : IQHsm
     ///</summary>
     private MethodInfo GetSuperStateMethod(MethodInfo stateMethod)
     {
-        var superState = (QState)
-            stateMethod.Invoke(this, [new QEvent(QSignals.Empty)]);
+        var superState = (QState)stateMethod.Invoke(this, [new QEvent(QSignals.Empty)]);
         return superState?.Method;
     }
 
@@ -403,7 +403,7 @@ public abstract class QHsm : IQHsm
 
     private void ExitUpToSourceState()
     {
-        for (var stateMethod = StateMethod; stateMethod != SourceStateMethod;)
+        for (var stateMethod = StateMethod; stateMethod != SourceStateMethod; )
         {
             Debug.Assert(stateMethod != null);
 
@@ -434,10 +434,23 @@ public abstract class QHsm : IQHsm
     /// transition that was not recorded yet. In this case the function will record the transition steps
     /// as they are determined.
     /// </remarks>
-    private void TransitionFromSourceToTarget(MethodInfo targetStateMethod, TransitionChainRecorder recorder)
+    private void TransitionFromSourceToTarget(
+        MethodInfo targetStateMethod,
+        TransitionChainRecorder recorder
+    )
     {
-        ExitUpToLca(targetStateMethod, out var statesTargetToLca, out var indexFirstStateToEnter, recorder);
-        TransitionDownToTargetState(targetStateMethod, statesTargetToLca, indexFirstStateToEnter, recorder);
+        ExitUpToLca(
+            targetStateMethod,
+            out var statesTargetToLca,
+            out var indexFirstStateToEnter,
+            recorder
+        );
+        TransitionDownToTargetState(
+            targetStateMethod,
+            statesTargetToLca,
+            indexFirstStateToEnter,
+            recorder
+        );
     }
 
     /// <summary>
@@ -454,13 +467,13 @@ public abstract class QHsm : IQHsm
     /// <param name="recorder">An instance of <see cref="TransitionChainRecorder"/> if the transition chain
     /// should be recorded; <see langword="null"/> otherwise.</param>
     private void ExitUpToLca(
-            MethodInfo targetStateMethod,
-            out List<MethodInfo> statesTargetToLca,
-            out int indexFirstStateToEnter,
-            TransitionChainRecorder recorder
-        )
+        MethodInfo targetStateMethod,
+        out List<MethodInfo> statesTargetToLca,
+        out int indexFirstStateToEnter,
+        TransitionChainRecorder recorder
+    )
     {
-        statesTargetToLca      = [targetStateMethod];
+        statesTargetToLca = [targetStateMethod];
         indexFirstStateToEnter = 0;
 
         // (a) check my source state == target state (transition to self)
@@ -499,10 +512,10 @@ public abstract class QHsm : IQHsm
         statesTargetToLca.Add(targetSuperStateMethod);
         indexFirstStateToEnter++;
         for (
-                var stateMethod = GetSuperStateMethod(targetSuperStateMethod);
-                stateMethod != null;
-                stateMethod = GetSuperStateMethod(stateMethod)
-            )
+            var stateMethod = GetSuperStateMethod(targetSuperStateMethod);
+            stateMethod != null;
+            stateMethod = GetSuperStateMethod(stateMethod)
+        )
         {
             if (SourceStateMethod == stateMethod)
             {
@@ -534,10 +547,10 @@ public abstract class QHsm : IQHsm
         // (g) check each super state of super state ... of my source state ==
         //     super state of super state of ... target state
         for (
-                var stateMethod = sourceSuperStateMethod;
-                stateMethod != null;
-                stateMethod = GetSuperStateMethod(stateMethod)
-            )
+            var stateMethod = sourceSuperStateMethod;
+            stateMethod != null;
+            stateMethod = GetSuperStateMethod(stateMethod)
+        )
         {
             for (var stateIndex = indexFirstStateToEnter; stateIndex >= 0; stateIndex--)
             {
@@ -558,11 +571,11 @@ public abstract class QHsm : IQHsm
     }
 
     private void TransitionDownToTargetState(
-            MethodInfo targetStateMethod,
-            List<MethodInfo> statesTargetToLca,
-            int indexFirstStateToEnter,
-            TransitionChainRecorder recorder
-        )
+        MethodInfo targetStateMethod,
+        List<MethodInfo> statesTargetToLca,
+        int indexFirstStateToEnter,
+        TransitionChainRecorder recorder
+    )
     {
         // we enter the states in the passed in array in reverse order
         for (var stateIndex = indexFirstStateToEnter; stateIndex >= 0; stateIndex--)
@@ -593,9 +606,9 @@ public abstract class QHsm : IQHsm
     }
 
     private void EnsureLastTransitionStepIsEntryIntoTargetState(
-            MethodInfo targetStateMethod,
-            TransitionChainRecorder recorder
-        )
+        MethodInfo targetStateMethod,
+        TransitionChainRecorder recorder
+    )
     {
         if (recorder.GetRecordedTransitionChain().Length == 0)
         {
@@ -605,21 +618,21 @@ public abstract class QHsm : IQHsm
         }
 
         // We need to test whether the last recorded transition step is the entry into the target state
-        var transitionChain    = recorder.GetRecordedTransitionChain();
+        var transitionChain = recorder.GetRecordedTransitionChain();
         var lastTransitionStep = transitionChain[transitionChain.Length - 1];
         if (
-                lastTransitionStep.StateMethod != targetStateMethod
-             || lastTransitionStep.QSignal != QSignals.Entry
-            )
+            lastTransitionStep.StateMethod != targetStateMethod
+            || lastTransitionStep.QSignal != QSignals.Entry
+        )
         {
             RecordEntryIntoTargetState(targetStateMethod, recorder);
         }
     }
 
     private void RecordEntryIntoTargetState(
-            MethodInfo targetStateMethod,
-            TransitionChainRecorder recorder
-        )
+        MethodInfo targetStateMethod,
+        TransitionChainRecorder recorder
+    )
     {
         recorder.Record(targetStateMethod, QSignals.Entry);
     }
@@ -689,7 +702,7 @@ public abstract class QHsm : IQHsm
         internal TransitionChain(List<TransitionStep> transitionSteps)
         {
             _stateMethodChain = new MethodInfo[transitionSteps.Count];
-            _actionBits       = new BitArray(transitionSteps.Count * 2);
+            _actionBits = new BitArray(transitionSteps.Count * 2);
 
             for (var i = 0; i < transitionSteps.Count; i++)
             {
@@ -700,22 +713,22 @@ public abstract class QHsm : IQHsm
 
                 if (QSignals.Empty == transitionStep.QSignal)
                 {
-                    _actionBits[bitPos]   = false;
+                    _actionBits[bitPos] = false;
                     _actionBits[++bitPos] = false;
                 }
                 else if (QSignals.Init == transitionStep.QSignal)
                 {
-                    _actionBits[bitPos]   = false;
+                    _actionBits[bitPos] = false;
                     _actionBits[++bitPos] = true;
                 }
                 else if (QSignals.Entry == transitionStep.QSignal)
                 {
-                    _actionBits[bitPos]   = true;
+                    _actionBits[bitPos] = true;
                     _actionBits[++bitPos] = false;
                 }
                 else if (QSignals.Exit == transitionStep.QSignal)
                 {
-                    _actionBits[bitPos]   = true;
+                    _actionBits[bitPos] = true;
                     _actionBits[++bitPos] = true;
                 }
             }
@@ -733,11 +746,15 @@ public abstract class QHsm : IQHsm
                 var bitPos = index * 2;
                 if (_actionBits[bitPos])
                 {
-                    transitionStep.QSignal = _actionBits[bitPos + 1] ? QSignals.Exit : QSignals.Entry;
+                    transitionStep.QSignal = _actionBits[bitPos + 1]
+                        ? QSignals.Exit
+                        : QSignals.Entry;
                 }
                 else
                 {
-                    transitionStep.QSignal = _actionBits[bitPos + 1] ? QSignals.Init : QSignals.Empty;
+                    transitionStep.QSignal = _actionBits[bitPos + 1]
+                        ? QSignals.Init
+                        : QSignals.Empty;
                 }
 
                 return transitionStep;
@@ -748,12 +765,12 @@ public abstract class QHsm : IQHsm
     internal struct TransitionStep
     {
         internal MethodInfo StateMethod;
-        internal Signal     QSignal;
+        internal Signal QSignal;
 
         internal TransitionStep(MethodInfo stateMethod, Signal qSignal)
         {
             StateMethod = stateMethod;
-            QSignal     = qSignal;
+            QSignal = qSignal;
         }
     }
 
@@ -781,13 +798,13 @@ public abstract class QHsm : IQHsm
         {
             Debug.Assert(IsDerivedFromQHsm(callingClass));
 
-            var baseType                = callingClass.BaseType;
+            var baseType = callingClass.BaseType;
             var slotsRequiredByBaseQHsm = 0;
 
             while (baseType != typeof(QHsm))
             {
                 slotsRequiredByBaseQHsm += RetrieveStoreSizeOfBaseClass(baseType);
-                baseType                =  baseType.BaseType;
+                baseType = baseType.BaseType;
             }
 
             InitializeStore(slotsRequiredByBaseQHsm);
@@ -797,11 +814,16 @@ public abstract class QHsm : IQHsm
         {
             var bindingFlags =
                 BindingFlags.DeclaredOnly
-              | BindingFlags.NonPublic
-              | BindingFlags.Static
-              | BindingFlags.GetField;
+                | BindingFlags.NonPublic
+                | BindingFlags.Static
+                | BindingFlags.GetField;
 
-            var mi = baseType.FindMembers(MemberTypes.Field, bindingFlags, Type.FilterName, "s_TransitionChainStore");
+            var mi = baseType.FindMembers(
+                MemberTypes.Field,
+                bindingFlags,
+                Type.FilterName,
+                "s_TransitionChainStore"
+            );
 
             if (mi.Length < 1)
             {
