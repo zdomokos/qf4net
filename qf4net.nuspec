@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>qf4net</id>
+    <version>25.9.23.1</version>
+    <authors>The qf4net Team</authors>
+    <owners>The qf4net Team</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>C# port of Miro Samek's Quantum Framework including his excellent implementation of a hierarchical state machine. Updated version of https://sourceforge.net/projects/qf4net/</description>
+    <copyright>Copyright (C) 2003-2025, The qf4net Team</copyright>
+    <projectUrl>https://github.com/zdomokos/qf4net</projectUrl>
+    <tags>statecharts;statemachine;quantum-framework;</tags>
+    <readme>README.md</readme>
+    <pac
+  </metadata>
+</package>

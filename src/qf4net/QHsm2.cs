@@ -3,24 +3,28 @@ using System.Reflection;
 
 namespace qf4net;
 
-public abstract class QHsm2 : IQHsm
+public class QHsm2 : IQHsm
 {
     static QHsm2()
     {
         _sTopState = Top;
     }
 
-    protected QHsm2()
+    public QHsm2(Action initializeStateMachine)
     {
-        _log        = Log;
-        StateMethod = _sTopState;
+        _initializeStateMachine = initializeStateMachine;
+        _log                    = Log;
+        StateMethod             = _sTopState;
     }
 
     /// <summary>
     /// Is called inside the function Init to give the deriving class a chance to
     /// initialize the state machine.
     /// </summary>
-    protected abstract void InitializeStateMachine();
+    public virtual void InitializeStateMachine()
+    {
+        _initializeStateMachine?.Invoke();
+    }
 
 
     /// <summary>
@@ -75,7 +79,7 @@ public abstract class QHsm2 : IQHsm
     /// <summary>
     /// Represents the macro Q_INIT in Miro Samek's implementation
     /// </summary>
-    protected void InitializeState(QState state)
+    public void InitializeState(QState state)
     {
         SourceStateMethod = state;
         StateMethod       = state;
@@ -144,7 +148,7 @@ public abstract class QHsm2 : IQHsm
     /// Performs a dynamic transition; i.e., the transition path is determined on the fly and not recorded.
     /// </summary>
     /// <param name="targetState">The <see cref="QState"/> to transition to.</param>
-    protected void TransitionTo(QState targetState)
+    public void TransitionTo(QState targetState)
     {
         _targetStateName = targetState.Method.Name;
 
@@ -362,4 +366,5 @@ public abstract class QHsm2 : IQHsm
     private readonly Action<string> _log;
     private readonly object         _synchObj = new();
     private          string         _targetStateName;
+    private readonly Action         _initializeStateMachine;
 }
