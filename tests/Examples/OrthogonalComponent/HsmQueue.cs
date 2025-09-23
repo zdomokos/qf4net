@@ -18,7 +18,7 @@ namespace OrthogonalComponentHsm;
 /// the container's dispatch method directly and that the events posted from component
 /// to container be done so asynchronously (queued).
 /// </remarks>
-public abstract class QHsmQ : QHsmClassic
+public abstract class QHsmQ : QHsm
 {
     /// <summary>
     /// FIFO event queue

@@ -3,14 +3,14 @@ using System.Diagnostics;
 using System.Threading;
 using qf4net;
 
-namespace DiningPhilosophersClassic;
+namespace DiningPhilosophers;
 
 /// <summary>
 /// The active object that represents the table
 /// </summary>
-public class Philosopher : QActiveClassic
+public class Philosopher : QActive2
 {
-    public Philosopher(int philosopherId)
+    public Philosopher(IQEventBroker eventBroker, int philosopherId) : base(eventBroker)
     {
         _philosopherId = philosopherId;
 
@@ -29,7 +29,8 @@ public class Philosopher : QActiveClassic
     {
         Thread.CurrentThread.Name = ToString();
         LogMessage($"Initializing philosopher {_philosopherId}");
-        QEventBroadcaster.Instance.Subscribe(this, DPPSignal.Eat);
+
+        _eventBroker.Subscribe(this, DPPSignal.Eat);
         InitializeState(_stateThinking); // initial transition
     }
 
@@ -44,7 +45,7 @@ public class Philosopher : QActiveClassic
 
         if (qEvent.IsSignal(DPPSignal.Timeout))
         {
-            TransitionTo(_stateHungry, ref s_Tran_Thinking_Hungry);
+            TransitionTo(_stateHungry);
             return null;
         }
 
@@ -57,8 +58,6 @@ public class Philosopher : QActiveClassic
         return TopState;
     }
 
-    private static TransitionChain s_Tran_Hungry_Eating;
-
     private QState Hungry(IQEvent qEvent)
     {
         if (qEvent.IsSignal(QSignals.Entry))
@@ -68,7 +67,7 @@ public class Philosopher : QActiveClassic
             LogMessage(
                        $"Philosopher {_philosopherId} publishes Hungry event."
                       );
-            QEventBroadcaster.Instance.Publish(tableEvent);
+            _eventBroker.Publish(tableEvent);
             return null;
         }
 
@@ -77,7 +76,7 @@ public class Philosopher : QActiveClassic
             if (((TableEvent)qEvent).PhilosopherId == _philosopherId)
             {
                 LogMessage($"Philosopher {_philosopherId} receives eat signal.");
-                TransitionTo(_stateEating, ref s_Tran_Hungry_Eating);
+                TransitionTo(_stateEating);
             }
 
             return null;
@@ -92,8 +91,6 @@ public class Philosopher : QActiveClassic
         return TopState;
     }
 
-    private static TransitionChain s_Tran_Eating_Thinking;
-
     private QState Eating(IQEvent qEvent)
     {
         if (qEvent.IsSignal(QSignals.Entry))
@@ -105,7 +102,7 @@ public class Philosopher : QActiveClassic
 
         if (qEvent.IsSignal(DPPSignal.Timeout))
         {
-            TransitionTo(_stateThinking, ref s_Tran_Eating_Thinking);
+            TransitionTo(_stateThinking);
             return null;
         }
 
@@ -114,7 +111,7 @@ public class Philosopher : QActiveClassic
             LogMessage($"Philosopher {_philosopherId} is exiting eating state.");
             var tableEvent = new TableEvent(DPPSignal.Done, _philosopherId);
             LogMessage($"Philosopher {_philosopherId} publishes Done event.");
-            QEventBroadcaster.Instance.Publish(tableEvent);
+            _eventBroker.Publish(tableEvent);
             return null;
         }
 
@@ -134,8 +131,6 @@ public class Philosopher : QActiveClassic
     protected override void HsmUnhandledException(Exception e)
     {
     }
-
-    private static TransitionChain s_Tran_Thinking_Hungry;
 
     private readonly TimeSpan _thinkTime = new(0, 0, 7); // last parameter represents seconds
     private readonly TimeSpan _eatTime   = new(0, 0, 5); // last parameter represents seconds

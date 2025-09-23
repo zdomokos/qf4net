@@ -48,25 +48,27 @@ namespace qf4net;
 /// <summary>
 /// Interface implemented by the QF
 /// </summary>
-public interface IQEventBroadcaster
+public interface IQEventBroker
 {
     /// <summary>
-    /// Allows an <see cref="IQEventPump"/> object to subscribe for a given signal.
+    /// Allows an <see cref="IQActive"/> object to subscribe for a given signal.
     /// </summary>
-    /// <param name="qActive">The subscribing <see cref="IQEventPump"/> object.</param>
+    /// <param name="qActive">The subscribing <see cref="IQActive"/> object.</param>
     /// <param name="qSignal">The signal to subscribe for.</param>
-    void Subscribe(IQEventPump qActive, Signal qSignal);
+    void Subscribe(IQActive qActive, Signal qSignal);
 
     /// <summary>
-    /// Allows an <see cref="IQEventPump"/> object to unsubscribe for a given signal.
+    /// Allows an <see cref="IQActive"/> object to unsubscribe for a given signal.
     /// </summary>
-    /// <param name="qActive">The unsubscribing <see cref="IQEventPump"/> object.</param>
+    /// <param name="qActive">The unsubscribing <see cref="IQActive"/> object.</param>
     /// <param name="qSignal">The signal to unsubscribe.</param>
-    void Unsubscribe(IQEventPump qActive, Signal qSignal);
+    void Unsubscribe(IQActive qActive, Signal qSignal);
 
     /// <summary>
     /// Allows an event source to publish an event.
     /// </summary>
     /// <param name="qEvent">The <see cref="QEvent"/> to publish.</param>
-    void Publish(QEvent qEvent);
+    void Publish(IQEvent qEvent);
+
+    void Unregister(IQActive qActive);
 }

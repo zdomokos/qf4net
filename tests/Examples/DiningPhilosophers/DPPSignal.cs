@@ -1,6 +1,6 @@
 using qf4net;
 
-namespace DiningPhilosophers;
+namespace DiningPhilosophersClassic;
 
 public class DPPSignal : QSignals
 {

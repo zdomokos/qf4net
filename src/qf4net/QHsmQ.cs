@@ -52,7 +52,7 @@ namespace qf4net;
 /// to a single method, DispatchQ. And this method could actually be modified to version or override the
 /// base class Dispatch method...
 /// </summary>
-public abstract class QHsmQ : QHsmClassic
+public abstract class QHsmQ : QHsm
 {
     /// <summary>
     /// FIFO event queue

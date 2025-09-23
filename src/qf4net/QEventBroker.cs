@@ -47,41 +47,32 @@ using System.Diagnostics;
 
 namespace qf4net;
 
-public class Singleton<T> where T : class, new()
+public class QEventBrokerSingleton
 {
-    // Private constructor prevents external instantiation
-    protected Singleton() { }
+    private static readonly Lazy<IQEventBroker> _instance = new(() => new QEventBroker());
 
-    // Nested class ensures lazy, thread-safe initialization
-
-
-    // Public accessor
+    public static IQEventBroker Instance => _instance.Value;
 }
 
 
 /// <summary>
-/// QF singleton. This is the class that handles the delivery of events.
+/// QF singleton. Object should be injected into QActive
+/// This is the class that handles the delivery of events (publish-subscribe) between
+/// active hsm objects.
 /// </summary>
-public class QEventBroadcaster : IQEventBroadcaster
+public class QEventBroker : IQEventBroker
 {
     /// <summary>
     /// This class encapsulates the storage of the information about subscribers for a given event type (signal)
     /// </summary>
-    private class SignalSubscribersByPriorityList : SortedList<int, IQEventPump>;
-
-    protected QEventBroadcaster() { }
-    private static class SingletonCreator
-    {
-        internal static readonly QEventBroadcaster Instance = new();
-    }
-    public static QEventBroadcaster Instance => SingletonCreator.Instance;
+    private class SignalSubscribersByPriorityList : SortedList<int, IQActive>;
 
     /// <summary>
-    /// Allows an <see cref="IQEventPump"/> object to subscribe for a given signal.
+    /// Allows an <see cref="IQActive"/> object to subscribe for a given signal.
     /// </summary>
-    /// <param name="qActive">The subscribing <see cref="IQEventPump"/> object.</param>
+    /// <param name="qActive">The subscribing <see cref="IQActive"/> object.</param>
     /// <param name="qSignal">The signal to subscribe for.</param>
-    public void Subscribe(IQEventPump qActive, Signal qSignal)
+    public void Subscribe(IQActive qActive, Signal qSignal)
     {
         Console.WriteLine(qActive + " subscribes for signal " + qSignal);
 
@@ -97,11 +88,11 @@ public class QEventBroadcaster : IQEventBroadcaster
     }
 
     /// <summary>
-    /// Allows an <see cref="IQEventPump"/> object to unsubscribe for a given signal.
+    /// Allows an <see cref="IQActive"/> object to unsubscribe for a given signal.
     /// </summary>
-    /// <param name="qActive">The unsubscribing <see cref="IQEventPump"/> object.</param>
+    /// <param name="qActive">The unsubscribing <see cref="IQActive"/> object.</param>
     /// <param name="qSignal">The signal to unsubscribe.</param>
-    public void Unsubscribe(IQEventPump qActive, Signal qSignal)
+    public void Unsubscribe(IQActive qActive, Signal qSignal)
     {
         lock(_syncObj)
         {
@@ -109,11 +100,29 @@ public class QEventBroadcaster : IQEventBroadcaster
         }
     }
 
+    public void Unregister(IQActive qActive)
+    {
+        lock (_syncObj)
+        {
+            foreach(var subscribers in _signalSubscribers.Values.ToList())
+            {
+                foreach(var subscriber in subscribers.ToList())
+                {
+                    if(subscriber.Value == qActive)
+                    {
+                        subscribers.Remove(subscriber.Key);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Allows an event source to publish an event.
     /// </summary>
     /// <param name="qEvent">The <see cref="QEvent"/> to publish.</param>
-    public void Publish(QEvent qEvent)
+    public void Publish(IQEvent qEvent)
     {
         lock(_syncObj)
         {

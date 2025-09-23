@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using qf4net;
 
-namespace DiningPhilosophers;
+namespace DiningPhilosophersClassic;
 
 /// <summary>
 /// The active object that represents the table
@@ -33,8 +33,8 @@ public class Table : QActive
     {
         Thread.CurrentThread.Name = ToString();
         // Subscribe for the relevant events raised by philosophers
-        QEventBroadcaster.Instance.Subscribe(this, DPPSignal.Hungry);
-        QEventBroadcaster.Instance.Subscribe(this, DPPSignal.Done);
+        QEventBrokerSingleton.Instance.Subscribe(this, DPPSignal.Hungry);
+        QEventBrokerSingleton.Instance.Subscribe(this, DPPSignal.Done);
 
         InitializeState(_stateServing); // initial transition
     }
@@ -119,7 +119,7 @@ public class Table : QActive
         var tableEvent = new TableEvent(DPPSignal.Eat, philosopherId);
         Console.WriteLine($"Table publishes Eat event for Philosopher {philosopherId}.");
 
-        QEventBroadcaster.Instance.Publish(tableEvent);
+        QEventBrokerSingleton.Instance.Publish(tableEvent);
         Console.WriteLine($"Philosopher {philosopherId} is eating.");
     }
 

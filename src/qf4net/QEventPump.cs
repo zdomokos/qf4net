@@ -113,7 +113,6 @@ public class QEventPump : IQEventPump
         }
 
         _eventLoopTerminated?.Invoke(this);
-        // QEventBroadcaster.Remove(this);
     }
 
     /// <summary>

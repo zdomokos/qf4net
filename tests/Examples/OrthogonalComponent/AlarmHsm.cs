@@ -25,7 +25,7 @@ namespace OrthogonalComponentHsm;
 /// (AlarmClock). Without this directive, the component adds events directly to the container's queue.
 ///
 /// </summary>
-public sealed class Alarm : QHsmClassic //The C++ example uses an FSM. However, currently I only have a C# HSM available.
+public sealed class Alarm : QHsm //The C++ example uses an FSM. However, currently I only have a C# HSM available.
 {
 #if USE_DOTNET_EVENTS
         //communication with AlarmClock is via these events:

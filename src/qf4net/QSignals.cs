@@ -47,7 +47,7 @@ namespace qf4net;
 
 /// <summary>
 /// A class that holds the signals that are intrinsically used by
-/// the hierarchical state machine base class <see cref="QHsmClassic"/> and hence are
+/// the hierarchical state machine base class <see cref="QHsm"/> and hence are
 /// reserved.
 /// </summary>
 public class QSignals
@@ -57,6 +57,12 @@ public class QSignals
     public static readonly Signal Entry     = new(nameof(Entry));
     public static readonly Signal Exit      = new(nameof(Exit));
     public static readonly Signal Terminate = new(nameof(Terminate));
+
+    public static readonly QEvent EvtEmpty     = new(Empty);
+    public static readonly QEvent EvtInit      = new(Init);
+    public static readonly QEvent EvtEntry     = new(Entry);
+    public static readonly QEvent EvtExit      = new(Exit);
+    public static readonly QEvent EvtTerminate = new(Terminate);
 };
 
 /// <summary>
@@ -121,5 +127,3 @@ public class Signal : IEquatable<Signal>, IComparable<Signal>
     private readonly int    _signalValue;
     private readonly string _signalName;
 }
-
-

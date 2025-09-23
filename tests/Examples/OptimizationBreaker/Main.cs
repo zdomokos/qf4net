@@ -76,7 +76,7 @@ internal class MainClass
         Console.WriteLine();
     }
 
-    private static QHsmClassic CreateQHsmBase(int pairType)
+    private static QHsm CreateQHsmBase(int pairType)
     {
         switch (pairType)
         {
@@ -90,7 +90,7 @@ internal class MainClass
         return null;
     }
 
-    private static QHsmClassic CreateQHsmDerived(int pairType)
+    private static QHsm CreateQHsmDerived(int pairType)
     {
         switch (pairType)
         {

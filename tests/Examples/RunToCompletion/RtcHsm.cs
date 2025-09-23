@@ -45,7 +45,7 @@ public enum LastCompletedStep
 /// Several shortcuts are taken with regard to communication between threads and
 /// the threading immplementation in general.
 /// </summary>
-public sealed class RunToCompletion : QHsmClassic
+public sealed class RunToCompletion : QHsm
 {
     //communication with main form is via this event:
     public delegate void RtcDisplayHandler(object sender, RtcDisplayEventArgs e);

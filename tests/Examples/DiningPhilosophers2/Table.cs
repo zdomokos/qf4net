@@ -3,14 +3,15 @@ using System.Diagnostics;
 using System.Threading;
 using qf4net;
 
-namespace DiningPhilosophersClassic;
+namespace DiningPhilosophers;
 
 /// <summary>
 /// The active object that represents the table
 /// </summary>
-public class Table : QActiveClassic
+public class Table : QActive2
 {
-    public Table(int numberOfPhilosophers)
+    public Table(IQEventBroker eventBroker, int numberOfPhilosophers)
+    : base(eventBroker)
     {
         _numberOfPhilosophers = numberOfPhilosophers;
         _forkIsUsed = new bool[_numberOfPhilosophers];
@@ -32,9 +33,10 @@ public class Table : QActiveClassic
     protected override void InitializeStateMachine()
     {
         Thread.CurrentThread.Name = ToString();
+
         // Subscribe for the relevant events raised by philosophers
-        QEventBroadcaster.Instance.Subscribe(this, DPPSignal.Hungry);
-        QEventBroadcaster.Instance.Subscribe(this, DPPSignal.Done);
+        _eventBroker.Subscribe(this, DPPSignal.Hungry);
+        _eventBroker.Subscribe(this, DPPSignal.Done);
 
         InitializeState(_stateServing); // initial transition
     }
@@ -119,7 +121,7 @@ public class Table : QActiveClassic
         var tableEvent = new TableEvent(DPPSignal.Eat, philosopherId);
         Console.WriteLine($"Table publishes Eat event for Philosopher {philosopherId}.");
 
-        QEventBroadcaster.Instance.Publish(tableEvent);
+        _eventBroker.Publish(tableEvent);
         Console.WriteLine($"Philosopher {philosopherId} is eating.");
     }
 

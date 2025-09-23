@@ -27,7 +27,7 @@ namespace CalculatorHSM;
 /// <summary>
 /// Calculator state machine example for Rainer Hessmer's C# port of HQSM
 /// </summary>
-public sealed class Calc : QHsmClassic
+public sealed class Calc : QHsm
 {
 #if (STATIC_TRANS)
 

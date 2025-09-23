@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using qf4net;
 
-namespace DiningPhilosophers;
+namespace DiningPhilosophersClassic;
 
 /// <summary>
 /// The active object that represents the table
@@ -29,7 +29,7 @@ public class Philosopher : QActive
     {
         Thread.CurrentThread.Name = ToString();
         LogMessage($"Initializing philosopher {_philosopherId}");
-        QEventBroadcaster.Instance.Subscribe(this, DPPSignal.Eat);
+        QEventBrokerSingleton.Instance.Subscribe(this, DPPSignal.Eat);
         InitializeState(_stateThinking); // initial transition
     }
 
@@ -68,7 +68,7 @@ public class Philosopher : QActive
             LogMessage(
                        $"Philosopher {_philosopherId} publishes Hungry event."
                       );
-            QEventBroadcaster.Instance.Publish(tableEvent);
+            QEventBrokerSingleton.Instance.Publish(tableEvent);
             return null;
         }
 
@@ -114,7 +114,7 @@ public class Philosopher : QActive
             LogMessage($"Philosopher {_philosopherId} is exiting eating state.");
             var tableEvent = new TableEvent(DPPSignal.Done, _philosopherId);
             LogMessage($"Philosopher {_philosopherId} publishes Done event.");
-            QEventBroadcaster.Instance.Publish(tableEvent);
+            QEventBrokerSingleton.Instance.Publish(tableEvent);
             return null;
         }
 
