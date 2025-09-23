@@ -65,7 +65,7 @@ public class QEventBroker : IQEventBroker
     /// <summary>
     /// This class encapsulates the storage of the information about subscribers for a given event type (signal)
     /// </summary>
-    private class SignalSubscribersByPriorityList : SortedList<int, IQActive>;
+    private class SignalSubscribersByPriorityList : SortedDictionary<int, List<IQActive>>;
 
     /// <summary>
     /// Allows an <see cref="IQActive"/> object to subscribe for a given signal.
@@ -83,7 +83,12 @@ public class QEventBroker : IQEventBroker
                 subscriptionPriorityList = [];
                 _signalSubscribers[qSignal] = subscriptionPriorityList;
             }
-            subscriptionPriorityList.Add(qActive.Priority, qActive);
+            if (!subscriptionPriorityList.TryGetValue(qActive.Priority, out var subscribersAtPriority))
+            {
+                subscribersAtPriority = [];
+                subscriptionPriorityList[qActive.Priority] = subscribersAtPriority;
+            }
+            subscribersAtPriority.Add(qActive);
         }
     }
 
@@ -96,7 +101,15 @@ public class QEventBroker : IQEventBroker
     {
         lock(_syncObj)
         {
-            _signalSubscribers[qSignal].Remove(qActive.Priority);
+            if (_signalSubscribers.TryGetValue(qSignal, out var subscriptionPriorityList) &&
+                subscriptionPriorityList.TryGetValue(qActive.Priority, out var subscribersAtPriority))
+            {
+                subscribersAtPriority.Remove(qActive);
+                if (subscribersAtPriority.Count == 0)
+                {
+                    subscriptionPriorityList.Remove(qActive.Priority);
+                }
+            }
         }
     }
 
@@ -106,12 +119,15 @@ public class QEventBroker : IQEventBroker
         {
             foreach(var subscribers in _signalSubscribers.Values.ToList())
             {
-                foreach(var subscriber in subscribers.ToList())
+                foreach(var priorityGroup in subscribers.ToList())
                 {
-                    if(subscriber.Value == qActive)
+                    var subscribersAtPriority = priorityGroup.Value;
+                    if (subscribersAtPriority.Remove(qActive))
                     {
-                        subscribers.Remove(subscriber.Key);
-                        break;
+                        if (subscribersAtPriority.Count == 0)
+                        {
+                            subscribers.Remove(priorityGroup.Key);
+                        }
                     }
                 }
             }
@@ -132,10 +148,12 @@ public class QEventBroker : IQEventBroker
                 // This has two consequences:
                 // a) We rely on the Garbage Collector to clean up events that are no longer used
                 // b) We don't have the restriction that only once instance of a given type (signal value) can be in use at any given time
-                for (var i = 0; i < sortedSubscriberList.Count; i++)
+                foreach (var priorityGroup in sortedSubscriberList)
                 {
-                    var subscribingQEventPump = sortedSubscriberList.Values[i];
-                    subscribingQEventPump.PostFifo(qEvent);
+                    foreach (var subscribingQEventPump in priorityGroup.Value)
+                    {
+                        subscribingQEventPump.PostFifo(qEvent);
+                    }
                 }
             }
         }
