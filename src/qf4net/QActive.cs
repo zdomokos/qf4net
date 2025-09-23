@@ -56,7 +56,7 @@ public abstract class QActive : QHsm, IQActive
     /// <summary>
     /// Initializes a new instance of the <see cref="QActive"/> class.
     /// </summary>
-    public QActive()
+    protected QActive()
     {
         _eventQueue = EventQueueFactory.GetEventQueue();
     }

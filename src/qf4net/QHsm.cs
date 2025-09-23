@@ -315,6 +315,7 @@ public abstract class QHsm : IQHsm
         _targetStateName = targetState.Method.Name;
 
         Debug.Assert(targetState != _sTopState); // can't target 'top' state
+
         ExitUpToSourceState();
         // This is a dynamic transition. We pass in null instead of a recorder
         TransitionFromSourceToTarget(targetState.Method, null);
@@ -339,6 +340,7 @@ public abstract class QHsm : IQHsm
     protected void TransitionTo(QState targetState, ref TransitionChain transitionChain)
     {
         Debug.Assert(targetState != _sTopState); // can't target 'top' state
+
         ExitUpToSourceState();
 
         if (transitionChain == null) // for efficiency the first check is not thread-safe
@@ -395,6 +397,7 @@ public abstract class QHsm : IQHsm
     {
         // This method can only be used if a TransitionChainStore has been created for the QHsm
         Debug.Assert(TransChainStore != null);
+
         TransitionTo(targetState, ref TransChainStore.TransitionChains[chainIndex]);
     }
 
@@ -403,6 +406,7 @@ public abstract class QHsm : IQHsm
         for (var stateMethod = StateMethod; stateMethod != SourceStateMethod;)
         {
             Debug.Assert(stateMethod != null);
+
             var stateMethodToHandleExit = Trigger(stateMethod, QSignals.Exit);
             if (stateMethodToHandleExit != null)
             {
@@ -583,12 +587,12 @@ public abstract class QHsm : IQHsm
         if (recorder != null)
         {
             // We always make sure that the last entry in the recorder represents the entry to the target state.
-            EnsureLastTransistionStepIsEntryIntoTargetState(targetStateMethod, recorder);
+            EnsureLastTransitionStepIsEntryIntoTargetState(targetStateMethod, recorder);
             Debug.Assert(recorder.GetRecordedTransitionChain().Length > 0);
         }
     }
 
-    private void EnsureLastTransistionStepIsEntryIntoTargetState(
+    private void EnsureLastTransitionStepIsEntryIntoTargetState(
             MethodInfo targetStateMethod,
             TransitionChainRecorder recorder
         )
@@ -772,7 +776,7 @@ public abstract class QHsm : IQHsm
         /// <see cref="TransitionChain"/> instances is configured to have room for the static
         /// transitions in the base class (if any).
         /// </summary>
-        /// <param name="callingClass">The class that called called the constructor.</param>
+        /// <param name="callingClass">The class that called the constructor.</param>
         public TransitionChainStore(Type callingClass)
         {
             Debug.Assert(IsDerivedFromQHsm(callingClass));

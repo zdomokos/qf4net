@@ -5,13 +5,18 @@
     <LangVersion>12</LangVersion>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
   </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="NUnit" />
-    <PackageReference Include="NUnit3TestAdapter" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="NUnit" Version="4.3.*"/>
+    <PackageReference Include="NUnit3TestAdapter" Version="5.0.*"/>
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\src\qf4net\qf4net.csproj" />
   </ItemGroup>
+
 </Project>
