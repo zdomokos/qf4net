@@ -84,11 +84,4 @@ public interface IQHsm
     /// </summary>
     /// <param name="qEvent">The <see cref="IQEvent"/> to dispatch.</param>
     void Dispatch(IQEvent qEvent);
-
-    /// <summary>
-    /// Same as the method <see cref="Dispatch"/> but guarantees that the method can
-    /// be executed by only one thread at a time.
-    /// </summary>
-    /// <param name="qEvent">The <see cref="IQEvent"/> to dispatch.</param>
-    void DispatchSynchronized(IQEvent qEvent);
 }

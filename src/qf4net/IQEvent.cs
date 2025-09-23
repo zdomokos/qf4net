@@ -61,11 +61,4 @@ public interface IQEvent
     /// <param name="sig"></param>
     /// <returns></returns>
     bool IsSignal(Signal sig);
-
-    /// <summary>
-    /// The <see cref="IQEvent"/> instance in string form. It should be implemented to allow for simpler
-    /// debugging and logging.
-    /// </summary>
-    /// <returns>The string representation of the <see cref="IQEvent"/> instance.</returns>
-    string ToString();
 }

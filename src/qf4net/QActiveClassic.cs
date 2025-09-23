@@ -43,83 +43,42 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+
 namespace qf4net;
 
-/// <summary>
-/// A class that holds the signals that are intrinsically used by
-/// the hierarchical state machine base class <see cref="QHsmClassic"/> and hence are
-/// reserved.
-/// </summary>
-public class QSignals
+public abstract class QActiveClassic : QHsmClassic, IQActive
 {
-    public static readonly Signal Empty     = new(nameof(Empty));
-    public static readonly Signal Init      = new(nameof(Init));
-    public static readonly Signal Entry     = new(nameof(Entry));
-    public static readonly Signal Exit      = new(nameof(Exit));
-    public static readonly Signal Terminate = new(nameof(Terminate));
-};
-
-/// <summary>
-/// QSignal class - an enum replacement.
-/// </summary>
-public class Signal : IEquatable<Signal>, IComparable<Signal>
-{
-    public Signal(string name)
+    protected QActiveClassic()
     {
-        _signalName     = name;
-        _signalValue    = _maxSignalCount;
-        _maxSignalCount = Interlocked.Increment(ref _maxSignalCount);
+        _messagePump = new QEventPump(this, HsmUnhandledException, EventLoopTerminated);
     }
 
-    public static bool operator ==(Signal lhs, Signal rhs)
+    public Task RunEventPumpAsync(int priority)
     {
-        if (ReferenceEquals(lhs, rhs))
-        {
-            return true;
-        }
-
-        if (lhs is null || rhs is null)
-        {
-            return false;
-        }
-
-        return lhs._signalValue == rhs._signalValue;
+        return _messagePump.RunEventPumpAsync(priority);
     }
 
-    public static bool operator !=(Signal lhs, Signal rhs)
+    public void RunEventPump(int priority)
     {
-        return !(lhs == rhs);
+        _messagePump.RunEventPump(priority);
     }
 
-    public override bool Equals(object obj)
+    public int Priority => _messagePump.Priority;
+
+    public void PostFifo(IQEvent qEvent)
     {
-        return this == (Signal)obj;
+        _messagePump.PostFifo(qEvent);
     }
 
-    public override int GetHashCode()
+    public void PostLifo(IQEvent qEvent)
     {
-        return _signalValue;
+        _messagePump.PostLifo(qEvent);
     }
 
-    public override string ToString()
-    {
-        return $"{_signalName}:{_signalValue}/{_maxSignalCount}";
-    }
+    protected abstract void HsmUnhandledException(Exception e);
+    protected virtual  void EventLoopTerminated(IQEventPump obj) { }
 
-    public bool Equals(Signal other)
-    {
-        return this == other;
-    }
-
-    public int CompareTo(Signal other)
-    {
-        return other == null ? 1 : _signalValue.CompareTo(other._signalValue);
-    }
-
-    private static int _maxSignalCount;
-
-    private readonly int    _signalValue;
-    private readonly string _signalName;
+    private readonly QEventPump _messagePump;
 }
-
-

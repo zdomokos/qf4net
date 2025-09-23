@@ -46,80 +46,75 @@
 namespace qf4net;
 
 /// <summary>
-/// A class that holds the signals that are intrinsically used by
-/// the hierarchical state machine base class <see cref="QHsmClassic"/> and hence are
-/// reserved.
+/// Designed to allow a state machine to post NEW messages to itself during the handling of a dispatch call.
+/// The assumption is that most environments (Windows, XWindows) will support event handling and that the
+/// only time this mechanism will be required is for self-posting. Therefore, the public interface is limited
+/// to a single method, DispatchQ. And this method could actually be modified to version or override the
+/// base class Dispatch method...
 /// </summary>
-public class QSignals
+public abstract class QHsmQ : QHsmClassic
 {
-    public static readonly Signal Empty     = new(nameof(Empty));
-    public static readonly Signal Init      = new(nameof(Init));
-    public static readonly Signal Entry     = new(nameof(Entry));
-    public static readonly Signal Exit      = new(nameof(Exit));
-    public static readonly Signal Terminate = new(nameof(Terminate));
-};
+    /// <summary>
+    /// FIFO event queue
+    /// </summary>
+    private readonly Queue<QEvent> _eventQueue;
 
-/// <summary>
-/// QSignal class - an enum replacement.
-/// </summary>
-public class Signal : IEquatable<Signal>, IComparable<Signal>
-{
-    public Signal(string name)
+    /// <summary>
+    /// Constructor for the Quantum Hierarchical State Machine with Queue
+    /// </summary>
+    public QHsmQ()
     {
-        _signalName     = name;
-        _signalValue    = _maxSignalCount;
-        _maxSignalCount = Interlocked.Increment(ref _maxSignalCount);
+        _eventQueue = new Queue<QEvent>();
     }
 
-    public static bool operator ==(Signal lhs, Signal rhs)
+    /// <summary>
+    /// Designed to be used only for self-posting, but this design could easily be changed
+    /// by making this method public.
+    /// </summary>
+    /// <param name="qEvent">New message posted to self during processing</param>
+    protected void Enqueue(QEvent qEvent)
     {
-        if (ReferenceEquals(lhs, rhs))
+        _eventQueue.Enqueue(qEvent);
+    }
+
+    /// <summary>
+    /// Dequeues and dispatches the queued events to this state machine
+    /// </summary>
+    protected void DispatchQ()
+    {
+        if (_isDispatching)
         {
-            return true;
+            return;
         }
 
-        if (lhs is null || rhs is null)
+        _isDispatching = true;
+        while (_eventQueue.Count > 0)
         {
-            return false;
+            //new events may be added (self-posted) during the dispatch handling of this first event
+            Dispatch(_eventQueue.Dequeue());
         }
+        _isDispatching = false;
+    } //DispatchQ
 
-        return lhs._signalValue == rhs._signalValue;
-    }
+    private bool _isDispatching;
 
-    public static bool operator !=(Signal lhs, Signal rhs)
+    /// <summary>
+    /// Enqueues the first event then dequeues and dispatches all queued events to this state machine.
+    /// Designed to be called in place of base.Dispatch in the event self-posting is to be
+    /// supported.
+    /// </summary>
+    public void DispatchQ(QEvent qEvent)
     {
-        return !(lhs == rhs);
-    }
+        _eventQueue.Enqueue(qEvent);
+        DispatchQ();
+    } //DispatchQ
 
-    public override bool Equals(object obj)
+    /// <summary>
+    /// Empties the event queue
+    /// </summary>
+    protected void ClearQ()
     {
-        return this == (Signal)obj;
+        _eventQueue.Clear();
     }
-
-    public override int GetHashCode()
-    {
-        return _signalValue;
-    }
-
-    public override string ToString()
-    {
-        return $"{_signalName}:{_signalValue}/{_maxSignalCount}";
-    }
-
-    public bool Equals(Signal other)
-    {
-        return this == other;
-    }
-
-    public int CompareTo(Signal other)
-    {
-        return other == null ? 1 : _signalValue.CompareTo(other._signalValue);
-    }
-
-    private static int _maxSignalCount;
-
-    private readonly int    _signalValue;
-    private readonly string _signalName;
-}
-
-
+} //QHsmQ
+//namespace ReminderHsm

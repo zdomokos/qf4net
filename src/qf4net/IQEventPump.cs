@@ -45,81 +45,44 @@
 
 namespace qf4net;
 
-/// <summary>
-/// A class that holds the signals that are intrinsically used by
-/// the hierarchical state machine base class <see cref="QHsmClassic"/> and hence are
-/// reserved.
-/// </summary>
-public class QSignals
+public interface IQActive : IQEventPump
 {
-    public static readonly Signal Empty     = new(nameof(Empty));
-    public static readonly Signal Init      = new(nameof(Init));
-    public static readonly Signal Entry     = new(nameof(Entry));
-    public static readonly Signal Exit      = new(nameof(Exit));
-    public static readonly Signal Terminate = new(nameof(Terminate));
-};
 
-/// <summary>
-/// QSignal class - an enum replacement.
-/// </summary>
-public class Signal : IEquatable<Signal>, IComparable<Signal>
-{
-    public Signal(string name)
-    {
-        _signalName     = name;
-        _signalValue    = _maxSignalCount;
-        _maxSignalCount = Interlocked.Increment(ref _maxSignalCount);
-    }
-
-    public static bool operator ==(Signal lhs, Signal rhs)
-    {
-        if (ReferenceEquals(lhs, rhs))
-        {
-            return true;
-        }
-
-        if (lhs is null || rhs is null)
-        {
-            return false;
-        }
-
-        return lhs._signalValue == rhs._signalValue;
-    }
-
-    public static bool operator !=(Signal lhs, Signal rhs)
-    {
-        return !(lhs == rhs);
-    }
-
-    public override bool Equals(object obj)
-    {
-        return this == (Signal)obj;
-    }
-
-    public override int GetHashCode()
-    {
-        return _signalValue;
-    }
-
-    public override string ToString()
-    {
-        return $"{_signalName}:{_signalValue}/{_maxSignalCount}";
-    }
-
-    public bool Equals(Signal other)
-    {
-        return this == other;
-    }
-
-    public int CompareTo(Signal other)
-    {
-        return other == null ? 1 : _signalValue.CompareTo(other._signalValue);
-    }
-
-    private static int _maxSignalCount;
-
-    private readonly int    _signalValue;
-    private readonly string _signalName;
 }
 
 
+/// <summary>
+/// Interface that Active Objects implement.
+/// </summary>
+public interface IQEventPump
+{
+    /// <summary>
+    /// Start the <see cref="IQActive"/> object's thread of execution. The caller needs to assign a
+    /// priority to every <see cref="IQActive"/> object in the system. Events will be dispatched according
+    /// to the priority assigned to the <see cref="IQActive"/> object.
+    /// </summary>
+    /// <param name="priority">The priority associated with this <see cref="IQActive"/> object.</param>
+    Task RunEventPumpAsync(int priority);
+    void RunEventPump(int priority);
+
+    /// <summary>
+    /// The priority associated with this <see cref="IQActive"/> object. Once the <see cref="IQActive"/> object
+    /// is started the priority is non-negative. For an <see cref="IQActive"/> object that has not yet been started
+    /// the value -1 is returned as the priority.
+    /// </summary>
+    int Priority { get; }
+
+    /// <summary>
+    /// Post the <see paramref="qEvent"/> directly to the <see cref="IQActive"/> object's event queue
+    /// using the FIFO (First In First Out) policy.
+    /// </summary>
+    /// <param name="qEvent"></param>
+    void PostFifo(IQEvent qEvent);
+
+    /// <summary>
+    /// Post the <see paramref="qEvent"/> directly to the <see cref="IQActive"/> object's event queue
+    /// using the LIFO (Last In First Out) policy.
+    /// </summary>
+    /// <param name="qEvent"></param>
+    void PostLifo(IQEvent qEvent);
+}

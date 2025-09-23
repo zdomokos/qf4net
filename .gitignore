@@ -445,5 +445,6 @@ data/
 .claude/
 .claude
 .github/
-
+.setting.local.json
+CLAUDE.md
 

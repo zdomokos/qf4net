@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>DiningPhilosophers</AssemblyName>
+    <RootNamespace>DiningPhilosophers</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\qf4net\qf4net.csproj" />
+  </ItemGroup>
+</Project>

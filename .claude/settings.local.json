@@ -5,7 +5,8 @@
       "Bash(dotnet restore:*)",
       "Bash(dotnet test:*)",
       "Bash(dotnet run:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

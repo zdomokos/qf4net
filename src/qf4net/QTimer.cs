@@ -53,17 +53,17 @@ public class QTimer : IDisposable
     /// <summary>
     /// Creates a new <see cref="QTimer"/> instance.
     /// </summary>
-    /// <param name="qActive">The <see cref="IQActive"/> object that owns this <see cref="QTimer"/>; this is also
-    /// the <see cref="IQActive"/> object that will receive the timer based events.</param>
-    public QTimer(IQActive qActive)
+    /// <param name="qActive">The <see cref="IQEventPump"/> object that owns this <see cref="QTimer"/>; this is also
+    /// the <see cref="IQEventPump"/> object that will receive the timer based events.</param>
+    public QTimer(IQEventPump qActive)
     {
         _qActive = qActive;
         _timer = new Timer(
-                           OnTimer,
-                           null,             // we don't need a state object
-                           Timeout.Infinite, // don't start yet
-                           Timeout.Infinite  // no periodic firing
-                          );
+            OnTimer,
+            null, // we don't need a state object
+            Timeout.Infinite, // don't start yet
+            Timeout.Infinite // no periodic firing
+        );
     }
 
     public void Dispose()
@@ -75,11 +75,14 @@ public class QTimer : IDisposable
     /// Arms the <see cref="QTimer"/> to perform a one-time timeout.
     /// </summary>
     /// <param name="timeSpan">The <see cref="TimeSpan"/> to wait before the timeout occurs.</param>
-    /// <param name="qEvent">The <see cref="IQEvent"/> to post into the associated <see cref="IQActive"/>
+    /// <param name="qEvent">The <see cref="IQEvent"/> to post into the associated <see cref="IQEventPump"/>
     /// object when the timeout occurs.</param>
     public void FireIn(TimeSpan timeSpan, IQEvent qEvent)
     {
-        if (!(timeSpan > TimeSpan.Zero)) { throw new ArgumentException("The provided timespan must be positive", nameof(timeSpan)); }
+        if (!(timeSpan > TimeSpan.Zero))
+        {
+            throw new ArgumentException("The provided timespan must be positive", nameof(timeSpan));
+        }
         ArgumentNullException.ThrowIfNull(qEvent);
 
         lock (_timer)
@@ -93,7 +96,7 @@ public class QTimer : IDisposable
     /// Arms the <see cref="QTimer"/> to perform a periodic timeout.
     /// </summary>
     /// <param name="timeSpan">The <see cref="TimeSpan"/> interval between individual timeouts.</param>
-    /// <param name="qEvent">The <see cref="IQEvent"/> to post into the associated <see cref="IQActive"/>
+    /// <param name="qEvent">The <see cref="IQEvent"/> to post into the associated <see cref="IQEventPump"/>
     /// object when the timeout occurs.</param>
     public void FireEvery(TimeSpan timeSpan, IQEvent qEvent)
     {
@@ -103,7 +106,10 @@ public class QTimer : IDisposable
         {
             if (!(timeSpan > TimeSpan.Zero))
             {
-                throw new ArgumentException("The provided timespan must be positive", nameof(timeSpan));
+                throw new ArgumentException(
+                    "The provided timespan must be positive",
+                    nameof(timeSpan)
+                );
             }
 
             _qEvent = qEvent;
@@ -155,7 +161,7 @@ public class QTimer : IDisposable
         }
     }
 
-    private readonly IQActive _qActive;
-    private readonly Timer    _timer;
-    private          IQEvent  _qEvent;
+    private readonly IQEventPump _qActive;
+    private readonly Timer _timer;
+    private IQEvent _qEvent;
 }

@@ -45,45 +45,31 @@
 
 namespace qf4net;
 
-/// <summary>
-///
-/// </summary>
 public class QEvent : IQEvent
 {
-    /// <summary>
-    /// Default constructor - initializes all fields to default values
-    /// </summary>
     public QEvent(Signal qSignal)
     {
-        System.Diagnostics.Debug.Assert(qSignal is not null, "QEvent created with null signal");
+        ArgumentNullException.ThrowIfNull(qSignal, nameof(qSignal));
         Signal = qSignal;
     }
 
-    /// <summary>
-    /// The identifier of the <see cref="QEvent"/> type.
-    /// </summary>
     public Signal Signal { get; }
 
-    /// <summary>
-    /// IsSignal
-    /// </summary>
-    /// <param name="sig"></param>
-    /// <returns></returns>
     public bool IsSignal(Signal sig)
     {
         return Signal.Equals(sig);
     }
 
-    /// <summary>
-    /// The QSignal in string form. It allows for simpler debugging and logging.
-    /// </summary>
-    /// <returns>The signal as string.</returns>
-    public override string ToString()
+    public QEvent SetPayload(object o)
     {
-        return Signal.ToString();
+        _eventObject = o;
+        return this;
     }
 
-    public object EventObject { get; set; }
+    public T Payload<T>() where T : class
+    {
+        return _eventObject as T;
+    }
 
     public override bool Equals(object obj)
     {
@@ -94,4 +80,11 @@ public class QEvent : IQEvent
     {
         return Signal.GetHashCode();
     }
+
+    public override string ToString()
+    {
+        return Signal.ToString();
+    }
+
+    private object _eventObject;
 }

@@ -193,8 +193,8 @@ public class QEventQueue : IQEventQueue
     {
         internal LinkedEventList()
         {
-            Head  = null;
-            Tail  = null;
+            Head = null;
+            Tail = null;
             Count = 0;
         }
 
@@ -228,7 +228,7 @@ public class QEventQueue : IQEventQueue
             {
                 var newTail = new EventNode(qEvent, null);
                 Tail.NextNode = newTail;
-                Tail          = newTail;
+                Tail = newTail;
             }
             Count++;
         }
@@ -247,7 +247,7 @@ public class QEventQueue : IQEventQueue
             if (Head != null)
             {
                 qEvent = Head.QEvent;
-                Head   = Head.NextNode;
+                Head = Head.NextNode;
                 Count--;
             }
             return qEvent;
@@ -259,12 +259,12 @@ public class QEventQueue : IQEventQueue
         {
             internal EventNode(IQEvent qEvent, EventNode nextNode)
             {
-                QEvent   = qEvent;
+                QEvent = qEvent;
                 NextNode = nextNode;
             }
 
             internal EventNode NextNode { get; set; }
-            internal IQEvent   QEvent   { get; set; }
+            internal IQEvent QEvent { get; set; }
         }
 
         #endregion
