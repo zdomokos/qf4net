@@ -38,13 +38,8 @@ public sealed class Reminder : QHsmQ
     /// </summary>
     public int Frequency
     {
-        set => frequency = value;
+        set => _frequency = value;
     }
-    private int frequency = 3; //every Nth tick
-
-    private int myPollCtr;
-    private int myProcCtr;
-
 
     private QState DoPolling(IQEvent qevent)
     {
@@ -63,8 +58,8 @@ public sealed class Reminder : QHsmQ
 
         if (qevent.Signal == ReminderSignals.TimerTick)
         {
-            OnDisplayPoll(++myPollCtr);
-            if ((myPollCtr & frequency) == 0) //using Samek's C-style technique
+            OnDisplayPoll(++_myPollCtr);
+            if ((_myPollCtr & _frequency) == 0) //using Samek's C-style technique
             {
                 Enqueue(new ReminderEvent(ReminderSignals.DataReady));
             }
@@ -135,8 +130,8 @@ public sealed class Reminder : QHsmQ
 
         if (qevent.Signal == ReminderSignals.TimerTick)
         {
-            OnDisplayProc(++myProcCtr);
-            if ((myPollCtr & 0x1) == 0) //using Samek's C-style technique
+            OnDisplayProc(++_myProcCtr);
+            if ((_myPollCtr & 0x1) == 0) //using Samek's C-style technique
             {
                 TransitionTo(DoIdle);
             }
@@ -153,7 +148,7 @@ public sealed class Reminder : QHsmQ
         if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("HSM terminated");
-            singleton = null;
+            _singleton = null;
             MainForm.Instance.Close();
             System.Windows.Forms.Application.Exit();
             return null;
@@ -202,28 +197,32 @@ public sealed class Reminder : QHsmQ
     //
     //Thread-safe implementation of singleton as a property
     //
-    private static volatile Reminder singleton;
-    private static readonly object   sync      = new(); //for static lock
+    private static volatile Reminder _singleton;
+    private static readonly object   Sync      = new(); //for static lock
 
     public static Reminder Instance
     {
         get
         {
-            if (singleton == null)
+            if (_singleton == null)
             {
-                lock (sync)
+                lock (Sync)
                 {
-                    if (singleton == null)
+                    if (_singleton == null)
                     {
-                        singleton = new Reminder();
-                        singleton.Init();
+                        _singleton = new Reminder();
+                        _singleton.Init();
                     }
                 }
             }
 
-            return singleton;
+            return _singleton;
         }
     }
+
+    private int _frequency = 3; //every Nth tick
+    private int _myPollCtr;
+    private int _myProcCtr;
 }
 
 public class ReminderDisplayEventArgs : EventArgs

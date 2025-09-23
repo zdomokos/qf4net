@@ -86,7 +86,7 @@ public class TestEventQueue
                 lock (_handledEvents)
                 {
                     var qEvent = _eventQueue.DeQueue();
-                    if (qEvent.Signal == QSignals.UserSig)
+                    if (qEvent.Signal.GetType() != typeof(QSignals))
                     {
                         // we use a signal value of -1 to indicate that the loop should stop
                         break;

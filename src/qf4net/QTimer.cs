@@ -50,10 +50,6 @@ namespace qf4net;
 /// </summary>
 public class QTimer : IDisposable
 {
-    private readonly IQActive _qActive;
-    private readonly Timer    _timer;
-    private          IQEvent  _qEvent;
-
     /// <summary>
     /// Creates a new <see cref="QTimer"/> instance.
     /// </summary>
@@ -83,14 +79,12 @@ public class QTimer : IDisposable
     /// object when the timeout occurs.</param>
     public void FireIn(TimeSpan timeSpan, IQEvent qEvent)
     {
+        if (!(timeSpan > TimeSpan.Zero)) { throw new ArgumentException("The provided timespan must be positive", nameof(timeSpan)); }
+        ArgumentNullException.ThrowIfNull(qEvent);
+
         lock (_timer)
         {
-            if (!(timeSpan > TimeSpan.Zero))
-            {
-                throw new ArgumentException("The provided timespan must be positive", nameof(timeSpan));
-            }
-
-            _qEvent = qEvent ?? throw new ArgumentException("The provided IQEvent instance must not be null", nameof(qEvent));
+            _qEvent = qEvent;
             _timer.Change(timeSpan, new TimeSpan(-1));
         }
     }
@@ -103,6 +97,8 @@ public class QTimer : IDisposable
     /// object when the timeout occurs.</param>
     public void FireEvery(TimeSpan timeSpan, IQEvent qEvent)
     {
+        ArgumentNullException.ThrowIfNull(qEvent);
+
         lock (_timer)
         {
             if (!(timeSpan > TimeSpan.Zero))
@@ -110,7 +106,7 @@ public class QTimer : IDisposable
                 throw new ArgumentException("The provided timespan must be positive", nameof(timeSpan));
             }
 
-            _qEvent = qEvent ?? throw new ArgumentException("The provided IQEvent instance must not be null", nameof(qEvent));
+            _qEvent = qEvent;
             _timer.Change(timeSpan, timeSpan);
         }
     }
@@ -136,13 +132,10 @@ public class QTimer : IDisposable
     /// <param name="timeSpan">The <see cref="TimeSpan"/> to wait before the timeout occurs.</param>
     public void Rearm(TimeSpan timeSpan)
     {
+        ArgumentNullException.ThrowIfNull(_qEvent);
+
         lock (_timer)
         {
-            if (_qEvent == null)
-            {
-                throw new InvalidOperationException("The QTimer must first be armed before it can be re-armed.");
-            }
-
             _timer.Change(timeSpan, new TimeSpan(-1));
         }
     }
@@ -161,4 +154,8 @@ public class QTimer : IDisposable
             }
         }
     }
+
+    private readonly IQActive _qActive;
+    private readonly Timer    _timer;
+    private          IQEvent  _qEvent;
 }

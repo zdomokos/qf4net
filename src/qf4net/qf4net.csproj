@@ -7,7 +7,8 @@
     <Title>qf4net</Title>
     <Description>C# port of Miro Samek's Quantum Framework including his excellent implementation of
       a hierarchical state machine.
-      Updated version of https://sourceforge.net/projects/qf4net/</Description>
+      Updated version of https://sourceforge.net/projects/qf4net/
+    </Description>
     <Copyright>Copyright (C) 2003-2004, The qf4net Team</Copyright>
     <RepositoryUrl>https://github.com/zdomokos/qf4net</RepositoryUrl>
     <AssemblyVersion>24.7.9.1</AssemblyVersion>

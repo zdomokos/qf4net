@@ -57,8 +57,6 @@ public class Signal : IEquatable<Signal>, IComparable<Signal>
         _maxSignalCount = Interlocked.Increment(ref _maxSignalCount);
     }
 
-    public static int MaxSignalCount => _maxSignalCount;
-
     public static bool operator ==(Signal lhs, Signal rhs)
     {
         if (ReferenceEquals(lhs, rhs))
@@ -101,11 +99,7 @@ public class Signal : IEquatable<Signal>, IComparable<Signal>
 
     public int CompareTo(Signal other)
     {
-        if (other is null)
-        {
-            return 1;
-        }
-        return _signalValue.CompareTo(other._signalValue);
+        return other == null ? 1 : _signalValue.CompareTo(other._signalValue);
     }
 
     private static int _maxSignalCount;
@@ -126,5 +120,4 @@ public class QSignals
     public static readonly Signal Entry     = new(nameof(Entry));
     public static readonly Signal Exit      = new(nameof(Exit));
     public static readonly Signal Terminate = new(nameof(Terminate));
-    public static readonly Signal UserSig   = new("UserSig");
 };

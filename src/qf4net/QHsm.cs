@@ -72,7 +72,7 @@ public abstract class QHsm : IQHsm
     /// <summary>
     /// Constructor for the Quantum Hierarchical State Machine.
     /// </summary>
-    public QHsm()
+    protected QHsm()
     {
         StateMethod = _sTopState.Method;
     }
