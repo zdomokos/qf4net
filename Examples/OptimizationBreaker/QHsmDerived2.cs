@@ -35,7 +35,7 @@ public class QHsmDerived2 : QHsmBase2
 
     protected override QState s02(IQEvent qEvent)
     {
-        if (qEvent.QSignal == QSignals.Init)
+        if (qEvent.Signal == QSignals.Init)
         {
             Console.Write("s02-INIT;");
             InitializeState(m_s021);
@@ -47,13 +47,13 @@ public class QHsmDerived2 : QHsmBase2
 
     protected QState s021(IQEvent qEvent)
     {
-        if (qEvent.QSignal == QSignals.Entry)
+        if (qEvent.Signal == QSignals.Entry)
         {
             Console.Write("s021-ENTRY;");
             return null;
         }
 
-        if (qEvent.QSignal == QSignals.Exit)
+        if (qEvent.Signal == QSignals.Exit)
         {
             Console.Write("s021-EXIT;");
             return null;

@@ -2,7 +2,7 @@ using qf4net;
 
 namespace OrthogonalComponentHsm;
 
-public class AlarmClockSignals
+public static class AlarmClockSignals
 {
     public static readonly Signal Time       = new("Time");
     public static readonly Signal Start      = new("Start");

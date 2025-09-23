@@ -10,24 +10,19 @@ namespace DiningPhilosophers;
 /// </summary>
 public class Table : QActive
 {
-    private readonly QState m_StateServing;
-    private readonly int    m_NumberOfPhilosophers;
-    private readonly bool[] m_ForkIsUsed;
-    private readonly bool[] m_PhilosopherIsHungry;
-
     public Table(int numberOfPhilosophers)
     {
-        m_NumberOfPhilosophers = numberOfPhilosophers;
-        m_ForkIsUsed           = new bool[m_NumberOfPhilosophers];
-        m_PhilosopherIsHungry  = new bool[m_NumberOfPhilosophers];
+        _numberOfPhilosophers = numberOfPhilosophers;
+        _forkIsUsed = new bool[_numberOfPhilosophers];
+        _philosopherIsHungry = new bool[_numberOfPhilosophers];
 
-        for (var i = 0; i < m_NumberOfPhilosophers; i++)
+        for (var i = 0; i < _numberOfPhilosophers; i++)
         {
-            m_ForkIsUsed[i]          = false;
-            m_PhilosopherIsHungry[i] = false;
+            _forkIsUsed[i] = false;
+            _philosopherIsHungry[i] = false;
         }
 
-        m_StateServing = Serving;
+        _stateServing = Serving;
     }
 
     /// <summary>
@@ -38,23 +33,28 @@ public class Table : QActive
     {
         Thread.CurrentThread.Name = ToString();
         // Subscribe for the relevant events raised by philosophers
-        Qf.Instance.Subscribe(this, DPPSignal.Hungry);
-        Qf.Instance.Subscribe(this, DPPSignal.Done);
+        QfEventBroadcaster.Instance.Subscribe(this, DPPSignal.Hungry);
+        QfEventBroadcaster.Instance.Subscribe(this, DPPSignal.Done);
 
-        InitializeState(m_StateServing); // initial transition
+        InitializeState(_stateServing); // initial transition
     }
 
     private QState Serving(IQEvent qEvent)
     {
         int philosopherId;
 
+        if (qEvent.IsSignal(DPPSignal.Entry))
+        {
+            return null;
+        }
+
         if (qEvent.IsSignal(DPPSignal.Hungry))
         {
             philosopherId = GetPhilosopherId(qEvent);
             Debug.Assert(
-                         !m_PhilosopherIsHungry[philosopherId],
-                         "Philosopher must not be already hungry"
-                        );
+                !_philosopherIsHungry[philosopherId],
+                "Philosopher must not be already hungry"
+            );
 
             Console.WriteLine($"Philosopher {philosopherId} is hungry.");
 
@@ -65,10 +65,8 @@ public class Table : QActive
             else
             {
                 // The philosopher has to wait for free forks
-                m_PhilosopherIsHungry[philosopherId] = true; // mark philosopher as hungry
-                Console.WriteLine(
-                                  $"Philosopher {philosopherId} has to wait for forks."
-                                 );
+                _philosopherIsHungry[philosopherId] = true; // mark philosopher as hungry
+                Console.WriteLine($"Philosopher {philosopherId} has to wait for forks.");
             }
             return null;
         }
@@ -77,27 +75,27 @@ public class Table : QActive
         {
             philosopherId = GetPhilosopherId(qEvent);
             Console.WriteLine($"Philosopher {philosopherId} is done eating.");
-            m_PhilosopherIsHungry[philosopherId] = false;
+            _philosopherIsHungry[philosopherId] = false;
 
             // free up the philosopher's forks
             FreeForks(philosopherId);
 
             // Can the left philosopher eat?
             var neighborPhilosopher = LeftIndex(philosopherId);
-            if (m_PhilosopherIsHungry[neighborPhilosopher] && ForksFree(neighborPhilosopher))
+            if (_philosopherIsHungry[neighborPhilosopher] && ForksFree(neighborPhilosopher))
             {
                 LetPhilosopherEat(neighborPhilosopher);
                 // The left philosopher could eat; mark philosopher as no longer hungry
-                m_PhilosopherIsHungry[neighborPhilosopher] = false;
+                _philosopherIsHungry[neighborPhilosopher] = false;
             }
 
             // Can the right philosopher eat?
             neighborPhilosopher = RightIndex(philosopherId);
-            if (m_PhilosopherIsHungry[neighborPhilosopher] && ForksFree(neighborPhilosopher))
+            if (_philosopherIsHungry[neighborPhilosopher] && ForksFree(neighborPhilosopher))
             {
                 LetPhilosopherEat(neighborPhilosopher);
                 // The left philosopher could eat; mark philosopher as no longer hungry
-                m_PhilosopherIsHungry[neighborPhilosopher] = false;
+                _philosopherIsHungry[neighborPhilosopher] = false;
             }
 
             return null;
@@ -109,9 +107,9 @@ public class Table : QActive
     {
         var philosopherId = ((TableEvent)qEvent).PhilosopherId;
         Debug.Assert(
-                     philosopherId < m_NumberOfPhilosophers,
-                     "Philosopher id must be < number of philosophers"
-                    );
+            philosopherId < _numberOfPhilosophers,
+            "Philosopher id must be < number of philosophers"
+        );
         return philosopherId;
     }
 
@@ -119,42 +117,38 @@ public class Table : QActive
     {
         UseForks(philosopherId);
         var tableEvent = new TableEvent(DPPSignal.Eat, philosopherId);
-        Debug.WriteLine(
-                        $"Table publishes Eat event for Philosopher {philosopherId}."
-                       );
+        Debug.WriteLine($"Table publishes Eat event for Philosopher {philosopherId}.");
 
-        Qf.Instance.Publish(tableEvent);
+        QfEventBroadcaster.Instance.Publish(tableEvent);
         Console.WriteLine($"Philosopher {philosopherId} is eating.");
     }
 
     private int LeftIndex(int index)
     {
-        return (index + 1) % m_NumberOfPhilosophers;
+        return (index + 1) % _numberOfPhilosophers;
     }
 
     private int RightIndex(int index)
     {
-        return (index - 1 + m_NumberOfPhilosophers) % m_NumberOfPhilosophers;
+        return (index - 1 + _numberOfPhilosophers) % _numberOfPhilosophers;
     }
 
     private bool ForksFree(int philosopherId)
     {
-        return (
-                   m_ForkIsUsed[philosopherId] == false
-                && m_ForkIsUsed[LeftIndex(philosopherId)] == false
-               );
+        return _forkIsUsed[philosopherId] == false
+            && _forkIsUsed[LeftIndex(philosopherId)] == false;
     }
 
     private void UseForks(int philosopherId)
     {
-        m_ForkIsUsed[philosopherId]            = true;
-        m_ForkIsUsed[LeftIndex(philosopherId)] = true;
+        _forkIsUsed[philosopherId] = true;
+        _forkIsUsed[LeftIndex(philosopherId)] = true;
     }
 
     private void FreeForks(int philosopherId)
     {
-        m_ForkIsUsed[philosopherId]            = false;
-        m_ForkIsUsed[LeftIndex(philosopherId)] = false;
+        _forkIsUsed[philosopherId] = false;
+        _forkIsUsed[LeftIndex(philosopherId)] = false;
     }
 
     public override string ToString()
@@ -166,4 +160,9 @@ public class Table : QActive
     {
         throw new NotImplementedException();
     }
+
+    private readonly QState _stateServing;
+    private readonly int _numberOfPhilosophers;
+    private readonly bool[] _forkIsUsed;
+    private readonly bool[] _philosopherIsHungry;
 }

@@ -6,6 +6,6 @@
     <RootNamespace>QHsmTest</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\qf4net.csproj" />
+    <ProjectReference Include="..\..\src\qf4net\qf4net.csproj" />
   </ItemGroup>
 </Project>

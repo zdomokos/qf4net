@@ -7,6 +7,9 @@ internal class MainClass
 {
     public static void Main(string[] args)
     {
+        // Trigger static constructor for MyQSignals
+        _ = MyQSignals.A_Sig;
+
         Console.WriteLine("Which state machine should be used? Enter 1 or 2.");
         Console.WriteLine("1: QHsmTest, 2: QHsmTestDerived (this state machine derives from QHsmTest)");
         var choice = Console.ReadLine();

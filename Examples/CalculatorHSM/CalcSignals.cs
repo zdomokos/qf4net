@@ -1,9 +1,8 @@
-using System;
 using qf4net;
 
 namespace CalculatorHSM;
 
-public class CalcSignals : QSignals
+public static class CalcSignals
 {
     public static readonly Signal ZeroDigit    = new(nameof(ZeroDigit));
     public static readonly Signal NonZeroDigit = new(nameof(NonZeroDigit));

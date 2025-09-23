@@ -2,7 +2,7 @@ using qf4net;
 
 namespace QHsmTest;
 
-public class MyQSignals : QSignals
+public static class MyQSignals
 {
     public static readonly Signal A_Sig = new(nameof(A_Sig));
     public static readonly Signal B_Sig = new(nameof(B_Sig));

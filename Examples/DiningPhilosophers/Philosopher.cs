@@ -39,7 +39,7 @@ public class Philosopher : QActive
     {
         Thread.CurrentThread.Name = ToString();
         LogMessage($"Initializing philosopher {_philosopherId}");
-        Qf.Instance.Subscribe(this, DPPSignal.Eat);
+        QfEventBroadcaster.Instance.Subscribe(this, DPPSignal.Eat);
         InitializeState(_stateThinking); // initial transition
     }
 
@@ -81,7 +81,7 @@ public class Philosopher : QActive
             LogMessage(
                        $"Philosopher {_philosopherId} publishes Hungry event."
                       );
-            Qf.Instance.Publish(tableEvent);
+            QfEventBroadcaster.Instance.Publish(tableEvent);
             return null;
         }
 
@@ -131,7 +131,7 @@ public class Philosopher : QActive
                       );
             var tableEvent = new TableEvent(DPPSignal.Done, _philosopherId);
             LogMessage($"Philosopher {_philosopherId} publishes Done event.");
-            Qf.Instance.Publish(tableEvent);
+            QfEventBroadcaster.Instance.Publish(tableEvent);
             return null;
         }
         return TopState;

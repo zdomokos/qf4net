@@ -66,14 +66,14 @@ public sealed class RunToCompletion : QHsm
 
     private QState DoDispatching(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("Dispatching State");
             //lastCompleted = LastCompletedStep.None;
             return null;
         }
 
-        if (qevent.QSignal == RtcSignals.Start)
+        if (qevent.Signal == RtcSignals.Start)
         {
             switch (_lastCompleted)
             {
@@ -92,23 +92,23 @@ public sealed class RunToCompletion : QHsm
             return null;
         }
 
-        if (qevent.QSignal >= (int)QSignals.UserSig)
-        {
-            IsHandled = false;
-        }
+        // if (qevent.Signal >= (int)QSignals.UserSig)
+        // {
+        //     IsHandled = false;
+        // }
 
         return TopState;
     }
 
     private QState DoCantInterrupt(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("CantInterrupt");
             return null;
         }
 
-        if (qevent.QSignal == RtcSignals.Start)
+        if (qevent.Signal == RtcSignals.Start)
         {
             var completedOk = DoSomeUninterruptibleWork();
             if (completedOk)
@@ -125,13 +125,13 @@ public sealed class RunToCompletion : QHsm
 
     private QState DoSlowOne(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("SlowOne");
             return null;
         }
 
-        if (qevent.QSignal == RtcSignals.Start)
+        if (qevent.Signal == RtcSignals.Start)
         {
             var completedOk1 = DoSomeInterruptibleWork1();
             if (completedOk1)
@@ -152,13 +152,13 @@ public sealed class RunToCompletion : QHsm
 
     private QState DoSlowTwo(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("SlowTwo");
             return null;
         }
 
-        if (qevent.QSignal == RtcSignals.Start)
+        if (qevent.Signal == RtcSignals.Start)
         {
             var completedOk2 = DoSomeInterruptibleWork2();
             if (completedOk2)
@@ -179,13 +179,13 @@ public sealed class RunToCompletion : QHsm
 
     private QState DoInterruptible(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("Interruptible");
             return null;
         }
 
-        if (qevent.QSignal == RtcSignals.Abort)
+        if (qevent.Signal == RtcSignals.Abort)
         {
             SendAbortSignal();
             TransitionTo(DoDispatching);
@@ -197,14 +197,14 @@ public sealed class RunToCompletion : QHsm
 
     private QState DoCompleted(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("Completed");
             _lastCompleted = LastCompletedStep.None;
             return null;
         }
 
-        if (qevent.QSignal == RtcSignals.Start)
+        if (qevent.Signal == RtcSignals.Start)
         {
             TransitionTo(DoCantInterrupt);
             return null;
@@ -216,7 +216,7 @@ public sealed class RunToCompletion : QHsm
     //UNDONE: revise this code
     private QState DoFinal(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("HSM terminated");
             _singleton = null;

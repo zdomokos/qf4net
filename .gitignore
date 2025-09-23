@@ -441,3 +441,9 @@ builds/
 .history/
 sandbox/
 data/
+
+.claude/
+.claude
+.github/
+
+

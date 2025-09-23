@@ -2,10 +2,10 @@ using qf4net;
 
 namespace DiningPhilosophers;
 
-public class DPPSignal
+public class DPPSignal : QSignals
 {
-    public static readonly Signal Hungry  = new("Hungry   ");
-    public static readonly Signal Done    = new("Done	");
-    public static readonly Signal Eat     = new("Eat		");
-    public static readonly Signal Timeout = new("Timeout	");
+    public static readonly Signal Hungry  = new(nameof(Hungry));
+    public static readonly Signal Done    = new(nameof(Done));
+    public static readonly Signal Eat     = new(nameof(Eat));
+    public static readonly Signal Timeout = new(nameof(Timeout));
 };

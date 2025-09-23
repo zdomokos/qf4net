@@ -1,0 +1,13 @@
+{
+  "configurations": [
+
+    {
+      "name": "C#: DiningPhilosophers Debug",
+      "type": "dotnet",
+      "request": "launch",
+      "projectPath": "${workspaceFolder}/Examples/DiningPhilosophers/DiningPhilosophers.csproj",
+      "preLaunchTask": "build"
+    }
+
+  ]
+}

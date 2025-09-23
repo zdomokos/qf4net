@@ -48,20 +48,20 @@ public sealed class Reminder : QHsmQ
 
     private QState DoPolling(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             MainForm.Instance.SetTimer();
             OnDisplayState("DoPolling");
             return null;
         }
 
-        if (qevent.QSignal == QSignals.Init)
+        if (qevent.Signal == QSignals.Init)
         {
             InitializeState(DoProcessing);
             return null;
         }
 
-        if (qevent.QSignal == ReminderSignals.TimerTick)
+        if (qevent.Signal == ReminderSignals.TimerTick)
         {
             OnDisplayPoll(++myPollCtr);
             if ((myPollCtr & frequency) == 0) //using Samek's C-style technique
@@ -72,34 +72,34 @@ public sealed class Reminder : QHsmQ
             return null;
         }
 
-        if (qevent.QSignal == ReminderSignals.Terminate)
+        if (qevent.Signal == QSignals.Terminate)
         {
             TransitionTo(DoFinal);
             return null;
         }
 
-        if (qevent.QSignal == QSignals.Exit)
+        if (qevent.Signal == QSignals.Exit)
         {
             MainForm.Instance.KillTimer();
             return null;
         }
 
-        if (qevent.QSignal >= (int)QSignals.UserSig)
-        {
-            IsHandled = false;
-        }
+        // if (qevent.Signal >= (int)QSignals.UserSig)
+        // {
+        //     IsHandled = false;
+        // }
         return TopState;
     }
 
     private QState DoProcessing(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("DoProcessing");
             return null;
         }
 
-        if (qevent.QSignal == QSignals.Init)
+        if (qevent.Signal == QSignals.Init)
         {
             InitializeState(DoIdle);
             return null;
@@ -110,13 +110,13 @@ public sealed class Reminder : QHsmQ
 
     private QState DoIdle(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("DoIdle");
             return null;
         }
 
-        if (qevent.QSignal == ReminderSignals.DataReady)
+        if (qevent.Signal == ReminderSignals.DataReady)
         {
             TransitionTo(DoBusy);
             return null;
@@ -127,13 +127,13 @@ public sealed class Reminder : QHsmQ
 
     private QState DoBusy(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("DoBusy");
             return null;
         }
 
-        if (qevent.QSignal == ReminderSignals.TimerTick)
+        if (qevent.Signal == ReminderSignals.TimerTick)
         {
             OnDisplayProc(++myProcCtr);
             if ((myPollCtr & 0x1) == 0) //using Samek's C-style technique
@@ -150,7 +150,7 @@ public sealed class Reminder : QHsmQ
     //UNDONE: revise this code
     private QState DoFinal(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("HSM terminated");
             singleton = null;

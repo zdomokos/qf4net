@@ -31,7 +31,7 @@ public class TestEventQueue
         for (var i = 0; i < numQEvents; i++)
         {
             var qEvent = eventQueue.DeQueue();
-            Assert.Equals(i, qEvent.QSignal);           // "Expected signal id"
+            Assert.Equals(i, qEvent.Signal);           // "Expected signal id"
             Assert.Equals(5 - i - 1, eventQueue.Count); // "Number of events in the queue"
         }
     }
@@ -86,7 +86,7 @@ public class TestEventQueue
                 lock (_handledEvents)
                 {
                     var qEvent = _eventQueue.DeQueue();
-                    if (qEvent.QSignal == -1)
+                    if (qEvent.Signal == QSignals.UserSig)
                     {
                         // we use a signal value of -1 to indicate that the loop should stop
                         break;

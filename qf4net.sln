@@ -5,7 +5,7 @@ VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{6B10D6CE-BBE3-43C6-A2DC-C5930D1FD264}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qf4net", "src\qf4net.csproj", "{DE939421-BD60-4021-B3AD-4CEB9089A9B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qf4net", "src\qf4net\qf4net.csproj", "{DE939421-BD60-4021-B3AD-4CEB9089A9B5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "tests\UnitTests.csproj", "{EC09CB13-D45E-4B55-8CBF-088042A6645B}"
 EndProject

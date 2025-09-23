@@ -74,18 +74,18 @@ public sealed class Calc : QHsm
 
     private QState DoCalculate(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("calc");
             return null;
         }
-        else if (qevent.QSignal == QSignals.Init)
+        else if (qevent.Signal == QSignals.Init)
         {
             Clear();
             InitializeState(DoReady);
             return null;
         }
-        else if (qevent.QSignal == CalcSignals.ClearAll)
+        else if (qevent.Signal == CalcSignals.ClearAll)
         {
             Clear();
 #if (STATIC_TRANS)
@@ -95,7 +95,7 @@ public sealed class Calc : QHsm
 #endif
             return null;
         }
-        else if (qevent.QSignal == CalcSignals.Quit)
+        else if (qevent.Signal == CalcSignals.Quit)
         {
 #if (STATIC_TRANS)
             TransitionTo(DoFinal, STranIdxCalculateFinal);
@@ -105,10 +105,10 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal >= (int)QSignals.UserSig)
-        {
-            IsHandled = false;
-        }
+        // if (qevent.Signal >= (int)QSignals.UserSig)
+        // {
+        //     IsHandled = false;
+        // }
 
         return TopState;
     }
@@ -122,19 +122,19 @@ public sealed class Calc : QHsm
 
     private QState DoReady(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("ready");
             return null;
         }
 
-        if (qevent.QSignal == QSignals.Init)
+        if (qevent.Signal == QSignals.Init)
         {
             InitializeState(DoBegin);
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.ZeroDigit)
+        if (qevent.Signal == CalcSignals.ZeroDigit)
         {
             Clear();
 #if (STATIC_TRANS)
@@ -145,7 +145,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.NonZeroDigit)
+        if (qevent.Signal == CalcSignals.NonZeroDigit)
         {
             Clear();
             Insert(((CalcEvent)qevent).KeyChar);
@@ -157,7 +157,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        if (qevent.Signal == CalcSignals.DecimalPoint)
         {
             Clear();
             Insert(((CalcEvent)qevent).KeyChar);
@@ -169,7 +169,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.Operator)
+        if (qevent.Signal == CalcSignals.Operator)
         {
             _myOperand1 = double.Parse(_myDisplay);
             _myOperator = ((CalcEvent)qevent).KeyChar;
@@ -186,7 +186,7 @@ public sealed class Calc : QHsm
 
     private QState DoResult(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("result");
             Eval();
@@ -202,13 +202,13 @@ public sealed class Calc : QHsm
 
     private QState DoBegin(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("begin");
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.Operator)
+        if (qevent.Signal == CalcSignals.Operator)
         {
             if (((CalcEvent)qevent).KeyChar == '-')
             {
@@ -251,14 +251,14 @@ public sealed class Calc : QHsm
 
     private QState DoNegated1(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("negated1");
             Negate();
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.ClearEntry)
+        if (qevent.Signal == CalcSignals.ClearEntry)
         {
             Clear();
 #if (STATIC_TRANS)
@@ -269,7 +269,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.ZeroDigit)
+        if (qevent.Signal == CalcSignals.ZeroDigit)
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
@@ -280,7 +280,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.NonZeroDigit)
+        if (qevent.Signal == CalcSignals.NonZeroDigit)
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
@@ -291,7 +291,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        if (qevent.Signal == CalcSignals.DecimalPoint)
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
@@ -312,13 +312,13 @@ public sealed class Calc : QHsm
 
     private QState DoOperand1(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("operand1");
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.ClearEntry)
+        if (qevent.Signal == CalcSignals.ClearEntry)
         {
             Clear();
 #if (STATIC_TRANS)
@@ -329,7 +329,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.Operator)
+        if (qevent.Signal == CalcSignals.Operator)
         {
             _myOperand1 = double.Parse(_myDisplay);
             _myOperator = ((CalcEvent)qevent).KeyChar;
@@ -351,13 +351,13 @@ public sealed class Calc : QHsm
 
     private QState DoZero1(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("zero1");
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.NonZeroDigit)
+        if (qevent.Signal == CalcSignals.NonZeroDigit)
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
@@ -368,7 +368,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        if (qevent.Signal == CalcSignals.DecimalPoint)
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
@@ -388,19 +388,19 @@ public sealed class Calc : QHsm
 
     private QState DoInt1(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("int1");
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.ZeroDigit || qevent.QSignal ==CalcSignals.NonZeroDigit)
+        if (qevent.Signal == CalcSignals.ZeroDigit || qevent.Signal ==CalcSignals.NonZeroDigit)
         {
             Insert(((CalcEvent)qevent).KeyChar);
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        if (qevent.Signal == CalcSignals.DecimalPoint)
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
@@ -416,13 +416,13 @@ public sealed class Calc : QHsm
 
     private QState DoFrac1(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("frac1");
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.ZeroDigit || qevent.QSignal == CalcSignals.NonZeroDigit)
+        if (qevent.Signal == CalcSignals.ZeroDigit || qevent.Signal == CalcSignals.NonZeroDigit)
         {
             Insert(((CalcEvent)qevent).KeyChar);
             return null;
@@ -440,13 +440,13 @@ public sealed class Calc : QHsm
 
     private QState DoOpEntered(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("opEntered");
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.Operator)
+        if (qevent.Signal == CalcSignals.Operator)
         {
             if (((CalcEvent)qevent).KeyChar == '-')
             {
@@ -461,7 +461,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.ZeroDigit)
+        if (qevent.Signal == CalcSignals.ZeroDigit)
         {
             Clear();
 #if (STATIC_TRANS)
@@ -472,7 +472,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.NonZeroDigit)
+        if (qevent.Signal == CalcSignals.NonZeroDigit)
         {
             Clear();
             Insert(((CalcEvent)qevent).KeyChar);
@@ -484,7 +484,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        if (qevent.Signal == CalcSignals.DecimalPoint)
         {
             Clear();
             Insert(((CalcEvent)qevent).KeyChar);
@@ -508,14 +508,14 @@ public sealed class Calc : QHsm
 
     private QState DoNegated2(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("negated2");
             Negate();
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.ClearEntry)
+        if (qevent.Signal == CalcSignals.ClearEntry)
         {
 #if (STATIC_TRANS)
             TransitionTo(DoOpEntered, STranIdxNegated2OpEntered);
@@ -525,7 +525,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.ZeroDigit)
+        if (qevent.Signal == CalcSignals.ZeroDigit)
         {
 #if (STATIC_TRANS)
             TransitionTo(DoZero2, STranIdxNegated2Zero2);
@@ -535,7 +535,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.NonZeroDigit)
+        if (qevent.Signal == CalcSignals.NonZeroDigit)
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
@@ -546,7 +546,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        if (qevent.Signal == CalcSignals.DecimalPoint)
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
@@ -567,13 +567,13 @@ public sealed class Calc : QHsm
 
     private QState DoOperand2(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("operand2");
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.ClearEntry)
+        if (qevent.Signal == CalcSignals.ClearEntry)
         {
             Clear();
 #if (STATIC_TRANS)
@@ -584,7 +584,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.Operator)
+        if (qevent.Signal == CalcSignals.Operator)
         {
             _myOperand2 = double.Parse(_myDisplay);
             Eval();
@@ -598,7 +598,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.EqualSign)
+        if (qevent.Signal == CalcSignals.EqualSign)
         {
             _myOperand2 = double.Parse(_myDisplay);
 #if (STATIC_TRANS)
@@ -619,13 +619,13 @@ public sealed class Calc : QHsm
 
     private QState DoZero2(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("zero2");
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.NonZeroDigit)
+        if (qevent.Signal == CalcSignals.NonZeroDigit)
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
@@ -636,7 +636,7 @@ public sealed class Calc : QHsm
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        if (qevent.Signal == CalcSignals.DecimalPoint)
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
@@ -656,19 +656,19 @@ public sealed class Calc : QHsm
 
     private QState DoInt2(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("int2");
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.ZeroDigit || qevent.QSignal == CalcSignals.NonZeroDigit)
+        if (qevent.Signal == CalcSignals.ZeroDigit || qevent.Signal == CalcSignals.NonZeroDigit)
         {
             Insert(((CalcEvent)qevent).KeyChar);
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.DecimalPoint)
+        if (qevent.Signal == CalcSignals.DecimalPoint)
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
@@ -684,13 +684,13 @@ public sealed class Calc : QHsm
 
     private QState DoFrac2(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("frac2");
             return null;
         }
 
-        if (qevent.QSignal == CalcSignals.ZeroDigit || qevent.QSignal == CalcSignals.NonZeroDigit)
+        if (qevent.Signal == CalcSignals.ZeroDigit || qevent.Signal == CalcSignals.NonZeroDigit)
         {
             Insert(((CalcEvent)qevent).KeyChar);
             return null;
@@ -702,7 +702,7 @@ public sealed class Calc : QHsm
     //UNDONE: revise this code
     private QState DoFinal(IQEvent qevent)
     {
-        if (qevent.QSignal == QSignals.Entry)
+        if (qevent.Signal == QSignals.Entry)
         {
             OnDisplayState("HSM terminated");
             _singleton = null;

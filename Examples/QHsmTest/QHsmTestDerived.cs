@@ -11,7 +11,7 @@ public class QHsmTestDerived : QHsmTest
 {
     protected override QState s1(IQEvent qEvent)
     {
-        if (qEvent.QSignal == MyQSignals.B_Sig)
+        if (qEvent.Signal == MyQSignals.B_Sig)
         {
             Console.Write("s1-B-overriden;");
             return null;

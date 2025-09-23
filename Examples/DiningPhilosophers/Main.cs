@@ -16,20 +16,15 @@ internal class Class1
     [STAThread]
     private static void Main(string[] args)
     {
-        var _signals = new DPPSignal();
-        Qf.Instance.Initialize(Signal.MaxSignalCount);
-
-        IQActive table        = new Table(c_NumberOfPhilosophers);
-        var      philosophers = new IQActive[c_NumberOfPhilosophers];
+        IQActive table = new Table(c_NumberOfPhilosophers);
+        var philosophers = new IQActive[c_NumberOfPhilosophers];
 
         for (var i = 0; i < c_NumberOfPhilosophers; i++)
         {
             philosophers[i] = new Philosopher(i);
         }
 
-        Console.WriteLine(
-                          c_NumberOfPhilosophers + " philosophers gather around a table thinking ..."
-                         );
+        Console.WriteLine(c_NumberOfPhilosophers + " philosophers gather around a table thinking ...");
         table.Start(c_NumberOfPhilosophers);
         for (var i = 0; i < c_NumberOfPhilosophers; i++)
         {

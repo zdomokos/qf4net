@@ -7,6 +7,9 @@ internal class MainClass
 {
     public static void Main(string[] args)
     {
+        // Trigger static constructor for MyQSignals
+        _ = MyQSignals.Sig1;
+
         Console.WriteLine(
                           "Which pair (QHsmBaseX / QHsmDerivedX) do you want to run? Enter 1, 2 or 3."
                          );

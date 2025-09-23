@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12</LangVersion>
+    <Configurations>Debug;Release</Configurations>
+    <Title>qf4net</Title>
+    <Description>C# port of Miro Samek's Quantum Framework including his excellent implementation of
+      a hierarchical state machine.
+      Updated version of https://sourceforge.net/projects/qf4net/</Description>
+    <Copyright>Copyright (C) 2003-2004, The qf4net Team</Copyright>
+    <RepositoryUrl>https://github.com/zdomokos/qf4net</RepositoryUrl>
+    <AssemblyVersion>24.7.9.1</AssemblyVersion>
+    <FileVersion>24.5.8.1</FileVersion>
+    <Version>24.7.9</Version>
+    <RepositoryType>git</RepositoryType>
+    <!-- <PackageProjectUrl>https://sourceforge.net/projects/qf4net</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>statecharts;statemachine;quantum-framework;</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild> -->
+
+    <!-- Assembly metadata -->
+    <AssemblyTitle>qf4net</AssemblyTitle>
+    <AssemblyCompany>The qf4net Team</AssemblyCompany>
+    <AssemblyProduct>qf4net</AssemblyProduct>
+    <AssemblyConfiguration Condition="'$(Configuration)' == 'Debug'">Debug</AssemblyConfiguration>
+    <AssemblyConfiguration Condition="'$(Configuration)' == 'Release'">Release</AssemblyConfiguration>
+    <ComVisible>false</ComVisible>
+    <CLSCompliant>true</CLSCompliant>
+  </PropertyGroup>
+
+  <!-- <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup> -->
+
+</Project>
