@@ -5,7 +5,7 @@ namespace OptimizationBreaker;
 
 /// <summary>
 /// </summary>
-public class QHsmBase3 : QHsm
+public class QHsmBase3 : QHsmLegacy
 {
     #region Boiler plate static stuff
 

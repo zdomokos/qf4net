@@ -50,50 +50,24 @@ using System.Runtime.CompilerServices;
 namespace qf4net;
 
 /// <summary>
-/// The base class for all hierarchical state machines
+/// The base class for all state machines (non-hierarchical)
 /// </summary>
-public abstract class QHsm : IQHsm
+public abstract class QHsm: QFsm
 {
-    private static readonly QState _sTopState;
-
     /// <summary>
-    /// Added for symmetry reasons, so that all deriving classes can add their own static
-    /// <see cref="TransitionChainStore"/> variable using the new key word.
-    /// </summary>
-    protected static TransitionChainStore STransitionChainStore = null;
-
-    static QHsm()
-    {
-        _sTopState = Top;
-    }
-
-    /// <summary>
-    /// Constructor for the Quantum Hierarchical State Machine.
+    /// Constructor for the Quantum State Machine.
     /// </summary>
     protected QHsm()
     {
-        StateMethod = _sTopState;
     }
-
-    /// <summary>
-    /// Getter for an optional <see cref="TransitionChainStore"/> that can hold cached
-    /// <see cref="TransitionChain"/> objects that are used to optimize static transitions.
-    /// </summary>
-    protected virtual TransitionChainStore TransChainStore => STransitionChainStore;
-
-    /// <summary>
-    /// Is called inside the function Init to give the deriving class a chance to
-    /// initialize the state machine.
-    /// </summary>
-    protected abstract void InitializeStateMachine();
 
     /// <summary>
     /// Must only be called once by the client of the state machine to initialize the machine.
     /// </summary>
-    public void Init()
+    public override void Init()
     {
         Debug.Assert(StateMethod == _sTopState); // HSM not executed yet
-        var stateMethod = StateMethod; // save m_StateHandler in a temporary
+        var stateMethod = StateMethod;           // save m_StateHandler in a temporary
 
         InitializeStateMachine(); // We call into the deriving class
         // initial transition must go *one* level deep
@@ -113,26 +87,10 @@ public abstract class QHsm : IQHsm
         }
     }
 
-    /// <summary>
-    /// Determines whether the state machine is in the state specified by <see paramref="inquiredState"/>.
-    /// </summary>
-    /// <param name="inquiredState">The state to check for.</param>
-    /// <returns>
-    /// <see langword="true"/> if the state machine is in the specified state;
-    /// <see langword="false"/> otherwise.
-    /// </returns>
-    /// <remarks>
-    /// If the currently active state of a hierarchical state machine is s then it is in the
-    /// state s AND all its parent states.
-    /// </remarks>
-    public bool IsInState(QState inquiredState)
+    public override bool IsInState(QState inquiredState)
     {
         QState stateMethod;
-        for (
-            stateMethod = StateMethod;
-            stateMethod != null;
-            stateMethod = GetSuperStateMethod(stateMethod)
-        )
+        for (stateMethod = StateMethod; stateMethod != null; stateMethod = GetSuperStateMethod(stateMethod))
         {
             if (stateMethod == inquiredState) // do the states match?
             {
@@ -143,25 +101,17 @@ public abstract class QHsm : IQHsm
         return false; // no match found
     }
 
-    public QState StateMethod { get; private set; }
-    public QState SourceStateMethod { get; private set; }
-
-    /// <summary>
-    /// Returns the name of the (deepest) state that the state machine is currently in.
-    /// </summary>
-    public string CurrentStateName => StateMethod.Method.Name;
-
     public string CurrentNestedStateName
     {
         get
         {
             QState stateMethod;
-            var nest = "";
+            var    nest = "";
             for (
-                stateMethod = StateMethod;
-                stateMethod != null;
-                stateMethod = GetSuperStateMethod(stateMethod)
-            )
+                    stateMethod = StateMethod;
+                    stateMethod != null;
+                    stateMethod = GetSuperStateMethod(stateMethod)
+                )
             {
                 nest = nest != "" ? $"[{stateMethod.Method.Name}]->{nest}" : $"[{stateMethod.Method.Name}]";
             }
@@ -170,37 +120,37 @@ public abstract class QHsm : IQHsm
         }
     }
 
+    ///<summary>
+    /// Retrieves the super state (parent state) of the specified
+    /// state by sending it the empty signal.
+    ///</summary>
+    protected QState GetSuperStateMethod(QState stateMethod)
+    {
+        var superState = stateMethod?.Invoke(new QEvent(QSignals.Empty));
+        return superState;
+    }
+
     /// <summary>
     /// Dispatches the specified event to this state machine
     /// </summary>
     /// <param name="qEvent">The <see cref="IQEvent"/> to dispatch.</param>
-    public void Dispatch(IQEvent qEvent)
+    public override void Dispatch(IQEvent qEvent)
     {
-        // We let the event bubble up the chain until it is handled by a state handler
         try
         {
             var level = 0;
             SourceStateMethod = StateMethod;
-            while (SourceStateMethod != null)
+
+            if (SourceStateMethod != null)
             {
                 StateTrace(SourceStateMethod, qEvent.Signal, ++level);
-
                 var state = (QState)SourceStateMethod.Method.Invoke(this, [qEvent]);
-                if (state != null)
-                {
-                    SourceStateMethod = state;
-                }
-                else
-                {
-                    SourceStateMethod = null;
-                }
+                SourceStateMethod = state;
             }
         }
         catch (TargetInvocationException tie)
         {
             var e = tie.InnerException;
-
-            // add the exception history
             var exceptionMessages = "";
             while (e != null)
             {
@@ -208,249 +158,51 @@ public abstract class QHsm : IQHsm
                 e = e.InnerException;
             }
 
-            var message = $"The following unhandled exception was generated by {this} in {_targetStateName}:\n";
+            var message = $"The following unhandled exception was generated by {this}:\n";
             message += exceptionMessages;
 
             throw new Exception(message);
         }
     }
 
-    /// <summary>
-    /// Same as the method <see cref="Dispatch"/> but guarantees that the method can
-    /// be executed by only one thread at a time.
-    /// </summary>
-    /// <param name="qEvent">The <see cref="IQEvent"/> to dispatch.</param>
-    [MethodImpl(MethodImplOptions.Synchronized)]
-    public void DispatchSynchronized(IQEvent qEvent)
-    {
-        Dispatch(qEvent);
-    }
-
-    /// <summary>
-    /// The handler for the top state that is shared by all instances of a QHSM.
-    /// </summary>
-    /// <param name="qEvent"></param>
-    /// <returns></returns>
-    private static QState Top(IQEvent qEvent)
-    {
-        return null;
-    }
-
-    /// <summary>
-    /// The top state of each <see cref="QHsm"/>
-    /// </summary>
-    protected QState TopState => _sTopState;
-
-    #region Helper functions for the predefined signals
-
-    private QState Trigger(QState stateMethod, Signal qSignal)
-    {
-        StateTrace(stateMethod, qSignal); // ZTG-added
-
-        var state = (QState)stateMethod.Method.Invoke(this, [new QEvent(qSignal)]);
-        return state;
-    }
-
-    /// <summary>
-    /// Sends the specified signal to the specified state and (optionally) records the transition
-    /// </summary>
-    /// <param name="receiverStateMethod">The <see cref="QState"/> that represents the state method
-    /// to which to send the signal.</param>
-    /// <param name="qSignal">The <see cref="QSignals"/> to send.</param>
-    /// <param name="recorder">An instance of <see cref="TransitionChainRecorder"/> if the transition
-    /// is to be recorded; <see langword="null"/> otherwise.</param>
-    /// <returns>The <see cref="QState"/> returned by the state that recieved the signal.</returns>
-    /// <remarks>
-    /// Even if a recorder is specified, the transition will only be recorded if the state
-    /// <see paramref="receiverStateMethod"/> actually handled it.
-    /// This function is used to record the transition chain for a static transition that is executed
-    /// the first time.
-    /// </remarks>
-    private QState Trigger(
-        QState receiverStateMethod,
-        Signal qSignal,
-        TransitionChainRecorder recorder
-    )
-    {
-        var stateMethod = Trigger(receiverStateMethod, qSignal);
-        if (stateMethod == null && recorder != null)
-        {
-            // The receiverState handled the event
-            recorder.Record(receiverStateMethod.Method, qSignal);
-        }
-
-        return stateMethod;
-    }
-
-    ///<summary>
-    /// Retrieves the super state (parent state) of the specified
-    /// state by sending it the empty signal.
-    ///</summary>
-    private QState GetSuperStateMethod(QState stateMethod)
-    {
-        var superState = (QState)stateMethod.Method.Invoke(this, [new QEvent(QSignals.Empty)]);
-        return superState;
-    }
-
-    #endregion
-
-    /// <summary>
-    /// Represents the macro Q_INIT in Miro Samek's implementation
-    /// </summary>
-    protected void InitializeState(QState state)
-    {
-        StateMethod = state;
-
-        // try setting this in cases of transitionTo before any Dispatches
-        SourceStateMethod = StateMethod;
-    }
-
-    /// <summary>
-    /// Performs a dynamic transition; i.e., the transition path is determined on the fly and not recorded.
+  /// <summary>
+    /// Performs a dynamic transition; i.e., the transition path is determined on the fly.
     /// </summary>
     /// <param name="targetState">The <see cref="QState"/> to transition to.</param>
-    protected virtual void TransitionTo(QState targetState)
+    public override void TransitionTo(QState targetState)
     {
-        _targetStateName = targetState.Method.Name;
+        // _targetStateName = targetState.Method.Name;
 
         Debug.Assert(targetState != _sTopState); // can't target 'top' state
 
         ExitUpToSourceState();
-        // This is a dynamic transition. We pass in null instead of a recorder
-        TransitionFromSourceToTarget(targetState, null);
+        TransitionFromSourceToTarget(targetState);
     }
 
-    /// <summary>
-    /// Performs the transition from the current state to the specified target state.
-    /// </summary>
-    /// <param name="targetState">The <see cref="QState"/> to transition to.</param>
-    /// <param name="transitionChain">A <see cref="TransitionChain"/> used to hold the transition chain that
-    /// needs to be executed to perform the transition to the target state.</param>
-    /// <remarks>
-    /// The very first time that a given static transition is executed, the <see paramref="transitionChain"/>
-    /// reference will point to <see langword="null"/>. In this case a new <see cref="TransitionChain"/>
-    /// instance is created. As the complete transition is performed the individual transition steps are
-    /// recorded in the new <see cref="TransitionChain"/> instance. At the end of the call the new
-    /// (and now filled) <see cref="TransitionChain"/> is handed back to the caller.
-    /// If the same transition needs to be performed later again, the caller needs to pass
-    /// in the filled <see cref="TransitionChain"/> instance. The recorded transition path will then be
-    /// played back very efficiently.
-    /// </remarks>
-    protected void TransitionTo(QState targetState, ref TransitionChain transitionChain)
+    protected void ExitUpToSourceState()
     {
-        Debug.Assert(targetState != _sTopState); // can't target 'top' state
-
-        ExitUpToSourceState();
-
-        if (transitionChain == null) // for efficiency the first check is not thread-safe
-        {
-            // We implement the double-checked locking pattern
-            TransitionToSynchronized(targetState, ref transitionChain);
-        }
-        else
-        {
-            // We just need to 'replay' the transition chain that is stored in the transitions chain.
-            ExecuteTransitionChain(transitionChain);
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.Synchronized)]
-    private void TransitionToSynchronized(QState targetState, ref TransitionChain transitionChain)
-    {
-        if (transitionChain != null)
-        {
-            // We encountered a race condition. The first (non-synchronized) check indicated that the transition chain
-            // is null. However, a second threat beat us in getting into this synchronized method and populated
-            // the transition chain in the meantime. We can execute the regular method again now.
-            TransitionTo(targetState, ref transitionChain);
-        }
-        else
-        {
-            // The transition chain is not initialized yet, we need to dynamically retrieve
-            // the required transition steps and record them so that we can subsequently simply
-            // play them back.
-            var recorder = new TransitionChainRecorder();
-            TransitionFromSourceToTarget(targetState, recorder);
-            // We pass the recorded transition steps back to the caller:
-            transitionChain = recorder.GetRecordedTransitionChain();
-        }
-    }
-
-    /// <summary>
-    /// Performs a static transition from the current state to the specified target state. The
-    /// <see cref="TransitionChain"/> that specifies the steps required for the static transition
-    /// is specified by the provided index into the <see cref="TransitionChainStore"/>. Note that this
-    /// method can only be used if the class that implements the <see cref="QHsm"/> provides a class
-    /// specific <see cref="TransitionChainStore"/> via the virtual getter <see cref="TransChainStore"/>.
-    /// </summary>
-    /// <param name="targetState">The <see cref="QState"/> to transition to.</param>
-    /// <param name="chainIndex">The index into <see cref="TransitionChainStore"/> pointing to the
-    /// <see cref="TransitionChain"/> that is used to hold the individual transition steps that are
-    /// required to perform the transition.</param>
-    /// <remarks>
-    /// In order to use the method the calling class must retrieve the chain index during its static
-    /// construction phase by calling the method <see cref="TransitionChainStore.GetOpenSlot()"/> on
-    /// its static <see cref="TransitionChainStore"/>.
-    /// </remarks>
-    protected void TransitionTo(QState targetState, int chainIndex)
-    {
-        // This method can only be used if a TransitionChainStore has been created for the QHsm
-        Debug.Assert(TransChainStore != null);
-
-        TransitionTo(targetState, ref TransChainStore.TransitionChains[chainIndex]);
-    }
-
-    private void ExitUpToSourceState()
-    {
-        for (var stateMethod = StateMethod; stateMethod != SourceStateMethod; )
+        for (var stateMethod = StateMethod; stateMethod != SourceStateMethod;)
         {
             Debug.Assert(stateMethod != null);
 
             var stateMethodToHandleExit = Trigger(stateMethod, QSignals.Exit);
-            if (stateMethodToHandleExit != null)
-            {
-                // state did not handle the Exit signal itself
-                stateMethod = stateMethodToHandleExit;
-            }
-            else
-            {
-                // state handled the Exit signal. We need to elicit
-                // the superstate explicitly.
-                stateMethod = GetSuperStateMethod(stateMethod);
-            }
+            // state did not handle the Exit signal itself
+            stateMethod = stateMethodToHandleExit ??
+                          // state handled the Exit signal. We need to elicit superstate explicitly.
+                          GetSuperStateMethod(stateMethod);
         }
     }
 
     /// <summary>
-    /// Handles the transition from the source state to the target state without the help of a previously
-    /// recorded transition chain.
+    /// Handles the transition from the source state to the target state.
     /// </summary>
     /// <param name="targetStateMethod">The <see cref="QState"/> representing the state method to transition to.</param>
-    /// <param name="recorder">An instance of <see cref="TransitionChainRecorder"/> or <see langword="null"/></param>
-    /// <remarks>
-    /// Passing in <see langword="null"/> as the recorder means that we deal with a dynamic transition.
-    /// If an actual instance of <see cref="TransitionChainRecorder"/> is passed in then we deal with a static
-    /// transition that was not recorded yet. In this case the function will record the transition steps
-    /// as they are determined.
-    /// </remarks>
-    private void TransitionFromSourceToTarget(
-        QState targetStateMethod,
-        TransitionChainRecorder recorder
-    )
+    protected void TransitionFromSourceToTarget(QState targetStateMethod)
     {
-        ExitUpToLca(
-            targetStateMethod,
-            out var statesTargetToLca,
-            out var indexFirstStateToEnter,
-            recorder
-        );
-        TransitionDownToTargetState(
-            targetStateMethod,
-            statesTargetToLca,
-            indexFirstStateToEnter,
-            recorder
-        );
+        ExitUpToLca(targetStateMethod, out var statesTargetToLca, out var indexFirstStateToEnter);
+        TransitionDownToTargetState(targetStateMethod, statesTargetToLca, indexFirstStateToEnter);
     }
+
 
     /// <summary>
     /// Determines the transition chain between the target state and the LCA (Least Common Ancestor)
@@ -463,22 +215,15 @@ public abstract class QHsm : IQHsm
     /// <see paramref="indexFirstStateToEnter"/>.</param>
     /// <param name="indexFirstStateToEnter">Returns the index in the array <see cparamref="statesTargetToLCA"/>
     /// that specifies the first state that needs to be entered on the way down to the target state.</param>
-    /// <param name="recorder">An instance of <see cref="TransitionChainRecorder"/> if the transition chain
-    /// should be recorded; <see langword="null"/> otherwise.</param>
-    private void ExitUpToLca(
-        QState targetStateMethod,
-        out List<QState> statesTargetToLca,
-        out int indexFirstStateToEnter,
-        TransitionChainRecorder recorder
-    )
+    protected void ExitUpToLca(QState targetStateMethod, out List<QState> statesTargetToLca, out int indexFirstStateToEnter)
     {
-        statesTargetToLca = [targetStateMethod];
+        statesTargetToLca      = [targetStateMethod];
         indexFirstStateToEnter = 0;
 
         // (a) check my source state == target state (transition to self)
         if (SourceStateMethod == targetStateMethod)
         {
-            Trigger(SourceStateMethod, QSignals.Exit, recorder);
+            Trigger(SourceStateMethod, QSignals.Exit);
             return;
         }
 
@@ -495,14 +240,14 @@ public abstract class QHsm : IQHsm
         var sourceSuperStateMethod = GetSuperStateMethod(SourceStateMethod);
         if (sourceSuperStateMethod == targetSuperStateMethod)
         {
-            Trigger(SourceStateMethod, QSignals.Exit, recorder);
+            Trigger(SourceStateMethod, QSignals.Exit);
             return;
         }
 
         // (d) check super state of my source state == target
         if (sourceSuperStateMethod == targetStateMethod)
         {
-            Trigger(SourceStateMethod, QSignals.Exit, recorder);
+            Trigger(SourceStateMethod, QSignals.Exit);
             indexFirstStateToEnter = -1; // we don't enter the LCA
             return;
         }
@@ -511,10 +256,10 @@ public abstract class QHsm : IQHsm
         statesTargetToLca.Add(targetSuperStateMethod);
         indexFirstStateToEnter++;
         for (
-            var stateMethod = GetSuperStateMethod(targetSuperStateMethod);
-            stateMethod != null;
-            stateMethod = GetSuperStateMethod(stateMethod)
-        )
+                var stateMethod = GetSuperStateMethod(targetSuperStateMethod);
+                stateMethod != null;
+                stateMethod = GetSuperStateMethod(stateMethod)
+            )
         {
             if (SourceStateMethod == stateMethod)
             {
@@ -526,7 +271,7 @@ public abstract class QHsm : IQHsm
         }
 
         // For both remaining cases we need to exit the source state
-        Trigger(SourceStateMethod, QSignals.Exit, recorder);
+        Trigger(SourceStateMethod, QSignals.Exit);
 
         // (f) check rest of super state of my source state ==
         //     super state of super state of ... target state
@@ -546,10 +291,10 @@ public abstract class QHsm : IQHsm
         // (g) check each super state of super state ... of my source state ==
         //     super state of super state of ... target state
         for (
-            var stateMethod = sourceSuperStateMethod;
-            stateMethod != null;
-            stateMethod = GetSuperStateMethod(stateMethod)
-        )
+                var stateMethod = sourceSuperStateMethod;
+                stateMethod != null;
+                stateMethod = GetSuperStateMethod(stateMethod)
+            )
         {
             for (var stateIndex = indexFirstStateToEnter; stateIndex >= 0; stateIndex--)
             {
@@ -562,24 +307,19 @@ public abstract class QHsm : IQHsm
                 }
             }
 
-            Trigger(stateMethod, QSignals.Exit, recorder);
+            Trigger(stateMethod, QSignals.Exit);
         }
 
         // We should never get here
         throw new InvalidOperationException("Mal formed Hierarchical State Machine");
     }
 
-    private void TransitionDownToTargetState(
-        QState targetStateMethod,
-        List<QState> statesTargetToLca,
-        int indexFirstStateToEnter,
-        TransitionChainRecorder recorder
-    )
+
+    protected void TransitionDownToTargetState(QState targetStateMethod, List<QState> statesTargetToLca, int indexFirstStateToEnter)
     {
-        // we enter the states in the passed in array in reverse order
         for (var stateIndex = indexFirstStateToEnter; stateIndex >= 0; stateIndex--)
         {
-            Trigger(statesTargetToLca[stateIndex], QSignals.Entry, recorder);
+            Trigger(statesTargetToLca[stateIndex], QSignals.Entry);
         }
 
         StateMethod = targetStateMethod;
@@ -588,85 +328,12 @@ public abstract class QHsm : IQHsm
         // If the specified target state handles init then the effective
         // target state is deeper than the target state specified in
         // the transition.
-        while (Trigger(targetStateMethod, QSignals.Init, recorder) == null)
+        while (Trigger(targetStateMethod, QSignals.Init) == null)
         {
             // Initial transition must be one level deep
             Debug.Assert(targetStateMethod == GetSuperStateMethod(StateMethod));
             targetStateMethod = StateMethod;
-            Trigger(targetStateMethod, QSignals.Entry, recorder);
-        }
-
-        if (recorder != null)
-        {
-            // We always make sure that the last entry in the recorder represents the entry to the target state.
-            EnsureLastTransitionStepIsEntryIntoTargetState(targetStateMethod, recorder);
-            Debug.Assert(recorder.GetRecordedTransitionChain().Length > 0);
+            Trigger(targetStateMethod, QSignals.Entry);
         }
     }
-
-    private void EnsureLastTransitionStepIsEntryIntoTargetState(
-        QState targetStateMethod,
-        TransitionChainRecorder recorder
-    )
-    {
-        if (recorder.GetRecordedTransitionChain().Length == 0)
-        {
-            // Nothing recorded so far
-            RecordEntryIntoTargetState(targetStateMethod, recorder);
-            return;
-        }
-
-        // We need to test whether the last recorded transition step is the entry into the target state
-        var transitionChain = recorder.GetRecordedTransitionChain();
-        var lastTransitionStep = transitionChain[transitionChain.Length - 1];
-        if (
-            lastTransitionStep.StateMethod != targetStateMethod.Method
-            || lastTransitionStep.QSignal != QSignals.Entry
-        )
-        {
-            RecordEntryIntoTargetState(targetStateMethod, recorder);
-        }
-    }
-
-    private void RecordEntryIntoTargetState(
-        QState targetStateMethod,
-        TransitionChainRecorder recorder
-    )
-    {
-        recorder.Record(targetStateMethod.Method, QSignals.Entry);
-    }
-
-    private void ExecuteTransitionChain(TransitionChain transitionChain)
-    {
-        // There must always be at least one transition step in the provided transition chain
-        Debug.Assert(transitionChain.Length > 0);
-
-        var transitionStep = transitionChain[0]; // to shut up the compiler;
-        // without it we would get the following error on the line
-        //       m_MyStateMethod = transitionStep.StateMethod;
-        // at the end of this method: Use of possibly unassigned field 'State'
-        for (var i = 0; i < transitionChain.Length; i++)
-        {
-            transitionStep = transitionChain[i];
-            TriggerWithMethodInfo(transitionStep.StateMethod, transitionStep.QSignal);
-        }
-
-        StateMethod = CreateQStateFromMethodInfo(transitionStep.StateMethod);
-    }
-
-    protected virtual void StateTrace(QState state, Signal signal, int level = 0) { }
-
-    private QState TriggerWithMethodInfo(MethodInfo stateMethod, Signal qSignal)
-    {
-        StateTrace(CreateQStateFromMethodInfo(stateMethod), qSignal);
-        var state = (QState)stateMethod.Invoke(this, [new QEvent(qSignal)]);
-        return state;
-    }
-
-    private QState CreateQStateFromMethodInfo(MethodInfo methodInfo)
-    {
-        return (QState)Delegate.CreateDelegate(typeof(QState), this, methodInfo);
-    }
-
-    private string _targetStateName;
 }

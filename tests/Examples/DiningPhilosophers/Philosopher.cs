@@ -7,15 +7,11 @@ namespace DiningPhilosophersClassic;
 /// <summary>
 /// The active object that represents the table
 /// </summary>
-public class Philosopher : QActive
+public class Philosopher : QActiveLegacy
 {
     public Philosopher(int philosopherId)
     {
         _philosopherId = philosopherId;
-
-        _stateThinking = Thinking;
-        _stateHungry   = Hungry;
-        _stateEating   = Eating;
 
         _timer = new QTimer(this);
     }
@@ -29,7 +25,7 @@ public class Philosopher : QActive
         Thread.CurrentThread.Name = ToString();
         LogMessage($"Initializing philosopher {_philosopherId}");
         QEventBrokerSingleton.Instance.Subscribe(this, DPPSignal.Eat);
-        InitializeState(_stateThinking); // initial transition
+        InitializeState(Thinking); // initial transition
     }
 
     private QState Thinking(IQEvent qEvent)
@@ -43,7 +39,7 @@ public class Philosopher : QActive
 
         if (qEvent.IsSignal(DPPSignal.Timeout))
         {
-            TransitionTo(_stateHungry, ref s_Tran_Thinking_Hungry);
+            TransitionTo(Hungry, ref s_Tran_Thinking_Hungry);
             return null;
         }
 
@@ -76,7 +72,7 @@ public class Philosopher : QActive
             if (((TableEvent)qEvent).PhilosopherId == _philosopherId)
             {
                 LogMessage($"Philosopher {_philosopherId} receives eat signal.");
-                TransitionTo(_stateEating, ref s_Tran_Hungry_Eating);
+                TransitionTo(Eating, ref s_Tran_Hungry_Eating);
             }
 
             return null;
@@ -104,7 +100,7 @@ public class Philosopher : QActive
 
         if (qEvent.IsSignal(DPPSignal.Timeout))
         {
-            TransitionTo(_stateThinking, ref s_Tran_Eating_Thinking);
+            TransitionTo(Thinking, ref s_Tran_Eating_Thinking);
             return null;
         }
 
@@ -142,7 +138,4 @@ public class Philosopher : QActive
     private readonly QTimer _timer;
     private readonly int    _philosopherId;
 
-    private readonly QState _stateThinking;
-    private readonly QState _stateHungry;
-    private readonly QState _stateEating;
 }

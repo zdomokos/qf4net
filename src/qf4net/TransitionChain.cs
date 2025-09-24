@@ -14,7 +14,7 @@ namespace qf4net;
 /// </summary>
 public class TransitionChainRecorder
 {
-    public void Record(MethodInfo stateMethod, Signal qSignal)
+    public void Record(QState stateMethod, Signal qSignal)
     {
         _transitionSteps.Add(new TransitionStep(stateMethod, qSignal));
     }
@@ -42,7 +42,7 @@ public class TransitionChainRecorder
 public class TransitionChain
 {
     // holds the transitions that need to be performed from the LCA down to the target state
-    private readonly MethodInfo[] _stateMethodChain;
+    private readonly QState[] _stateMethodChain;
 
     // holds the actions that need to be performed on each transition in two bits:
     // 0x1: Init; 0x2: Entry, 0x3: Exit
@@ -50,8 +50,8 @@ public class TransitionChain
 
     public TransitionChain(List<TransitionStep> transitionSteps)
     {
-        _stateMethodChain = new MethodInfo[transitionSteps.Count];
-        _actionBits = new BitArray(transitionSteps.Count * 2);
+        _stateMethodChain = new QState[transitionSteps.Count];
+        _actionBits       = new BitArray(transitionSteps.Count * 2);
 
         for (var i = 0; i < transitionSteps.Count; i++)
         {
@@ -108,10 +108,10 @@ public class TransitionChain
 
 public struct TransitionStep
 {
-    public MethodInfo StateMethod;
+    public QState StateMethod;
     public Signal QSignal;
 
-    public TransitionStep(MethodInfo stateMethod, Signal qSignal)
+    public TransitionStep(QState stateMethod, Signal qSignal)
     {
         StateMethod = stateMethod;
         QSignal = qSignal;

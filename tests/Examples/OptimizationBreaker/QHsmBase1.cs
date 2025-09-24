@@ -5,7 +5,7 @@ namespace OptimizationBreaker;
 
 /// <summary>
 /// </summary>
-public class QHsmBase1 : QHsm
+public class QHsmBase1 : QHsmLegacy
 {
     protected QState m_s0;
     protected QState m_s01;

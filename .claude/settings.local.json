@@ -6,7 +6,10 @@
       "Bash(dotnet test:*)",
       "Bash(dotnet run:*)",
       "Bash(timeout:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(move QHsm.cs QHsmOriginal.cs)",
+      "Bash(move:*)",
+      "Bash(ren:*)"
     ],
     "deny": [],
     "ask": []

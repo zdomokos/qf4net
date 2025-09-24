@@ -6,7 +6,7 @@ namespace QHsmTest;
 /// <summary>
 /// TODO - Add class summary
 /// </summary>
-public class QHsmTest : QHsm
+public class QHsmTest : QHsmLegacy
 {
     protected bool   m_Foo;
 

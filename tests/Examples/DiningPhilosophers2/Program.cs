@@ -32,8 +32,8 @@ internal class Program
             qtasks.Add(t);
         }
 
-        Console.WriteLine("Running for 10 seconds...");
-        Task.Delay(TimeSpan.FromSeconds(10)).Wait();
+        Console.WriteLine("Running for 60 seconds...");
+        Task.Delay(TimeSpan.FromSeconds(60)).Wait();
 
         // Stop all philosophers and the table
         for (var i = 0; i < NumberOfPhilosophers; i++)

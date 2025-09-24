@@ -89,18 +89,18 @@ public sealed class Calc : QHsm
         {
             Clear();
 #if (STATIC_TRANS)
-            TransitionTo(DoCalculate, STranIdxCalculateCalculate);
+            TransitionTo(DoDoCalculate, STranIdxCalculateCalculate);
 #else
-                    TransitionTo(Calculate);
+                    TransitionTo(DoCalculate);
 #endif
             return null;
         }
         else if (qevent.Signal == CalcSignals.Quit)
         {
 #if (STATIC_TRANS)
-            TransitionTo(DoFinal, STranIdxCalculateFinal);
+            TransitionTo(DoDoFinal, STranIdxCalculateFinal);
 #else
-                    TransitionTo(Final);
+                    TransitionTo(DoFinal);
 #endif
             return null;
         }
@@ -138,9 +138,9 @@ public sealed class Calc : QHsm
         {
             Clear();
 #if (STATIC_TRANS)
-            TransitionTo(DoZero1, STranIdxReadyZero1);
+            TransitionTo(DoDoZero1, STranIdxReadyZero1);
 #else
-                    TransitionTo(Zero1);
+                    TransitionTo(DoZero1);
 #endif
             return null;
         }
@@ -150,9 +150,9 @@ public sealed class Calc : QHsm
             Clear();
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoInt1, STranIdxReadyInt1);
+            TransitionTo(DoDoInt1, STranIdxReadyInt1);
 #else
-                    TransitionTo(Int1);
+                    TransitionTo(DoInt1);
 #endif
             return null;
         }
@@ -162,9 +162,9 @@ public sealed class Calc : QHsm
             Clear();
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoFrac1, STranIdxReadyFrac1);
+            TransitionTo(DoDoFrac1, STranIdxReadyFrac1);
 #else
-                    TransitionTo(Frac1);
+                    TransitionTo(DoFrac1);
 #endif
             return null;
         }
@@ -174,9 +174,9 @@ public sealed class Calc : QHsm
             _myOperand1 = double.Parse(_myDisplay);
             _myOperator = ((CalcEvent)qevent).KeyChar;
 #if (STATIC_TRANS)
-            TransitionTo(DoOpEntered, STranIdxReadyOpEntered);
+            TransitionTo(DoDoOpEntered, STranIdxReadyOpEntered);
 #else
-                    TransitionTo(OpEntered);
+                    TransitionTo(DoOpEntered);
 #endif
             return null;
         }
@@ -213,9 +213,9 @@ public sealed class Calc : QHsm
             if (((CalcEvent)qevent).KeyChar == '-')
             {
 #if (STATIC_TRANS)
-                TransitionTo(DoNegated1, STranIdxBeginNegated1);
+                TransitionTo(DoDoNegated1, STranIdxBeginNegated1);
 #else
-                        TransitionTo(Negated1);
+                        TransitionTo(DoNegated1);
 #endif
                 return null; // event handled
             }
@@ -262,9 +262,9 @@ public sealed class Calc : QHsm
         {
             Clear();
 #if (STATIC_TRANS)
-            TransitionTo(DoBegin, STranIdxNegated1Begin);
+            TransitionTo(DoDoBegin, STranIdxNegated1Begin);
 #else
-                    TransitionTo(Begin);
+                    TransitionTo(DoBegin);
 #endif
             return null;
         }
@@ -273,9 +273,9 @@ public sealed class Calc : QHsm
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoZero1, STranIdxNegated1Zero1);
+            TransitionTo(DoDoZero1, STranIdxNegated1Zero1);
 #else
-                    TransitionTo(Zero1);
+                    TransitionTo(DoZero1);
 #endif
             return null;
         }
@@ -284,9 +284,9 @@ public sealed class Calc : QHsm
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoInt1, STranIdxNegated1Int1);
+            TransitionTo(DoDoInt1, STranIdxNegated1Int1);
 #else
-                    TransitionTo(Int1);
+                    TransitionTo(DoInt1);
 #endif
             return null;
         }
@@ -295,9 +295,9 @@ public sealed class Calc : QHsm
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoFrac1, STranIdxNegated1Frac1);
+            TransitionTo(DoDoFrac1, STranIdxNegated1Frac1);
 #else
-                    TransitionTo(Frac1);
+                    TransitionTo(DoFrac1);
 #endif
             return null;
         }
@@ -322,9 +322,9 @@ public sealed class Calc : QHsm
         {
             Clear();
 #if (STATIC_TRANS)
-            TransitionTo(DoBegin, STranIdxOperand1Begin);
+            TransitionTo(DoDoBegin, STranIdxOperand1Begin);
 #else
-                    TransitionTo(Begin);
+                    TransitionTo(DoBegin);
 #endif
             return null;
         }
@@ -334,9 +334,9 @@ public sealed class Calc : QHsm
             _myOperand1 = double.Parse(_myDisplay);
             _myOperator = ((CalcEvent)qevent).KeyChar;
 #if (STATIC_TRANS)
-            TransitionTo(DoOpEntered, STranIdxOperand1OpEntered);
+            TransitionTo(DoDoOpEntered, STranIdxOperand1OpEntered);
 #else
-                    TransitionTo(OpEntered);
+                    TransitionTo(DoOpEntered);
 #endif
             return null;
         }
@@ -361,9 +361,9 @@ public sealed class Calc : QHsm
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoInt1, STranIdxZero1Int1);
+            TransitionTo(DoDoInt1, STranIdxZero1Int1);
 #else
-                    TransitionTo(Int1);
+                    TransitionTo(DoInt1);
 #endif
             return null;
         }
@@ -372,9 +372,9 @@ public sealed class Calc : QHsm
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoFrac1, STranIdxZero1Frac1);
+            TransitionTo(DoDoFrac1, STranIdxZero1Frac1);
 #else
-                    TransitionTo(Frac1);
+                    TransitionTo(DoFrac1);
 #endif
             return null;
         }
@@ -404,9 +404,9 @@ public sealed class Calc : QHsm
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoFrac1, STranIdxInt1Frac1);
+            TransitionTo(DoDoFrac1, STranIdxInt1Frac1);
 #else
-                    TransitionTo(Frac1);
+                    TransitionTo(DoFrac1);
 #endif
             return null;
         }
@@ -452,9 +452,9 @@ public sealed class Calc : QHsm
             {
                 Clear();
 #if (STATIC_TRANS)
-                TransitionTo(DoNegated2, STranIdxOpEnteredNegated2);
+                TransitionTo(DoDoNegated2, STranIdxOpEnteredNegated2);
 #else
-                        TransitionTo(Negated2);
+                        TransitionTo(DoNegated2);
 #endif
             }
 
@@ -465,9 +465,9 @@ public sealed class Calc : QHsm
         {
             Clear();
 #if (STATIC_TRANS)
-            TransitionTo(DoZero2, STranIdxOpEnteredZero2);
+            TransitionTo(DoDoZero2, STranIdxOpEnteredZero2);
 #else
-                    TransitionTo(Zero2);
+                    TransitionTo(DoZero2);
 #endif
             return null;
         }
@@ -477,9 +477,9 @@ public sealed class Calc : QHsm
             Clear();
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoInt2, STranIdxOpEnteredInt2);
+            TransitionTo(DoDoInt2, STranIdxOpEnteredInt2);
 #else
-                    TransitionTo(Int2);
+                    TransitionTo(DoInt2);
 #endif
             return null;
         }
@@ -489,9 +489,9 @@ public sealed class Calc : QHsm
             Clear();
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoFrac2, STranIdxOpEnteredFrac2);
+            TransitionTo(DoDoFrac2, STranIdxOpEnteredFrac2);
 #else
-                    TransitionTo(Frac2);
+                    TransitionTo(DoFrac2);
 #endif
             return null;
         }
@@ -518,9 +518,9 @@ public sealed class Calc : QHsm
         if (qevent.Signal == CalcSignals.ClearEntry)
         {
 #if (STATIC_TRANS)
-            TransitionTo(DoOpEntered, STranIdxNegated2OpEntered);
+            TransitionTo(DoDoOpEntered, STranIdxNegated2OpEntered);
 #else
-                    TransitionTo(OpEntered);
+                    TransitionTo(DoOpEntered);
 #endif
             return null;
         }
@@ -528,9 +528,9 @@ public sealed class Calc : QHsm
         if (qevent.Signal == CalcSignals.ZeroDigit)
         {
 #if (STATIC_TRANS)
-            TransitionTo(DoZero2, STranIdxNegated2Zero2);
+            TransitionTo(DoDoZero2, STranIdxNegated2Zero2);
 #else
-                    TransitionTo(Zero2);
+                    TransitionTo(DoZero2);
 #endif
             return null;
         }
@@ -539,9 +539,9 @@ public sealed class Calc : QHsm
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoInt2, STranIdxNegated2Int2);
+            TransitionTo(DoDoInt2, STranIdxNegated2Int2);
 #else
-                    TransitionTo(Int2);
+                    TransitionTo(DoInt2);
 #endif
             return null;
         }
@@ -550,9 +550,9 @@ public sealed class Calc : QHsm
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoFrac2, STranIdxNegated2Frac2);
+            TransitionTo(DoDoFrac2, STranIdxNegated2Frac2);
 #else
-                    TransitionTo(Frac2);
+                    TransitionTo(DoFrac2);
 #endif
             return null;
         }
@@ -577,9 +577,9 @@ public sealed class Calc : QHsm
         {
             Clear();
 #if (STATIC_TRANS)
-            TransitionTo(DoOpEntered, STranIdxOperand2OpEntered);
+            TransitionTo(DoDoOpEntered, STranIdxOperand2OpEntered);
 #else
-                    TransitionTo(OpEntered);
+                    TransitionTo(DoOpEntered);
 #endif
             return null;
         }
@@ -591,9 +591,9 @@ public sealed class Calc : QHsm
             _myOperand1 = double.Parse(_myDisplay);
             _myOperator = ((CalcEvent)qevent).KeyChar;
 #if (STATIC_TRANS)
-            TransitionTo(DoOpEntered, STranIdxOperand2OpEntered);
+            TransitionTo(DoDoOpEntered, STranIdxOperand2OpEntered);
 #else
-                    TransitionTo(OpEntered);
+                    TransitionTo(DoOpEntered);
 #endif
             return null;
         }
@@ -602,9 +602,9 @@ public sealed class Calc : QHsm
         {
             _myOperand2 = double.Parse(_myDisplay);
 #if (STATIC_TRANS)
-            TransitionTo(DoResult, STranIdxOperand2Result);
+            TransitionTo(DoDoResult, STranIdxOperand2Result);
 #else
-                    TransitionTo(Result);
+                    TransitionTo(DoResult);
 #endif
             return null;
         }
@@ -629,9 +629,9 @@ public sealed class Calc : QHsm
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoInt2, STranIdxZero2Int2);
+            TransitionTo(DoDoInt2, STranIdxZero2Int2);
 #else
-                    TransitionTo(Int2);
+                    TransitionTo(DoInt2);
 #endif
             return null;
         }
@@ -640,9 +640,9 @@ public sealed class Calc : QHsm
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoFrac2, STranIdxZero2Frac2);
+            TransitionTo(DoDoFrac2, STranIdxZero2Frac2);
 #else
-                    TransitionTo(Frac2);
+                    TransitionTo(DoFrac2);
 #endif
             return null;
         }
@@ -672,9 +672,9 @@ public sealed class Calc : QHsm
         {
             Insert(((CalcEvent)qevent).KeyChar);
 #if (STATIC_TRANS)
-            TransitionTo(DoFrac2, STranIdxInt2Frac2);
+            TransitionTo(DoDoFrac2, STranIdxInt2Frac2);
 #else
-                    TransitionTo(Frac2);
+                    TransitionTo(DoFrac2);
 #endif
             return null;
         }
