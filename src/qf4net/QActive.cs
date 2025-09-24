@@ -43,9 +43,6 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-
 namespace qf4net;
 
 

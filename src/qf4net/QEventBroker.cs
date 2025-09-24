@@ -43,8 +43,6 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-using System.Diagnostics;
-
 namespace qf4net;
 
 public class QEventBrokerSingleton
