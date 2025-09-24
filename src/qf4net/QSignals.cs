@@ -52,17 +52,35 @@ namespace qf4net;
 /// </summary>
 public class QSignals
 {
-    public static readonly Signal Empty     = new(nameof(Empty));
-    public static readonly Signal Init      = new(nameof(Init));
-    public static readonly Signal Entry     = new(nameof(Entry));
-    public static readonly Signal Exit      = new(nameof(Exit));
-    public static readonly Signal Terminate = new(nameof(Terminate));
+    public static readonly Signal Empty       = new(nameof(Empty));
+    public static readonly Signal Init        = new(nameof(Init));
+    public static readonly Signal Entry       = new(nameof(Entry));
+    public static readonly Signal Exit        = new(nameof(Exit));
+    public static readonly Signal Terminate   = new(nameof(Terminate));
+    public static readonly Signal StateJob    = new(nameof(StateJob));
+    public static readonly Signal Initialized = new(nameof(Initialized));
+    public static readonly Signal Start       = new(nameof(Start));
+    public static readonly Signal Stop        = new(nameof(Stop));
+    public static readonly Signal Abort       = new(nameof(Abort));
+    public static readonly Signal Pause       = new(nameof(Pause));
+    public static readonly Signal Resume      = new(nameof(Resume));
+    public static readonly Signal Error       = new(nameof(Error));
+    public static readonly Signal Retry       = new(nameof(Retry));
 
-    public static readonly QEvent EvtEmpty     = new(Empty);
-    public static readonly QEvent EvtInit      = new(Init);
-    public static readonly QEvent EvtEntry     = new(Entry);
-    public static readonly QEvent EvtExit      = new(Exit);
-    public static readonly QEvent EvtTerminate = new(Terminate);
+    public static readonly QEvent EvtEmpty       = new(Empty);
+    public static readonly QEvent EvtInit        = new(Init);
+    public static readonly QEvent EvtEntry       = new(Entry);
+    public static readonly QEvent EvtExit        = new(Exit);
+    public static readonly QEvent EvtTerminate   = new(Terminate);
+    public static readonly QEvent EvtStateJob    = new(StateJob);
+    public static readonly QEvent EvtInitialized = new(Initialized);
+    public static readonly QEvent EvtStart       = new(Start);
+    public static readonly QEvent EvtStop        = new(Stop);
+    public static readonly QEvent EvtAbort       = new(Abort);
+    public static readonly QEvent EvtPause       = new(Pause);
+    public static readonly QEvent EvtResume      = new(Resume);
+    public static readonly QEvent EvtError       = new(Error);
+    public static readonly QEvent EvtRetry       = new(Retry);
 };
 
 /// <summary>
