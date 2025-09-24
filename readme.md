@@ -22,6 +22,100 @@ QF4NET is a modern .NET implementation of the Quantum Framework originally devel
 - **Timer Support**: Built-in timer functionality for time-based events
 - **.NET 8.0 Compatible**: Modern C# implementation targeting .NET 8.0
 
+## State Machine Architecture
+
+QF4NET provides a comprehensive hierarchy of state machine classes, each designed for specific use cases:
+
+### Core State Machine Classes
+
+```
+IQHsm                           // Base interface
+└── QFsm                        // Finite State Machine (non-hierarchical)
+    └── QHsm                    // Hierarchical State Machine
+        ├── QActive             // Active Object (HSM with event pump)
+        └── QHsmWithTransitionChains  // HSM with optimization
+            └── QHsmLegacy      // Legacy compatibility class
+                └── QActiveLegacy  // Legacy active object
+```
+
+#### **QFsm** - Finite State Machine
+- **Purpose**: Basic non-hierarchical state machine
+- **Use Case**: Simple state machines with flat state structure
+- **Features**: Event dispatching, state transitions, thread-safe operations
+- **When to Use**: When you need a lightweight state machine without state nesting
+
+#### **QHsm** - Hierarchical State Machine
+- **Purpose**: Full UML statechart implementation with hierarchical states
+- **Use Case**: Complex state machines with nested states and inheritance
+- **Features**: State hierarchy, entry/exit actions, guard conditions, internal transitions
+- **When to Use**: When you need state nesting, composite states, or complex state relationships
+
+#### **QActive** - Active Object
+- **Purpose**: HSM with integrated event pump and publish-subscribe messaging
+- **Use Case**: Concurrent systems with independent state machines
+- **Features**: Asynchronous event processing, priority-based queuing, event broadcasting
+- **When to Use**: Multi-threaded applications where state machines run independently
+
+#### **QHsmWithTransitionChains** - Optimized HSM
+- **Purpose**: HSM with static transition chain optimization
+- **Use Case**: Performance-critical applications with frequent state transitions
+- **Features**: Pre-computed transition paths, reduced runtime overhead
+- **When to Use**: When transition performance is critical (embedded-style optimization)
+
+#### **QHsmLegacy / QActiveLegacy** - Legacy Support
+- **Purpose**: Backward compatibility with older QF4NET versions
+- **Use Case**: Migrating existing applications
+- **Features**: Legacy API compatibility
+- **When to Use**: Only when maintaining legacy code that can't be updated
+
+### Choosing the Right Class
+
+| Feature | QFsm | QHsm | QActive | QHsmWithTransitionChains | QHsmLegacy |
+|---------|------|------|---------|-------------------------|------------|
+| **Hierarchical States** | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **Event Pump** | ❌ | ❌ | ✅ | ❌ | ✅ |
+| **Thread Safety** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Publish-Subscribe** | ❌ | ❌ | ✅ | ❌ | ✅ |
+| **Performance Optimized** | ✅ | ⚠️ | ⚠️ | ✅ | ⚠️ |
+| **Memory Footprint** | Small | Medium | Large | Medium | Large |
+| **Complexity** | Low | Medium | High | Medium | High |
+
+#### Use Case Recommendations
+
+| Scenario | Recommended Class | Reason |
+|----------|-------------------|---------|
+| Simple state machine with 3-5 states | `QFsm` | Lightweight, no hierarchy overhead |
+| Complex business logic with nested states | `QHsm` | Full hierarchical state support |
+| Multithreaded application with concurrent state machines | `QActive` | Built-in event pump and messaging |
+| High-performance real-time system | `QHsmWithTransitionChains` | Optimized transition performance |
+| Legacy application upgrade | `QHsmLegacy` | Maintains backward compatibility |
+
+### Quick Examples
+
+```csharp
+// Simple FSM for a toggle switch
+public class ToggleSwitch : QFsm
+{
+    private QState OnState(IQEvent qEvent) { /* ... */ }
+    private QState OffState(IQEvent qEvent) { /* ... */ }
+}
+
+// Hierarchical state machine for a device
+public class Device : QHsm
+{
+    private QState ActiveState(IQEvent qEvent) { /* ... */ }
+    private QState IdleState(IQEvent qEvent) { /* nested under Active */ }
+    private QState WorkingState(IQEvent qEvent) { /* nested under Active */ }
+}
+
+// Active object for concurrent processing
+public class Worker : QActive
+{
+    public Worker() : base(QEventBroker.Instance) { }
+    // Runs independently with its own event loop
+}
+```
+
 ## Installation
 
 ### NuGet Package
@@ -51,9 +145,10 @@ public class MySignals : QSignals
 }
 ```
 
-### Basic State Machine
+### Basic Hierarchical State Machine
 
 ```csharp
+// Using QHsm for hierarchical states
 public class MyStateMachine : QHsm
 {
     private QState m_initial;

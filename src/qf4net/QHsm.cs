@@ -50,7 +50,7 @@ using System.Runtime.CompilerServices;
 namespace qf4net;
 
 /// <summary>
-/// The base class for all state machines (non-hierarchical)
+/// The base class for all hierarchical state machines (HSMs)
 /// </summary>
 public class QHsm: QFsm
 {

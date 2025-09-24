@@ -58,6 +58,12 @@ This project adheres to a code of conduct. By participating, you are expected to
    dotnet test
    ```
 
+### CI/CD Notes
+
+- **Windows-specific examples**: Projects targeting `net8.0-windows` or using Windows Forms/WPF are excluded from CI/CD builds to ensure cross-platform compatibility
+- **Cross-platform examples**: Console applications and cross-platform examples are built and tested in CI
+- **Core library**: The main qf4net library and unit tests are fully cross-platform and run on Ubuntu, Windows, and macOS
+
 ## Making Changes
 
 ### Branch Naming
