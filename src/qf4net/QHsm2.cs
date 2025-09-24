@@ -115,14 +115,8 @@ public class QHsm2 : IQHsm
                 StateTrace(SourceStateMethod, qEvent.Signal, ++level);
 
                 var state = SourceStateMethod.Invoke(qEvent);
-                if (state != null)
-                {
-                    SourceStateMethod = state;
-                }
-                else
-                {
-                    SourceStateMethod = null;
-                }
+
+                SourceStateMethod = state;
             }
         }
         catch (TargetInvocationException tie)
@@ -145,7 +139,7 @@ public class QHsm2 : IQHsm
     }
 
     /// <summary>
-    /// Performs a dynamic transition; i.e., the transition path is determined on the fly and not recorded.
+    /// Performs a dynamic transition; i.e., the transition path is determined on the fly.
     /// </summary>
     /// <param name="targetState">The <see cref="QState"/> to transition to.</param>
     public void TransitionTo(QState targetState)
@@ -155,7 +149,6 @@ public class QHsm2 : IQHsm
         Debug.Assert(targetState != _sTopState); // can't target 'top' state
 
         ExitUpToSourceState();
-        // This is a dynamic transition. We pass in null instead of a recorder
         TransitionFromSourceToTarget(targetState);
     }
 
@@ -168,22 +161,15 @@ public class QHsm2 : IQHsm
             var stateMethodToHandleExit = Trigger(stateMethod, QSignals.Exit);
             // state did not handle the Exit signal itself
             stateMethod = stateMethodToHandleExit ??
-                          // state handled the Exit signal. We need to elicitthe superstate explicitly.
+                          // state handled the Exit signal. We need to elicit superstate explicitly.
                           GetSuperStateMethod(stateMethod);
         }
     }
 
     /// <summary>
-    /// Handles the transition from the source state to the target state without the help of a previously
-    /// recorded transition chain.
+    /// Handles the transition from the source state to the target state.
     /// </summary>
-    /// <param name="targetStateMethod">The <see cref="MethodInfo"/> representing the state method to transition to.</param>
-    /// <remarks>
-    /// Passing in <see langword="null"/> as the recorder means that we deal with a dynamic transition.
-    /// If an actual instance of <see cref="TransitionChainRecorder"/> is passed in then we deal with a static
-    /// transition that was not recorded yet. In this case the function will record the transition steps
-    /// as they are determined.
-    /// </remarks>
+    /// <param name="targetStateMethod">The <see cref="QState"/> representing the state method to transition to.</param>
     private void TransitionFromSourceToTarget(QState targetStateMethod)
     {
         ExitUpToLca(targetStateMethod, out var statesTargetToLca, out var indexFirstStateToEnter);
@@ -196,13 +182,12 @@ public class QHsm2 : IQHsm
     /// and exits up to LCA while doing so.
     /// </summary>
     /// <param name="targetStateMethod">The target state method of the transition.</param>
-    /// <param name="statesTargetToLca">A <see cref="List{MethodInfo}"/> that holds (in reverse order) the states
+    /// <param name="statesTargetToLca">A <see cref="List{QState}"/> that holds (in reverse order) the states
     /// that need to be entered on the way down to the target state.
     /// Note: The index of the first state that needs to be entered is returned in
     /// <see paramref="indexFirstStateToEnter"/>.</param>
     /// <param name="indexFirstStateToEnter">Returns the index in the array <see cparamref="statesTargetToLCA"/>
     /// that specifies the first state that needs to be entered on the way down to the target state.</param>
-    /// should be recorded; <see langword="null"/> otherwise.</param>
     private void ExitUpToLca(QState targetStateMethod, out List<QState> statesTargetToLca, out int indexFirstStateToEnter)
     {
         statesTargetToLca      = [targetStateMethod];

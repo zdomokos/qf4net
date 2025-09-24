@@ -11,7 +11,9 @@ public abstract class QActive2 : IQActive
                                       mp => _eventBroker.Unregister(this));
     }
 
-    public int Priority => _messagePump.Priority;
+    public int    Priority               => _messagePump.Priority;
+    public string CurrentStateName       => _hsm.CurrentStateName;
+    public string CurrentNestedStateName => _hsm.CurrentNestedStateName;
 
     public Task RunEventPumpAsync(int priority) => _messagePump.RunEventPumpAsync(priority);
     public void RunEventPump(int priority)      => _messagePump.RunEventPump(priority);
@@ -19,14 +21,23 @@ public abstract class QActive2 : IQActive
     public void PostLifo(IQEvent qEvent)        => _messagePump.PostLifo(qEvent);
     public void Publish(IQEvent qEvent)         => _eventBroker?.Publish(qEvent);
 
-    protected void InitializeState(QState stateServing) => _hsm.InitializeState(stateServing);
+    public void InitializeState(QState state) => _hsm.InitializeState(state);
 
     protected abstract void HsmUnhandledException(Exception e);
     protected abstract void InitializeStateMachine();
 
-    protected void TransitionTo(QState stateEating) => _hsm.TransitionTo(stateEating);
+    public void TransitionTo(QState state)
+    {
+        _hsm.TransitionTo(state);
+        PostFifo(QSignals.EvtStateJob);
+    }
 
-    protected QState TopState => _hsm.TopState;
+    public void TransitionAfterRetry(QState nextState, int maxRetry, TimeSpan retryDelay, Exception ex)
+    {
+
+    }
+
+    public QState TopState => _hsm.TopState;
 
 
     protected readonly QHsm2         _hsm;
