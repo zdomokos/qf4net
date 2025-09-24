@@ -43,6 +43,9 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
+using System.Collections.Concurrent;
+using System.Linq;
+
 namespace qf4net;
 
 /// <summary>
@@ -84,16 +87,78 @@ public class QSignals
 };
 
 /// <summary>
-/// QSignal class - an enum replacement.
+/// QSignal class - an enum replacement with name tracking and duplicate prevention.
 /// </summary>
 public class Signal : IEquatable<Signal>, IComparable<Signal>
 {
+    private static readonly ConcurrentDictionary<string, Signal> _registeredSignals = new();
+    private static int _maxSignalCount;
+
+    /// <summary>
+    /// Creates a new Signal with the specified name.
+    /// Throws an exception if a signal with the same name already exists.
+    /// </summary>
+    /// <param name="name">The unique name for this signal</param>
+    /// <exception cref="ArgumentNullException">Thrown when name is null or empty</exception>
+    /// <exception cref="InvalidOperationException">Thrown when a signal with this name already exists</exception>
     public Signal(string name)
     {
-        _signalName     = name;
-        _signalValue    = _maxSignalCount;
-        _maxSignalCount = Interlocked.Increment(ref _maxSignalCount);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(name);
+
+        _signalName = name;
+        _signalValue = Interlocked.Increment(ref _maxSignalCount);
+
+        // Attempt to register this signal, throw if duplicate exists
+        if (!_registeredSignals.TryAdd(name, this))
+        {
+            throw new InvalidOperationException($"A signal with name '{name}' is already registered");
+        }
     }
+
+    /// <summary>
+    /// Gets the name of this signal.
+    /// </summary>
+    public string Name => _signalName;
+
+    /// <summary>
+    /// Gets the unique numeric value of this signal.
+    /// </summary>
+    public int Value => _signalValue;
+
+    /// <summary>
+    /// Gets a signal by name if it exists.
+    /// </summary>
+    /// <param name="name">The name of the signal to retrieve</param>
+    /// <returns>The signal if found, null otherwise</returns>
+    public static Signal GetByName(string name)
+    {
+        return string.IsNullOrWhiteSpace(name) ? null : _registeredSignals.GetValueOrDefault(name);
+    }
+
+    /// <summary>
+    /// Checks if a signal with the specified name exists.
+    /// </summary>
+    /// <param name="name">The name to check</param>
+    /// <returns>True if a signal with this name exists, false otherwise</returns>
+    public static bool Exists(string name)
+    {
+        return !string.IsNullOrWhiteSpace(name) && _registeredSignals.ContainsKey(name);
+    }
+
+    /// <summary>
+    /// Gets all registered signal names.
+    /// </summary>
+    public static IReadOnlyCollection<string> RegisteredNames => _registeredSignals.Keys.ToArray();
+
+    /// <summary>
+    /// Gets all registered signals.
+    /// </summary>
+    public static IReadOnlyCollection<Signal> RegisteredSignals => _registeredSignals.Values.ToArray();
+
+    /// <summary>
+    /// Gets the total count of registered signals.
+    /// </summary>
+    public static int Count => _registeredSignals.Count;
 
     public static bool operator ==(Signal lhs, Signal rhs)
     {
@@ -127,6 +192,14 @@ public class Signal : IEquatable<Signal>, IComparable<Signal>
 
     public override string ToString()
     {
+        return _signalName;
+    }
+
+    /// <summary>
+    /// Gets a detailed string representation of the signal including its value and count.
+    /// </summary>
+    public string ToDetailedString()
+    {
         return $"{_signalName}:{_signalValue}/{_maxSignalCount}";
     }
 
@@ -139,8 +212,6 @@ public class Signal : IEquatable<Signal>, IComparable<Signal>
     {
         return other == null ? 1 : _signalValue.CompareTo(other._signalValue);
     }
-
-    private static int _maxSignalCount;
 
     private readonly int    _signalValue;
     private readonly string _signalName;
