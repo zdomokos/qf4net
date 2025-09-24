@@ -256,7 +256,18 @@ public class QFsmTest
         private readonly List<string> _logMessages;
         public readonly QState IdleStateHandler;
         public readonly QState WorkingStateHandler;
-        public readonly List<IQEvent> ProcessedEvents = new();
+        private readonly List<IQEvent> _processedEvents = new();
+        private readonly object _processedEventsLock = new();
+        public IReadOnlyList<IQEvent> ProcessedEvents
+        {
+            get
+            {
+                lock (_processedEventsLock)
+                {
+                    return _processedEvents.ToList();
+                }
+            }
+        }
 
         public bool InitializeStateMachineCalled { get; private set; }
 
@@ -285,7 +296,10 @@ public class QFsmTest
         {
             if (qEvent != null)
             {
-                ProcessedEvents.Add(qEvent);
+                lock (_processedEventsLock)
+                {
+                    _processedEvents.Add(qEvent);
+                }
             }
             base.Dispatch(qEvent);
         }

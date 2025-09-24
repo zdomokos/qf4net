@@ -10,9 +10,9 @@
     </Description>
     <Copyright>Copyright (C) 2003-2004, The qf4net Team</Copyright>
     <RepositoryUrl>https://github.com/zdomokos/qf4net</RepositoryUrl>
-    <AssemblyVersion>25.9.23.1</AssemblyVersion>
-    <FileVersion>25.9.23.1</FileVersion>
-    <Version>25.9.23.1</Version>
+    <AssemblyVersion>25.9.24.1</AssemblyVersion>
+    <FileVersion>25.9.24.1</FileVersion>
+    <Version>25.9.24.1</Version>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/zdomokos/qf4net</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>

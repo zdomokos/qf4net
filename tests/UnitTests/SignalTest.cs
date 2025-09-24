@@ -25,12 +25,12 @@ public class SignalTest
     public void Constructor_ValidName_CreatesSignal()
     {
         // Act
-        var signal = new Signal("TestSignal");
+        var signal = new Signal("UniqueTestSignal");
 
         // Assert
-        Assert.That(signal.Name, Is.EqualTo("TestSignal"));
+        Assert.That(signal.Name, Is.EqualTo("UniqueTestSignal"));
         Assert.That(signal.Value, Is.GreaterThan(0));
-        Assert.That(signal.ToString(), Is.EqualTo("TestSignal"));
+        Assert.That(signal.ToString(), Is.EqualTo("UniqueTestSignal"));
     }
 
     [Test]
@@ -41,17 +41,17 @@ public class SignalTest
     }
 
     [Test]
-    public void Constructor_EmptyName_ThrowsArgumentNullException()
+    public void Constructor_EmptyName_ThrowsArgumentException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new Signal(""));
+        Assert.Throws<ArgumentException>(() => new Signal(""));
     }
 
     [Test]
-    public void Constructor_WhitespaceName_ThrowsArgumentNullException()
+    public void Constructor_WhitespaceName_ThrowsArgumentException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new Signal("   "));
+        Assert.Throws<ArgumentException>(() => new Signal("   "));
     }
 
     #endregion

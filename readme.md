@@ -1,5 +1,11 @@
 # QF4NET - Quantum Framework for .NET
 
+[![CI/CD](https://github.com/zdomokos/qf4net/actions/workflows/ci.yml/badge.svg)](https://github.com/zdomokos/qf4net/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/zdomokos/qf4net/actions/workflows/codeql.yml/badge.svg)](https://github.com/zdomokos/qf4net/actions/workflows/codeql.yml)
+[![NuGet Version](https://img.shields.io/nuget/v/qf4net.svg)](https://www.nuget.org/packages/qf4net/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/qf4net.svg)](https://www.nuget.org/packages/qf4net/)
+[![License](https://img.shields.io/github/license/zdomokos/qf4net.svg)](LICENSE)
+
 A C# port of Miro Samek's Quantum Framework, featuring an excellent implementation of hierarchical state machines for event-driven programming.
 
 ## Overview
@@ -230,7 +236,7 @@ dotnet test
 
 ## Version History
 
-- **25.9.23**: Latest stable release with .NET 8.0 support
+- **25.9.24**: Latest stable release with .NET 8.0 support
 - **24.7.9**: Bug fixes and performance improvements
 - **24.5.8**: StateTrace level functionality added
 - Previous versions available in commit history

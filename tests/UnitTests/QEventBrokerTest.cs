@@ -16,7 +16,7 @@ public class QEventBrokerTest
     public void Setup()
     {
         _eventBroker = new QEventBroker();
-        _testSignal = new Signal("TestSignal");
+        _testSignal = new Signal($"TestSignal_{Guid.NewGuid()}");
         _subscriber1 = new TestQActive(1); // Priority 1
         _subscriber2 = new TestQActive(1); // Priority 1 (same as subscriber1)
         _subscriber3 = new TestQActive(2); // Priority 2
