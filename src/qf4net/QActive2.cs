@@ -5,7 +5,7 @@ public abstract class QActive2 : IQActive
     protected QActive2(IQEventBroker eventBroker)
     {
         _eventBroker = eventBroker;
-        _hsm         = new QHsm2(InitializeStateMachine);
+        _hsm         = new QHStatemachine(InitializeStateMachine);
         _messagePump = new QEventPump(_hsm,
                                       HsmUnhandledException,
                                       mp => _eventBroker.Unregister(this));
@@ -40,7 +40,7 @@ public abstract class QActive2 : IQActive
     public QState TopState => _hsm.TopState;
 
 
-    protected readonly QHsm2         _hsm;
+    protected readonly QHStatemachine         _hsm;
     protected readonly QEventPump    _messagePump;
     protected readonly IQEventBroker _eventBroker;
 }

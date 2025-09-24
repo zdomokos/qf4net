@@ -3,14 +3,17 @@ using System.Reflection;
 
 namespace qf4net;
 
-public class QHsm2 : IQHsm
+/// <summary>
+/// Hierarchical State Machine base class based on Miro Samek's implementation.
+/// </summary>
+public class QHStatemachine : IQHsm
 {
-    static QHsm2()
+    static QHStatemachine()
     {
         _sTopState = Top;
     }
 
-    public QHsm2(Action initializeStateMachine)
+    public QHStatemachine(Action initializeStateMachine)
     {
         _initializeStateMachine = initializeStateMachine;
         _log                    = Log;
