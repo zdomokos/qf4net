@@ -447,4 +447,5 @@ data/
 .github/
 .setting.local.json
 CLAUDE.md
-
+.bmad-core/
+.mcp.json

@@ -55,29 +55,6 @@ namespace qf4net;
 public abstract class QHsmQ : QHsm
 {
     /// <summary>
-    /// FIFO event queue
-    /// </summary>
-    private readonly Queue<QEvent> _eventQueue;
-
-    /// <summary>
-    /// Constructor for the Quantum Hierarchical State Machine with Queue
-    /// </summary>
-    public QHsmQ()
-    {
-        _eventQueue = new Queue<QEvent>();
-    }
-
-    /// <summary>
-    /// Designed to be used only for self-posting, but this design could easily be changed
-    /// by making this method public.
-    /// </summary>
-    /// <param name="qEvent">New message posted to self during processing</param>
-    protected void Enqueue(QEvent qEvent)
-    {
-        _eventQueue.Enqueue(qEvent);
-    }
-
-    /// <summary>
     /// Dequeues and dispatches the queued events to this state machine
     /// </summary>
     protected void DispatchQ()
@@ -88,15 +65,21 @@ public abstract class QHsmQ : QHsm
         }
 
         _isDispatching = true;
-        while (_eventQueue.Count > 0)
+        while (_fifoEventQueue.Count > 0)
         {
             //new events may be added (self-posted) during the dispatch handling of this first event
-            Dispatch(_eventQueue.Dequeue());
+            Dispatch(_fifoEventQueue.Dequeue());
         }
         _isDispatching = false;
-    } //DispatchQ
+    }
 
-    private bool _isDispatching;
+    /// <summary>
+    /// Constructor for the Quantum Hierarchical State Machine with Queue
+    /// </summary>
+    public QHsmQ()
+    {
+        _fifoEventQueue = new Queue<QEvent>();
+    }
 
     /// <summary>
     /// Enqueues the first event then dequeues and dispatches all queued events to this state machine.
@@ -105,7 +88,7 @@ public abstract class QHsmQ : QHsm
     /// </summary>
     public void DispatchQ(QEvent qEvent)
     {
-        _eventQueue.Enqueue(qEvent);
+        _fifoEventQueue.Enqueue(qEvent);
         DispatchQ();
     } //DispatchQ
 
@@ -114,7 +97,19 @@ public abstract class QHsmQ : QHsm
     /// </summary>
     protected void ClearQ()
     {
-        _eventQueue.Clear();
+        _fifoEventQueue.Clear();
     }
-} //QHsmQ
-//namespace ReminderHsm
+
+    /// <summary>
+    /// Designed to be used only for self-posting, but this design could easily be changed
+    /// by making this method public.
+    /// </summary>
+    /// <param name="qEvent">New message posted to self during processing</param>
+    protected void Enqueue(QEvent qEvent)
+    {
+        _fifoEventQueue.Enqueue(qEvent);
+    }
+
+    private readonly Queue<QEvent> _fifoEventQueue;
+    private bool _isDispatching;
+}
