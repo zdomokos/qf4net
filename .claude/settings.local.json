@@ -9,7 +9,8 @@
       "Bash(dir:*)",
       "Bash(move QHsm.cs QHsmOriginal.cs)",
       "Bash(move:*)",
-      "Bash(ren:*)"
+      "Bash(ren:*)",
+      "Bash(dotnet add package:*)"
     ],
     "deny": [],
     "ask": []
