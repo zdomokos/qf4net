@@ -21,9 +21,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReminderPattern", "tests\Ex
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{8F784DF7-9A76-4A66-A0C3-3E6388FCC2E2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiningPhilosophers", "tests\Examples\DiningPhilosophers\DiningPhilosophers.csproj", "{B9105941-AA96-47E1-A431-CD0D4FA0B850}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiningPhilosophersLegacy", "tests\Examples\DiningPhilosophersLegacy\DiningPhilosophersLegacy.csproj", "{B9105941-AA96-47E1-A431-CD0D4FA0B850}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiningPhilosophers2", "tests\Examples\DiningPhilosophers2\DiningPhilosophers2.csproj", "{C50F142C-A947-4D50-9CD7-A2E7990E1DBE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiningPhilosophers", "tests\Examples\DiningPhilosophers\DiningPhilosophers.csproj", "{C50F142C-A947-4D50-9CD7-A2E7990E1DBE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

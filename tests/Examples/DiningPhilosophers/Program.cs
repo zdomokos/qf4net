@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using qf4net;
 
-namespace DiningPhilosophersClassic;
+namespace DiningPhilosophers;
 
 internal class Program
 {
@@ -13,19 +13,17 @@ internal class Program
     private static async Task Main(string[] args)
     {
         var        eventBroker = new QEventBroker();
-        List<Task> qtasks = [];
+        List<Task> qtasks      = [];
 
-        // create the table and philosophers
-        IQActive   table        = new Table(NumberOfPhilosophers);
-        IQActive[] philosophers = new IQActive[NumberOfPhilosophers];
+        IQEventPump table = new Table(eventBroker, NumberOfPhilosophers);
+        IQEventPump[] philosophers = new IQEventPump[NumberOfPhilosophers];
 
         for (var i = 0; i < NumberOfPhilosophers; i++)
         {
-            philosophers[i] = new Philosopher(i);
+            philosophers[i] = new Philosopher(eventBroker, i);
         }
 
         Console.WriteLine($"{NumberOfPhilosophers} philosophers gather around a table thinking ...");
-
         var t = table.RunEventPumpAsync(NumberOfPhilosophers);
         qtasks.Add(t);
         for (var i = 0; i < NumberOfPhilosophers; i++)
@@ -34,9 +32,7 @@ internal class Program
             qtasks.Add(t);
         }
 
-
-
-        Console.WriteLine("---  Running ...");
+        Console.WriteLine("Running for 60 seconds...");
         Task.Delay(TimeSpan.FromSeconds(60)).Wait();
 
         // Stop all philosophers and the table

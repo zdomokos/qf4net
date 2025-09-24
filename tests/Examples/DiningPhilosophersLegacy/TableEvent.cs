@@ -1,6 +1,6 @@
 using qf4net;
 
-namespace DiningPhilosophers;
+namespace DiningPhilosophersLegacy;
 
 /// <summary>
 /// Summary description for TableEvent.

@@ -1,6 +1,6 @@
 using qf4net;
 
-namespace DiningPhilosophersClassic;
+namespace DiningPhilosophers;
 
 /// <summary>
 /// Summary description for PhilosopherEvent.

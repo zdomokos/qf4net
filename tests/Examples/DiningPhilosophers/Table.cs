@@ -3,14 +3,15 @@ using System.Diagnostics;
 using System.Threading;
 using qf4net;
 
-namespace DiningPhilosophersClassic;
+namespace DiningPhilosophers;
 
 /// <summary>
 /// The active object that represents the table
 /// </summary>
 public class Table : QActive
 {
-    public Table(int numberOfPhilosophers)
+    public Table(IQEventBroker eventBroker, int numberOfPhilosophers)
+    : base(eventBroker)
     {
         _numberOfPhilosophers = numberOfPhilosophers;
         _forkIsUsed = new bool[_numberOfPhilosophers];
@@ -21,8 +22,6 @@ public class Table : QActive
             _forkIsUsed[i] = false;
             _philosopherIsHungry[i] = false;
         }
-
-        _stateServing = Serving;
     }
 
     /// <summary>
@@ -32,11 +31,12 @@ public class Table : QActive
     protected override void InitializeStateMachine()
     {
         Thread.CurrentThread.Name = ToString();
-        // Subscribe for the relevant events raised by philosophers
-        QEventBrokerSingleton.Instance.Subscribe(this, DPPSignal.Hungry);
-        QEventBrokerSingleton.Instance.Subscribe(this, DPPSignal.Done);
 
-        InitializeState(_stateServing); // initial transition
+        // Subscribe for the relevant events raised by philosophers
+        Subscribe(this, DPPSignal.Hungry);
+        Subscribe(this, DPPSignal.Done);
+
+        InitializeState(Serving); // initial transition
     }
 
     private QState Serving(IQEvent qEvent)
@@ -106,10 +106,7 @@ public class Table : QActive
     private int GetPhilosopherId(IQEvent qEvent)
     {
         var philosopherId = ((TableEvent)qEvent).PhilosopherId;
-        Debug.Assert(
-            philosopherId < _numberOfPhilosophers,
-            "Philosopher id must be < number of philosophers"
-        );
+        Debug.Assert( philosopherId < _numberOfPhilosophers, "Philosopher id must be < number of philosophers" );
         return philosopherId;
     }
 
@@ -119,7 +116,7 @@ public class Table : QActive
         var tableEvent = new TableEvent(DPPSignal.Eat, philosopherId);
         Console.WriteLine($"Table publishes Eat event for Philosopher {philosopherId}.");
 
-        QEventBrokerSingleton.Instance.Publish(tableEvent);
+        Publish(tableEvent);
         Console.WriteLine($"Philosopher {philosopherId} is eating.");
     }
 
@@ -135,8 +132,8 @@ public class Table : QActive
 
     private bool ForksFree(int philosopherId)
     {
-        return _forkIsUsed[philosopherId] == false
-            && _forkIsUsed[LeftIndex(philosopherId)] == false;
+        return !_forkIsUsed[philosopherId]
+            && !_forkIsUsed[LeftIndex(philosopherId)];
     }
 
     private void UseForks(int philosopherId)
@@ -161,7 +158,6 @@ public class Table : QActive
         throw new NotImplementedException();
     }
 
-    private readonly QState _stateServing;
     private readonly int _numberOfPhilosophers;
     private readonly bool[] _forkIsUsed;
     private readonly bool[] _philosopherIsHungry;

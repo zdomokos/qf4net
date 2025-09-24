@@ -49,12 +49,12 @@ using System.Runtime.CompilerServices;
 namespace qf4net;
 
 
-public abstract class QHsmLegacy : QHsmWithTransitionChains;
+public class QHsmLegacy : QHsmWithTransitionChains;
 
 /// <summary>
 /// The base class for all hierarchical state machines that support static transitions
 /// </summary>
-public abstract class QHsmWithTransitionChains : QHsm
+public class QHsmWithTransitionChains : QHsm
 {
     /// <summary>
     /// Added for symmetry reasons, so that all deriving classes can add their own static

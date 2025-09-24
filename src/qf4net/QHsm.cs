@@ -52,7 +52,7 @@ namespace qf4net;
 /// <summary>
 /// The base class for all state machines (non-hierarchical)
 /// </summary>
-public abstract class QHsm: QFsm
+public class QHsm: QFsm
 {
     /// <summary>
     /// Constructor for the Quantum State Machine.
@@ -67,13 +67,14 @@ public abstract class QHsm: QFsm
     public override void Init()
     {
         Debug.Assert(StateMethod == _sTopState); // HSM not executed yet
-        var stateMethod = StateMethod;           // save m_StateHandler in a temporary
 
         InitializeStateMachine(); // We call into the deriving class
+
+        var stateMethod = StateMethod;           // save m_StateHandler in a temporary
+
         // initial transition must go *one* level deep
         Debug.Assert(GetSuperStateMethod(StateMethod) == stateMethod);
 
-        stateMethod = StateMethod; // Note: We only use the temporary
         // variable stateMethod so that we can use Assert statements to ensure
         // that each transition is only one level deep.
         Trigger(stateMethod, QSignals.Entry);
@@ -81,6 +82,7 @@ public abstract class QHsm: QFsm
         while (Trigger(stateMethod, QSignals.Init) == null) // init handled?
         {
             Debug.Assert(GetSuperStateMethod(StateMethod) == stateMethod);
+
             stateMethod = StateMethod;
 
             Trigger(stateMethod, QSignals.Entry);
@@ -197,12 +199,11 @@ public abstract class QHsm: QFsm
     /// Handles the transition from the source state to the target state.
     /// </summary>
     /// <param name="targetStateMethod">The <see cref="QState"/> representing the state method to transition to.</param>
-    protected void TransitionFromSourceToTarget(QState targetStateMethod)
+    private void TransitionFromSourceToTarget(QState targetStateMethod)
     {
         ExitUpToLca(targetStateMethod, out var statesTargetToLca, out var indexFirstStateToEnter);
         TransitionDownToTargetState(targetStateMethod, statesTargetToLca, indexFirstStateToEnter);
     }
-
 
     /// <summary>
     /// Determines the transition chain between the target state and the LCA (Least Common Ancestor)
@@ -215,7 +216,7 @@ public abstract class QHsm: QFsm
     /// <see paramref="indexFirstStateToEnter"/>.</param>
     /// <param name="indexFirstStateToEnter">Returns the index in the array <see cparamref="statesTargetToLCA"/>
     /// that specifies the first state that needs to be entered on the way down to the target state.</param>
-    protected void ExitUpToLca(QState targetStateMethod, out List<QState> statesTargetToLca, out int indexFirstStateToEnter)
+    private void ExitUpToLca(QState targetStateMethod, out List<QState> statesTargetToLca, out int indexFirstStateToEnter)
     {
         statesTargetToLca      = [targetStateMethod];
         indexFirstStateToEnter = 0;
@@ -314,8 +315,7 @@ public abstract class QHsm: QFsm
         throw new InvalidOperationException("Mal formed Hierarchical State Machine");
     }
 
-
-    protected void TransitionDownToTargetState(QState targetStateMethod, List<QState> statesTargetToLca, int indexFirstStateToEnter)
+    private void TransitionDownToTargetState(QState targetStateMethod, List<QState> statesTargetToLca, int indexFirstStateToEnter)
     {
         for (var stateIndex = indexFirstStateToEnter; stateIndex >= 0; stateIndex--)
         {

@@ -15,7 +15,6 @@ dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
 
 # Language rules
-csharp_prefer_braces = true:warning
 csharp_prefer_simple_using_statement = true:suggestion
 csharp_prefer_static_local_functions = true:suggestion
 csharp_style_prefer_switch_expression = true:suggestion

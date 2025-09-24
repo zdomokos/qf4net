@@ -45,38 +45,28 @@
 
 namespace qf4net;
 
-
-public abstract class QActive : QHsm, IQActive
+public class QActive : QHsm, IQActive
 {
-    protected QActive()
+    protected QActive(IQEventBroker eventBroker = null)
     {
-        _messagePump = new QEventPump(this, HsmUnhandledException, EventLoopTerminated);
+        _eventBroker = eventBroker;
+        _eventPump   = new QEventPump(this, HsmUnhandledException, EventLoopTerminated);
     }
 
-    public Task RunEventPumpAsync(int priority)
-    {
-        return _messagePump.RunEventPumpAsync(priority);
-    }
+    public int  Priority                        => _eventPump.Priority;
+    public Task RunEventPumpAsync(int priority) => _eventPump.RunEventPumpAsync(priority);
+    public void RunEventPump(int priority)      => _eventPump.RunEventPump(priority);
+    public void PostFifo(IQEvent qEvent)        => _eventPump.PostFifo(qEvent);
+    public void PostLifo(IQEvent qEvent)        => _eventPump.PostLifo(qEvent);
 
-    public void RunEventPump(int priority)
-    {
-        _messagePump.RunEventPump(priority);
-    }
+    public void Publish(IQEvent qEvent)                       => _eventBroker.Publish(qEvent);
+    public void Subscribe(IQActive qActive, Signal qSignal)   => _eventBroker.Subscribe(qActive, qSignal);
+    public void Unsubscribe(IQActive qActive, Signal qSignal) => _eventBroker.Unsubscribe(qActive, qSignal);
+    public void Unregister()                                  => _eventBroker.Unregister(this);
 
-    public int Priority => _messagePump.Priority;
+    protected virtual void HsmUnhandledException(Exception e)   { }
+    protected virtual void EventLoopTerminated(IQEventPump obj) { }
 
-    public void PostFifo(IQEvent qEvent)
-    {
-        _messagePump.PostFifo(qEvent);
-    }
-
-    public void PostLifo(IQEvent qEvent)
-    {
-        _messagePump.PostLifo(qEvent);
-    }
-
-    protected abstract void HsmUnhandledException(Exception e);
-    protected virtual  void EventLoopTerminated(IQEventPump obj) { }
-
-    private readonly QEventPump _messagePump;
+    private readonly QEventPump    _eventPump;
+    private readonly IQEventBroker _eventBroker;
 }

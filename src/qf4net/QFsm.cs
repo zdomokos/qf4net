@@ -48,10 +48,16 @@ using System.Runtime.CompilerServices;
 
 namespace qf4net;
 
+public class StatemachineConfig
+{
+    public bool EnableStateTracing { get; set; } = false;
+    public bool SendStateJobAfterEntry { get; set; } = false;
+}
+
 /// <summary>
 /// The base class for all state machines (non-hierarchical)
 /// </summary>
-public abstract class QFsm : IQHsm
+public class QFsm : IQHsm
 {
     static QFsm()
     {
@@ -61,16 +67,21 @@ public abstract class QFsm : IQHsm
     /// <summary>
     /// Constructor for the Quantum State Machine.
     /// </summary>
-    protected QFsm()
+    protected QFsm(StatemachineConfig config = null)
     {
+        Config = config ?? new StatemachineConfig();
         StateMethod = _sTopState;
     }
+
+    public StatemachineConfig Config { get; set; }
 
     /// <summary>
     /// Is called inside the function Init to give the deriving class a chance to
     /// initialize the state machine.
     /// </summary>
-    protected abstract void InitializeStateMachine();
+    protected virtual void InitializeStateMachine()
+    {
+    }
 
     /// <summary>
     /// Must only be called once by the client of the state machine to initialize the machine.
@@ -164,10 +175,15 @@ public abstract class QFsm : IQHsm
         StateMethod       = targetState;
         SourceStateMethod = StateMethod;
 
-        if (StateMethod != null)
+        if (StateMethod == null)
+            return;
+
+        Trigger(StateMethod, QSignals.Entry);
+        Trigger(StateMethod, QSignals.Init);
+
+        if (Config.SendStateJobAfterEntry)
         {
-            Trigger(StateMethod, QSignals.Entry);
-            Trigger(StateMethod, QSignals.Init);
+            Trigger(StateMethod, QSignals.StateJob);
         }
     }
 
