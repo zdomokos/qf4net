@@ -9,7 +9,7 @@ public class QHsmBase3 : QHsmLegacy
 {
     #region Boiler plate static stuff
 
-    protected static new TransitionChainStore s_TransitionChainStore = new(
+    protected static TransitionChainStore s_TransitionChainStore = new(
                                                                            System.Reflection.MethodBase.GetCurrentMethod().DeclaringType
                                                                           );
 
