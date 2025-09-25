@@ -8,7 +8,7 @@ namespace DiningPhilosophersLegacy;
 /// <summary>
 /// The active object that represents the table
 /// </summary>
-public class Table : QActive
+public class Table : QActiveHsm
 {
     public Table(int numberOfPhilosophers) : base()
     {

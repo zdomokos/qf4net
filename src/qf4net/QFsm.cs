@@ -44,7 +44,6 @@
 // -----------------------------------------------------------------------------
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace qf4net;
 
@@ -59,7 +58,7 @@ public class StatemachineConfig
 /// </summary>
 public class QFsm : IQHsm
 {
-    private readonly object _dispatchLock = new object();
+    private readonly object _dispatchLock = new();
 
     static QFsm()
     {
@@ -163,7 +162,7 @@ public class QFsm : IQHsm
     /// <summary>
     /// Represents the macro Q_INIT in Miro Samek's implementation
     /// </summary>
-    protected void InitializeState(QState state)
+    public void InitializeState(QState state)
     {
         StateMethod       = state;
         SourceStateMethod = StateMethod;
@@ -173,15 +172,15 @@ public class QFsm : IQHsm
     /// Performs a simple transition to the target state.
     /// </summary>
     /// <param name="targetState">The <see cref="QState"/> to transition to.</param>
-    public virtual void TransitionTo(QState targetState)
+    protected virtual void TransitionTo(QState targetState)
     {
         if (StateMethod != null)
         {
             Trigger(StateMethod, QSignals.Exit);
         }
 
-        StateMethod       = targetState;
         SourceStateMethod = StateMethod;
+        StateMethod       = targetState;
 
         if (StateMethod == null)
             return;

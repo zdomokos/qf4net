@@ -44,7 +44,6 @@
 // -----------------------------------------------------------------------------
 
 using System.Collections.Concurrent;
-using System.Linq;
 
 namespace qf4net;
 
@@ -60,6 +59,7 @@ public class QSignals
     public static readonly Signal Entry       = new(nameof(Entry));
     public static readonly Signal Exit        = new(nameof(Exit));
     public static readonly Signal Terminate   = new(nameof(Terminate));
+
     public static readonly Signal StateJob    = new(nameof(StateJob));
     public static readonly Signal Initialized = new(nameof(Initialized));
     public static readonly Signal Start       = new(nameof(Start));

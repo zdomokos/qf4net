@@ -53,9 +53,9 @@ public class QTimer : IDisposable
     /// <summary>
     /// Creates a new <see cref="QTimer"/> instance.
     /// </summary>
-    /// <param name="qActive">The <see cref="IQEventPump"/> object that owns this <see cref="QTimer"/>; this is also
-    /// the <see cref="IQEventPump"/> object that will receive the timer based events.</param>
-    public QTimer(IQEventPump qActive)
+    /// <param name="qActive">The <see cref="IQActive"/> object that owns this <see cref="QTimer"/>; this is also
+    /// the <see cref="IQActive"/> object that will receive the timer based events.</param>
+    public QTimer(IQActive qActive)
     {
         _qActive = qActive;
         _timer = new Timer(

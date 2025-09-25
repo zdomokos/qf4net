@@ -45,9 +45,9 @@
 
 namespace qf4net;
 
-public class QActive : QHsm, IQActive
+public class QActiveHsm : QHsm, IQActive
 {
-    protected QActive(IQEventBroker eventBroker = null)
+    public QActiveHsm(IQEventBroker eventBroker = null, StatemachineConfig fsmConfig = null) : base(fsmConfig)
     {
         _eventBroker = eventBroker;
         _eventPump   = new QEventPump(this, HsmUnhandledException, EventLoopTerminated);

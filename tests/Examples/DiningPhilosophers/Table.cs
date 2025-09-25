@@ -8,7 +8,7 @@ namespace DiningPhilosophers;
 /// <summary>
 /// The active object that represents the table
 /// </summary>
-public class Table : QActive
+public class Table : QActiveHsm
 {
     public Table(IQEventBroker eventBroker, int numberOfPhilosophers)
     : base(eventBroker)

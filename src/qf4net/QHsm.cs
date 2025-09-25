@@ -45,7 +45,6 @@
 
 using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace qf4net;
 
@@ -57,7 +56,7 @@ public class QHsm: QFsm
     /// <summary>
     /// Constructor for the Quantum State Machine.
     /// </summary>
-    protected QHsm()
+    protected QHsm(StatemachineConfig fsmConfig = null) : base(fsmConfig)
     {
     }
 
@@ -167,11 +166,11 @@ public class QHsm: QFsm
         }
     }
 
-  /// <summary>
+    /// <summary>
     /// Performs a dynamic transition; i.e., the transition path is determined on the fly.
     /// </summary>
     /// <param name="targetState">The <see cref="QState"/> to transition to.</param>
-    public override void TransitionTo(QState targetState)
+    protected override void TransitionTo(QState targetState)
     {
         // _targetStateName = targetState.Method.Name;
 
