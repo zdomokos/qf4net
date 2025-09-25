@@ -168,7 +168,7 @@ public class QHsm : QFsm
     /// Performs a dynamic transition; i.e., the transition path is determined on the fly.
     /// </summary>
     /// <param name="targetState">The <see cref="QState"/> to transition to.</param>
-    protected override void TransitionTo(QState targetState)
+    public override void TransitionTo(QState targetState)
     {
         // _targetStateName = targetState.Method.Name;
 

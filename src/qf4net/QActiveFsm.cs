@@ -19,8 +19,6 @@ public class QActiveFsm : QFsm, IQActive
     public void Unsubscribe(IQActive qActive, Signal qSignal) => _eventBroker.Unsubscribe(qActive, qSignal);
     public void Unregister()                                  => _eventBroker.Unregister(this);
 
-    public void Transition(QState targetState) => TransitionTo(targetState);
-
     protected virtual void HsmUnhandledException(Exception e)   { }
     protected virtual void EventLoopTerminated(IQEventPump obj) { }
 

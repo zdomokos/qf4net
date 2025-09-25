@@ -34,8 +34,8 @@ public class QFsmTest
         // Assert
         Assert.That(_fsm.StateMethod, Is.Not.Null);
         // TopState is protected, so we can't access it directly in tests
-        Assert.That(_fsm.CurrentStateName, Is.EqualTo("Top"));
-        Assert.That(_fsm.CurrentStateName, Is.EqualTo("Top"));
+        Assert.That(_fsm.CurrentStateName, Is.EqualTo("TopState"));
+        Assert.That(_fsm.CurrentStateName, Is.EqualTo("TopState"));
     }
 
     [Test]

@@ -161,7 +161,7 @@ public class QFsm : IQHsm
     /// Performs a simple transition to the target state.
     /// </summary>
     /// <param name="targetState">The <see cref="QState"/> to transition to.</param>
-    protected virtual void TransitionTo(QState targetState)
+    public virtual void TransitionTo(QState targetState)
     {
         if (StateMethod != null)
         {
