@@ -80,6 +80,8 @@ public class QFsm : IQHsm
     }
 
     /// <summary>
+    /// Do not call this method directly, if using the event pump.
+    /// Called by the event pump DoEventLoop method.
     /// Must only be called once by the client of the state machine to initialize the machine.
     /// </summary>
     public virtual void Init()
