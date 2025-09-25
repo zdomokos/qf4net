@@ -15,7 +15,7 @@ internal class Program
         var        eventBroker = new QEventBroker();
         List<Task> qtasks      = [];
 
-        IQEventPump table = new Table(eventBroker, NumberOfPhilosophers);
+        var table = new Table(eventBroker, NumberOfPhilosophers);
         IQEventPump[] philosophers = new IQEventPump[NumberOfPhilosophers];
 
         for (var i = 0; i < NumberOfPhilosophers; i++)

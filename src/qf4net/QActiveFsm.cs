@@ -24,8 +24,6 @@ public class QActiveFsm : QFsm, IQActive
     protected virtual void HsmUnhandledException(Exception e)   { }
     protected virtual void EventLoopTerminated(IQEventPump obj) { }
 
-    public QState StateTop => Top;
-
     private readonly QEventPump         _eventPump;
     private readonly IQEventBroker      _eventBroker;
 }

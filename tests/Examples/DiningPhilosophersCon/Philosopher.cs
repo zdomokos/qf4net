@@ -8,7 +8,7 @@ namespace DiningPhilosophers;
 /// <summary>
 /// The active object that represents the table
 /// </summary>
-public class Philosopher : QActive2
+public class Philosopher : QActiveHsm
 {
     public Philosopher(IQEventBroker eventBroker, int philosopherId) : base(eventBroker)
     {
@@ -25,7 +25,7 @@ public class Philosopher : QActive2
         Thread.CurrentThread.Name = ToString();
         LogMessage($"Initializing philosopher {_philosopherId}");
 
-        _eventBroker.Subscribe(this, DPPSignal.Eat);
+        Subscribe(this, DPPSignal.Eat);
         InitializeState(Thinking); // initial transition
     }
 
@@ -60,7 +60,7 @@ public class Philosopher : QActive2
             LogMessage($"Philosopher {_philosopherId} is hungry.");
             var tableEvent = new TableEvent(DPPSignal.Hungry, _philosopherId);
             LogMessage($"Philosopher {_philosopherId} publishes Hungry event.");
-            _eventBroker.Publish(tableEvent);
+            Publish(tableEvent);
             return null;
         }
 
@@ -104,7 +104,7 @@ public class Philosopher : QActive2
             LogMessage($"Philosopher {_philosopherId} is exiting eating state.");
             var tableEvent = new TableEvent(DPPSignal.Done, _philosopherId);
             LogMessage($"Philosopher {_philosopherId} publishes Done event.");
-            _eventBroker.Publish(tableEvent);
+            Publish(tableEvent);
             return null;
         }
 

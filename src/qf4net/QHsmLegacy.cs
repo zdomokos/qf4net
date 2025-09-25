@@ -126,7 +126,7 @@ public class QHsmWithTransitionChains : QHsm
     /// </remarks>
     protected void TransitionTo(QState targetState, ref TransitionChain transitionChain)
     {
-        Debug.Assert(targetState != _sTopState); // can't target 'top' state
+        Debug.Assert(targetState != TopState); // can't target 'top' state
 
         ExitUpToSourceState();
 

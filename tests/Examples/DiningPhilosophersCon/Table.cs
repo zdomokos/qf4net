@@ -8,7 +8,7 @@ namespace DiningPhilosophers;
 /// <summary>
 /// The active object that represents the table
 /// </summary>
-public class Table : QActive2
+public class Table : QActiveHsm
 {
     public Table(IQEventBroker eventBroker, int numberOfPhilosophers)
     : base(eventBroker)
@@ -33,8 +33,8 @@ public class Table : QActive2
         Thread.CurrentThread.Name = ToString();
 
         // Subscribe for the relevant events raised by philosophers
-        _eventBroker.Subscribe(this, DPPSignal.Hungry);
-        _eventBroker.Subscribe(this, DPPSignal.Done);
+        Subscribe(this, DPPSignal.Hungry);
+        Subscribe(this, DPPSignal.Done);
 
         InitializeState(Serving); // initial transition
     }
@@ -116,7 +116,7 @@ public class Table : QActive2
         var tableEvent = new TableEvent(DPPSignal.Eat, philosopherId);
         Console.WriteLine($"Table publishes Eat event for Philosopher {philosopherId}.");
 
-        _eventBroker.Publish(tableEvent);
+        Publish(tableEvent);
         Console.WriteLine($"Philosopher {philosopherId} is eating.");
     }
 

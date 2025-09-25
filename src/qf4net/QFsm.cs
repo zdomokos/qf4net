@@ -60,18 +60,13 @@ public class QFsm : IQHsm
 {
     private readonly object _dispatchLock = new();
 
-    static QFsm()
-    {
-        _sTopState = Top;
-    }
-
     /// <summary>
     /// Constructor for the Quantum State Machine.
     /// </summary>
     protected QFsm(StatemachineConfig config = null)
     {
         Config = config ?? new StatemachineConfig();
-        StateMethod = _sTopState;
+        StateMethod = TopState;
     }
 
     public StatemachineConfig Config { get; set; }
@@ -110,12 +105,6 @@ public class QFsm : IQHsm
     /// Returns the name of the (deepest) state that the state machine is currently in.
     /// </summary>
     public virtual string CurrentStateName => StateMethod?.Method.Name ?? "Unknown";
-
-    /// <summary>
-    /// The top state of each <see cref="QHsm"/>
-    /// </summary>
-    protected QState TopState => _sTopState;
-
 
     /// <summary>
     /// Dispatches the specified event to this state machine
@@ -208,10 +197,8 @@ public class QFsm : IQHsm
     /// </summary>
     /// <param name="qEvent"></param>
     /// <returns></returns>
-    protected static QState Top(IQEvent qEvent)
+    public static QState TopState(IQEvent qEvent)
     {
         return null;
     }
-
-    protected static readonly QState _sTopState;
 }
