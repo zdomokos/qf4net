@@ -14,7 +14,7 @@ namespace qf4net;
 /// </summary>
 public class TransitionChainRecorder
 {
-    public void Record(QState stateMethod, Signal qSignal)
+    public void Record(QState stateMethod, QSignal qSignal)
     {
         _transitionSteps.Add(new TransitionStep(stateMethod, qSignal));
     }
@@ -109,9 +109,9 @@ public class TransitionChain
 public struct TransitionStep
 {
     public QState StateMethod;
-    public Signal QSignal;
+    public QSignal QSignal;
 
-    public TransitionStep(QState stateMethod, Signal qSignal)
+    public TransitionStep(QState stateMethod, QSignal qSignal)
     {
         StateMethod = stateMethod;
         QSignal = qSignal;

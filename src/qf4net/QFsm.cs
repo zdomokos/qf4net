@@ -185,14 +185,14 @@ public class QFsm : IQHsm
         }
     }
 
-    protected virtual QState Trigger(QState stateMethod, Signal qSignal)
+    protected virtual QState Trigger(QState stateMethod, QSignal qSignal)
     {
         StateTrace(stateMethod, qSignal);
         var state = (QState)stateMethod.Invoke(new QEvent(qSignal));
         return state;
     }
 
-    protected virtual void StateTrace(QState state, Signal signal, int level = 0) { }
+    protected virtual void StateTrace(QState state, QSignal signal, int level = 0) { }
 
     /// <summary>
     /// The handler for the top state that is shared by all instances of a QHSM.

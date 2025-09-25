@@ -70,7 +70,7 @@ public class QEventBroker : IQEventBroker
     /// </summary>
     /// <param name="qActive">The subscribing <see cref="IQActive"/> object.</param>
     /// <param name="qSignal">The signal to subscribe for.</param>
-    public void Subscribe(IQActive qActive, Signal qSignal)
+    public void Subscribe(IQActive qActive, QSignal qSignal)
     {
         Console.WriteLine(qActive + " subscribes for signal " + qSignal);
 
@@ -95,7 +95,7 @@ public class QEventBroker : IQEventBroker
     /// </summary>
     /// <param name="qActive">The unsubscribing <see cref="IQActive"/> object.</param>
     /// <param name="qSignal">The signal to unsubscribe.</param>
-    public void Unsubscribe(IQActive qActive, Signal qSignal)
+    public void Unsubscribe(IQActive qActive, QSignal qSignal)
     {
         lock(_syncObj)
         {
@@ -157,6 +157,6 @@ public class QEventBroker : IQEventBroker
         }
     }
 
-    private readonly Dictionary<Signal, SignalSubscribersByPriorityList> _signalSubscribers = [];
+    private readonly Dictionary<QSignal, SignalSubscribersByPriorityList> _signalSubscribers = [];
     private readonly object _syncObj = new();
 }

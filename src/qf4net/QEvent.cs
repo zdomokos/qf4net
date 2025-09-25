@@ -47,15 +47,15 @@ namespace qf4net;
 
 public class QEvent : IQEvent
 {
-    public QEvent(Signal qSignal)
+    public QEvent(QSignal qSignal)
     {
         ArgumentNullException.ThrowIfNull(qSignal, nameof(qSignal));
         Signal = qSignal;
     }
 
-    public Signal Signal { get; }
+    public QSignal Signal { get; }
 
-    public bool IsSignal(Signal sig)
+    public bool IsSignal(QSignal sig)
     {
         return Signal.Equals(sig);
     }

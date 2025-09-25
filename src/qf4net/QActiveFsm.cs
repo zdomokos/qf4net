@@ -15,8 +15,8 @@ public class QActiveFsm : QFsm, IQActive
     public void PostLifo(IQEvent qEvent)        => _eventPump.PostLifo(qEvent);
 
     public void Publish(IQEvent qEvent)                       => _eventBroker.Publish(qEvent);
-    public void Subscribe(IQActive qActive, Signal qSignal)   => _eventBroker.Subscribe(qActive, qSignal);
-    public void Unsubscribe(IQActive qActive, Signal qSignal) => _eventBroker.Unsubscribe(qActive, qSignal);
+    public void Subscribe(IQActive qActive, QSignal qSignal)   => _eventBroker.Subscribe(qActive, qSignal);
+    public void Unsubscribe(IQActive qActive, QSignal qSignal) => _eventBroker.Unsubscribe(qActive, qSignal);
     public void Unregister()                                  => _eventBroker.Unregister(this);
 
     protected virtual void HsmUnhandledException(Exception e)   { }

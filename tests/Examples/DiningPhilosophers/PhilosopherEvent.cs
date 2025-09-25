@@ -7,6 +7,6 @@ namespace DiningPhilosophers;
 /// </summary>
 public class PhilosopherEvent : QEvent
 {
-    internal PhilosopherEvent(Signal signal)
+    internal PhilosopherEvent(QSignal signal)
         : base(signal) { }
 }

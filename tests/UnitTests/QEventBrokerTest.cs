@@ -10,13 +10,13 @@ public class QEventBrokerTest
     private TestQActive _subscriber1 = null!;
     private TestQActive _subscriber2 = null!;
     private TestQActive _subscriber3 = null!;
-    private Signal _testSignal = null!;
+    private QSignal _testSignal = null!;
 
     [SetUp]
     public void Setup()
     {
         _eventBroker = new QEventBroker();
-        _testSignal = new Signal($"TestSignal_{Guid.NewGuid()}");
+        _testSignal = new QSignal($"TestSignal_{Guid.NewGuid()}");
         _subscriber1 = new TestQActive(1); // Priority 1
         _subscriber2 = new TestQActive(1); // Priority 1 (same as subscriber1)
         _subscriber3 = new TestQActive(2); // Priority 2
@@ -101,8 +101,8 @@ public class QEventBrokerTest
     public void Unregister_RemovesFromAllSignals()
     {
         // Arrange
-        var signal1 = new Signal("Signal1");
-        var signal2 = new Signal("Signal2");
+        var signal1 = new QSignal();
+        var signal2 = new QSignal();
         _eventBroker.Subscribe(_subscriber1, signal1);
         _eventBroker.Subscribe(_subscriber1, signal2);
         _eventBroker.Subscribe(_subscriber2, signal1);

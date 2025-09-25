@@ -54,7 +54,7 @@ public class MainForm : Form
         DispatchMessage(AlarmClockSignals.Terminate);
     }
 
-    private void DispatchMessage(Signal signal)
+    private void DispatchMessage(QSignal signal)
     {
         var e = new AlarmInitEvent(signal);
         AlarmClock.Instance.DispatchQ(e);

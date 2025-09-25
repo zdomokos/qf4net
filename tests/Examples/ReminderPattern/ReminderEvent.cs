@@ -4,7 +4,7 @@ namespace ReminderHsm;
 
 public class ReminderEvent : QEvent
 {
-    public ReminderEvent(Signal signal)
+    public ReminderEvent(QSignal signal)
         : base(signal) { }
 }                               //ReminderEvent
 //namespace ReminderHsm

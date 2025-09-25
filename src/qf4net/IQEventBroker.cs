@@ -55,14 +55,14 @@ public interface IQEventBroker
     /// </summary>
     /// <param name="qActive">The subscribing <see cref="IQActive"/> object.</param>
     /// <param name="qSignal">The signal to subscribe for.</param>
-    void Subscribe(IQActive qActive, Signal qSignal);
+    void Subscribe(IQActive qActive, QSignal qSignal);
 
     /// <summary>
     /// Allows an <see cref="IQActive"/> object to unsubscribe for a given signal.
     /// </summary>
     /// <param name="qActive">The unsubscribing <see cref="IQActive"/> object.</param>
     /// <param name="qSignal">The signal to unsubscribe.</param>
-    void Unsubscribe(IQActive qActive, Signal qSignal);
+    void Unsubscribe(IQActive qActive, QSignal qSignal);
 
     /// <summary>
     /// Allows an event source to publish an event.

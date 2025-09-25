@@ -9,8 +9,8 @@ public static class RtcSignals
         // Static constructor ensures all signals are initialized before use
     }
 
-    public static readonly Signal Start = new("Start");
-    public static readonly Signal Abort = new("Abort");
-    public static readonly Signal Quit  = new("Quit");
+    public static readonly QSignal Start = new();
+    public static readonly QSignal Abort = new();
+    public static readonly QSignal Quit  = new();
 } //RtcSignals
 //namespace RunToCompletionHsm

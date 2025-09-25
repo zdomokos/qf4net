@@ -43,7 +43,7 @@
 //   OF THE POSSIBILITY OF SUCH DAMAGE.
 // -----------------------------------------------------------------------------
 
-using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 
 namespace qf4net;
 
@@ -54,21 +54,20 @@ namespace qf4net;
 /// </summary>
 public class QSignals
 {
-    public static readonly Signal Empty       = new(nameof(Empty));
-    public static readonly Signal Init        = new(nameof(Init));
-    public static readonly Signal Entry       = new(nameof(Entry));
-    public static readonly Signal Exit        = new(nameof(Exit));
-    public static readonly Signal Terminate   = new(nameof(Terminate));
-
-    public static readonly Signal StateJob    = new(nameof(StateJob));
-    public static readonly Signal Initialized = new(nameof(Initialized));
-    public static readonly Signal Start       = new(nameof(Start));
-    public static readonly Signal Stop        = new(nameof(Stop));
-    public static readonly Signal Abort       = new(nameof(Abort));
-    public static readonly Signal Pause       = new(nameof(Pause));
-    public static readonly Signal Resume      = new(nameof(Resume));
-    public static readonly Signal Error       = new(nameof(Error));
-    public static readonly Signal Retry       = new(nameof(Retry));
+    public static readonly QSignal Empty       = new();
+    public static readonly QSignal Init        = new();
+    public static readonly QSignal Entry       = new();
+    public static readonly QSignal Exit        = new();
+    public static readonly QSignal Terminate   = new();
+    public static readonly QSignal StateJob    = new();
+    public static readonly QSignal Initialized = new();
+    public static readonly QSignal Start       = new();
+    public static readonly QSignal Stop        = new();
+    public static readonly QSignal Abort       = new();
+    public static readonly QSignal Pause       = new();
+    public static readonly QSignal Resume      = new();
+    public static readonly QSignal Error       = new();
+    public static readonly QSignal Retry       = new();
 
     public static readonly QEvent EvtEmpty       = new(Empty);
     public static readonly QEvent EvtInit        = new(Init);
@@ -87,80 +86,24 @@ public class QSignals
 };
 
 /// <summary>
-/// QSignal class - an enum replacement with name tracking and duplicate prevention.
+/// QSignal class - an enum replacement.
 /// </summary>
-public class Signal : IEquatable<Signal>, IComparable<Signal>
+public class QSignal : IEquatable<QSignal>, IComparable<QSignal>
 {
-    private static readonly ConcurrentDictionary<string, Signal> _registeredSignals = new();
-    private static int _maxSignalCount;
-
-    /// <summary>
-    /// Creates a new Signal with the specified name.
-    /// Throws an exception if a signal with the same name already exists.
-    /// </summary>
-    /// <param name="name">The unique name for this signal</param>
-    /// <exception cref="ArgumentNullException">Thrown when name is null or empty</exception>
-    /// <exception cref="InvalidOperationException">Thrown when a signal with this name already exists</exception>
-    public Signal(string name)
+    public QSignal([CallerMemberName] string name = null)
     {
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(name);
-
-        _signalName = name;
+        Name         = name;
         _signalValue = Interlocked.Increment(ref _maxSignalCount);
-
-        // Attempt to register this signal, throw if duplicate exists
-        if (!_registeredSignals.TryAdd(name, this))
-        {
-            throw new InvalidOperationException($"A signal with name '{name}' is already registered");
-        }
     }
 
-    /// <summary>
-    /// Gets the name of this signal.
-    /// </summary>
-    public string Name => _signalName;
+    public string Name { get; }
 
-    /// <summary>
-    /// Gets the unique numeric value of this signal.
-    /// </summary>
-    public int Value => _signalValue;
-
-    /// <summary>
-    /// Gets a signal by name if it exists.
-    /// </summary>
-    /// <param name="name">The name of the signal to retrieve</param>
-    /// <returns>The signal if found, null otherwise</returns>
-    public static Signal GetByName(string name)
+    public static explicit operator int(QSignal signal)
     {
-        return string.IsNullOrWhiteSpace(name) ? null : _registeredSignals.GetValueOrDefault(name);
+        return signal?._signalValue ?? throw new ArgumentNullException(nameof(signal));
     }
 
-    /// <summary>
-    /// Checks if a signal with the specified name exists.
-    /// </summary>
-    /// <param name="name">The name to check</param>
-    /// <returns>True if a signal with this name exists, false otherwise</returns>
-    public static bool Exists(string name)
-    {
-        return !string.IsNullOrWhiteSpace(name) && _registeredSignals.ContainsKey(name);
-    }
-
-    /// <summary>
-    /// Gets all registered signal names.
-    /// </summary>
-    public static IReadOnlyCollection<string> RegisteredNames => _registeredSignals.Keys.ToArray();
-
-    /// <summary>
-    /// Gets all registered signals.
-    /// </summary>
-    public static IReadOnlyCollection<Signal> RegisteredSignals => _registeredSignals.Values.ToArray();
-
-    /// <summary>
-    /// Gets the total count of registered signals.
-    /// </summary>
-    public static int Count => _registeredSignals.Count;
-
-    public static bool operator ==(Signal lhs, Signal rhs)
+    public static bool operator ==(QSignal lhs, QSignal rhs)
     {
         if (ReferenceEquals(lhs, rhs))
         {
@@ -175,14 +118,14 @@ public class Signal : IEquatable<Signal>, IComparable<Signal>
         return lhs._signalValue == rhs._signalValue;
     }
 
-    public static bool operator !=(Signal lhs, Signal rhs)
+    public static bool operator !=(QSignal lhs, QSignal rhs)
     {
         return !(lhs == rhs);
     }
 
     public override bool Equals(object obj)
     {
-        return this == (Signal)obj;
+        return this == (QSignal)obj;
     }
 
     public override int GetHashCode()
@@ -192,27 +135,20 @@ public class Signal : IEquatable<Signal>, IComparable<Signal>
 
     public override string ToString()
     {
-        return _signalName;
+        return $"{Name}:{_signalValue}/{_maxSignalCount}";
     }
 
-    /// <summary>
-    /// Gets a detailed string representation of the signal including its value and count.
-    /// </summary>
-    public string ToDetailedString()
-    {
-        return $"{_signalName}:{_signalValue}/{_maxSignalCount}";
-    }
-
-    public bool Equals(Signal other)
+    public bool Equals(QSignal other)
     {
         return this == other;
     }
 
-    public int CompareTo(Signal other)
+    public int CompareTo(QSignal other)
     {
         return other == null ? 1 : _signalValue.CompareTo(other._signalValue);
     }
 
-    private readonly int    _signalValue;
-    private readonly string _signalName;
+    private static int _maxSignalCount;
+
+    private readonly int _signalValue;
 }

@@ -4,19 +4,19 @@ namespace CalculatorHSM;
 
 public static class CalcSignals
 {
-    public static readonly Signal ZeroDigit    = new(nameof(ZeroDigit));
-    public static readonly Signal NonZeroDigit = new(nameof(NonZeroDigit));
-    public static readonly Signal DecimalPoint = new(nameof(DecimalPoint));
-    public static readonly Signal EqualSign    = new(nameof(EqualSign));
-    public static readonly Signal Operator     = new(nameof(Operator));
-    public static readonly Signal ClearAll     = new(nameof(ClearAll));
-    public static readonly Signal ClearEntry   = new(nameof(ClearEntry));
-    public static readonly Signal Quit         = new(nameof(Quit));
+    public static readonly QSignal ZeroDigit    = new();
+    public static readonly QSignal NonZeroDigit = new();
+    public static readonly QSignal DecimalPoint = new();
+    public static readonly QSignal EqualSign    = new();
+    public static readonly QSignal Operator     = new();
+    public static readonly QSignal ClearAll     = new();
+    public static readonly QSignal ClearEntry   = new();
+    public static readonly QSignal Quit         = new();
 }
 
 public sealed class CalcSignal
 {
-    public static Signal GetSignal(char c)
+    public static QSignal GetSignal(char c)
     {
         if (char.IsDigit(c))
         {

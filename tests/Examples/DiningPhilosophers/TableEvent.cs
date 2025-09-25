@@ -9,7 +9,7 @@ public class TableEvent : QEvent
 {
     internal readonly int PhilosopherId;
 
-    internal TableEvent(Signal signal, int philosopherId)
+    internal TableEvent(QSignal signal, int philosopherId)
         : base(signal)
     {
         PhilosopherId = philosopherId;

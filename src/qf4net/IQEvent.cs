@@ -53,12 +53,12 @@ public interface IQEvent
     /// <summary>
     /// The identifier of the <see cref="IQEvent"/> type.
     /// </summary>
-    Signal Signal { get; }
+    QSignal Signal { get; }
 
     /// <summary>
     ///
     /// </summary>
     /// <param name="sig"></param>
     /// <returns></returns>
-    bool IsSignal(Signal sig);
+    bool IsSignal(QSignal sig);
 }

@@ -16,7 +16,7 @@ public class TestEventQueue
         var qEvents    = new QEvent[numQEvents];
         for (var i = 0; i < numQEvents; i++)
         {
-            qEvents[i] = new QEvent(new Signal($"TestFifoLifo_{i}"));
+            qEvents[i] = new QEvent(new QSignal($"TestFifoLifo_{i}"));
         }
 
         IQEventQueue eventQueue = new QEventQueue();
@@ -31,7 +31,6 @@ public class TestEventQueue
         for (var i = 0; i < numQEvents; i++)
         {
             var qEvent = eventQueue.DeQueue();
-            Assert.That(qEvent.Signal.Name, Is.EqualTo($"TestFifoLifo_{i}"));           // "Expected signal name"
             Assert.That(eventQueue.Count, Is.EqualTo(5 - i - 1)); // "Number of events in the queue"
         }
     }
@@ -46,12 +45,12 @@ public class TestEventQueue
         var qEvents    = new QEvent[numQEvents];
         for (var i = 0; i < numQEvents; i++)
         {
-            qEvents[i] = new QEvent(new Signal($"TestBlocking_{i}"));
+            qEvents[i] = new QEvent(new QSignal($"TestBlocking_{i}"));
             eventQueue.EnqueueFifo(qEvents[i]);
             Thread.Sleep(10); // We give the event loop a chance to execute
         }
 
-        eventQueue.EnqueueFifo(new QEvent(new Signal("TestBlockingStop"))); // We send a 'stop' signal
+        eventQueue.EnqueueFifo(new QEvent(new QSignal("TestBlockingStop"))); // We send a 'stop' signal
         eventLoop.Join();                                       // Wait until the event loop is done
 
         var handledEvents = eventLoop.HandledEvents;

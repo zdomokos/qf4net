@@ -47,8 +47,8 @@ public class QFsmTest
         // Assert
         Assert.That(_fsm.InitializeStateMachineCalled, Is.True);
         Assert.That(_fsm.StateMethod, Is.EqualTo(_fsm.IdleStateHandler));
-        Assert.That(_logMessages, Contains.Item("Entry: IdleState"));
-        Assert.That(_logMessages, Contains.Item("Init: IdleState"));
+        Assert.That(_logMessages, Contains.Item($"{QSignals.Entry}: IdleState"));
+        Assert.That(_logMessages, Contains.Item($"{QSignals.Init}: IdleState"));
     }
 
     [Test]
@@ -98,9 +98,9 @@ public class QFsmTest
 
         // Assert
         Assert.That(_fsm.StateMethod, Is.EqualTo(_fsm.WorkingStateHandler));
-        Assert.That(_logMessages, Contains.Item("Exit: IdleState"));
-        Assert.That(_logMessages, Contains.Item("Entry: WorkingState"));
-        Assert.That(_logMessages, Contains.Item("Init: WorkingState"));
+        Assert.That(_logMessages, Contains.Item($"{QSignals.Exit}: IdleState"));
+        Assert.That(_logMessages, Contains.Item($"{QSignals.Entry}: WorkingState"));
+        Assert.That(_logMessages, Contains.Item($"{QSignals.Init}: WorkingState"));
     }
 
     [Test]
@@ -140,7 +140,7 @@ public class QFsmTest
     {
         // Arrange
         _fsm.Init();
-        var workSignal = new Signal("WORK");
+        var workSignal = new QSignal("WORK");
         var workEvent = new QEvent(workSignal);
         _logMessages.Clear();
 
@@ -157,7 +157,7 @@ public class QFsmTest
     {
         // Arrange
         _fsm.Init();
-        var unknownSignal = new Signal("UNKNOWN");
+        var unknownSignal = new QSignal("UNKNOWN");
         var unknownEvent = new QEvent(unknownSignal);
         var initialState = _fsm.StateMethod;
 
@@ -189,7 +189,7 @@ public class QFsmTest
     {
         // Arrange
         _fsm.Init();
-        var errorSignal = new Signal("ERROR");
+        var errorSignal = new QSignal("ERROR");
         var errorEvent = new QEvent(errorSignal);
 
         // Act & Assert
@@ -213,7 +213,7 @@ public class QFsmTest
         // Act
         for (int i = 0; i < eventCount; i++)
         {
-            var signal = new Signal($"TEST_{i}");
+            var signal = new QSignal($"TEST_{i}");
             var testEvent = new QEvent(signal);
             tasks.Add(Task.Run(() => _fsm.Dispatch(testEvent)));
         }
@@ -284,7 +284,7 @@ public class QFsmTest
             InitializeState(IdleStateHandler);
         }
 
-        protected override void StateTrace(QState state, Signal signal, int level = 0)
+        protected override void StateTrace(QState state, QSignal signal, int level = 0)
         {
             if (state != null && signal != null)
             {

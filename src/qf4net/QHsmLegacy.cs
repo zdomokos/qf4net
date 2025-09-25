@@ -93,7 +93,7 @@ public class QHsmWithTransitionChains : QHsm
     /// This function is used to record the transition chain for a static transition that is executed
     /// the first time.
     /// </remarks>
-    private QState Trigger(QState receiverStateMethod, Signal qSignal, TransitionChainRecorder recorder)
+    private QState Trigger(QState receiverStateMethod, QSignal qSignal, TransitionChainRecorder recorder)
     {
         var stateMethod = Trigger(receiverStateMethod, qSignal);
         if (stateMethod == null && recorder != null)

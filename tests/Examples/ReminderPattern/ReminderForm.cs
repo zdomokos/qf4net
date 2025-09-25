@@ -34,7 +34,7 @@ public class MainForm : Form
     //private delegate void Dispatcher(qf4net.QEvent qe);
     //private delegate void FinishDelegate();
 
-    private void DispatchMessage(Signal signal)
+    private void DispatchMessage(QSignal signal)
     {
         var reminderEvent = new ReminderEvent(signal);
         Reminder.Instance.DispatchQ(reminderEvent);
