@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace UnitTests;
+namespace qf4net.UnitTests;
 
 [TestFixture]
 public class QFsmTest

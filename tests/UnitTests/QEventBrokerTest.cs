@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using qf4net;
 
-namespace UnitTests;
+namespace qf4net.UnitTests;
 
 [TestFixture]
 public class QEventBrokerTest

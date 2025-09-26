@@ -3,7 +3,7 @@ using qf4net;
 using System;
 using System.Collections.Generic;
 
-namespace UnitTests;
+namespace qf4net.UnitTests;
 
 [TestFixture]
 public class QFsmSimpleTest

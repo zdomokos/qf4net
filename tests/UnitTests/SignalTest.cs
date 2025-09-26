@@ -2,7 +2,7 @@ using NUnit.Framework;
 using qf4net;
 using System.Collections.Concurrent;
 
-namespace UnitTests;
+namespace qf4net.UnitTests;
 
 [TestFixture]
 public class SignalTest
