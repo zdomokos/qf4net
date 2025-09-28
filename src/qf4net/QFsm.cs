@@ -92,6 +92,11 @@ public class QFsm : IQHsm
         {
             Trigger(StateMethod, QSignals.Entry);
             Trigger(StateMethod, QSignals.Init);
+
+            if (Config.SendStateJobAfterEntry)
+            {
+                Trigger(StateMethod, QSignals.StateJob);
+            }
         }
     }
 
@@ -122,14 +127,12 @@ public class QFsm : IQHsm
             try
             {
                 var level = 0;
-                SourceStateMethod = StateMethod;
+                var dispatchToState = StateMethod;
 
-                if (SourceStateMethod?.Method != null)
+                while (dispatchToState != null)
                 {
-                    StateTrace(SourceStateMethod, qEvent.Signal, ++level);
-                    var state = (QState)SourceStateMethod.Method.Invoke(this, [qEvent]);
-
-                    SourceStateMethod = state;
+                    StateTrace(dispatchToState, qEvent.Signal, ++level);
+                    dispatchToState = dispatchToState.Invoke(qEvent);
                 }
             }
             catch (TargetInvocationException tie)
@@ -188,11 +191,12 @@ public class QFsm : IQHsm
     protected virtual QState Trigger(QState stateMethod, QSignal qSignal)
     {
         StateTrace(stateMethod, qSignal);
-        var state = (QState)stateMethod.Invoke(new QEvent(qSignal));
+        var state = stateMethod.Invoke(new QEvent(qSignal));
         return state;
     }
 
     protected virtual void StateTrace(QState state, QSignal signal, int level = 0) { }
+    public virtual void Trace(string s) { }
 
     /// <summary>
     /// The handler for the top state that is shared by all instances of a QHSM.

@@ -193,8 +193,7 @@ public class QFsmTest
         var errorEvent = new QEvent(errorSignal);
 
         // Act & Assert
-        var ex = Assert.Throws<Exception>(() => _fsm.Dispatch(errorEvent));
-        Assert.That(ex.Message, Contains.Substring("unhandled exception was generated"));
+        var ex = Assert.Throws<InvalidOperationException>(() => _fsm.Dispatch(errorEvent));
         Assert.That(ex.Message, Contains.Substring("Test exception"));
     }
 

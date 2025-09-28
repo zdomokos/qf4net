@@ -84,4 +84,6 @@ public interface IQHsm
     /// </summary>
     /// <param name="qEvent">The <see cref="IQEvent"/> to dispatch.</param>
     void Dispatch(IQEvent qEvent);
+
+    void Trace(string s);
 }

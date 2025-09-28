@@ -2,7 +2,9 @@
 
 public class QActiveFsm : QFsm, IQActive
 {
-    public QActiveFsm(IQEventBroker eventBroker = null, StatemachineConfig fsmConfig = null) : base(fsmConfig)
+    public QActiveFsm(IQEventBroker eventBroker = null,
+                      StatemachineConfig fsmConfig = null)
+        : base(fsmConfig)
     {
         _eventBroker = eventBroker;
         _eventPump   = new QEventPump(this, HsmUnhandledException, EventLoopTerminated);

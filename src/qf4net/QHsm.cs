@@ -143,7 +143,7 @@ public class QHsm : QFsm
             if (SourceStateMethod != null)
             {
                 StateTrace(SourceStateMethod, qEvent.Signal, ++level);
-                var state = (QState)SourceStateMethod.Method.Invoke(this, [qEvent]);
+                var state = SourceStateMethod.Invoke(qEvent);
                 SourceStateMethod = state;
             }
         }

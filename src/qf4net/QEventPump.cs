@@ -32,6 +32,9 @@ public class QEventPump : IQEventPump
                                               );
 
         _isInitialized = true;
+
+        _qHsm.Trace($"QEventPump Run.async:{_qHsm} Started event pump with priority {priority}.");
+
         return _executionTask;
     }
 
@@ -52,6 +55,8 @@ public class QEventPump : IQEventPump
         _cancellationTokenSource = new CancellationTokenSource();
         _isInitialized           = true;
 
+        _qHsm.Trace($"QEventPump Run.sync:{_qHsm} Started event pump with priority {priority}.");
+
         DoEventLoop();
     }
 
@@ -59,11 +64,13 @@ public class QEventPump : IQEventPump
 
     public void PostFifo(IQEvent qEvent)
     {
+        _qHsm.Trace($"QEventPump PostFifo:{_qHsm} {qEvent}.");
         _eventQueue.EnqueueFifo(qEvent);
     }
 
     public void PostLifo(IQEvent qEvent)
     {
+        _qHsm.Trace($"QEventPump PostLifo:{_qHsm} {qEvent}.");
         _eventQueue.EnqueueLifo(qEvent);
     }
 
@@ -78,11 +85,10 @@ public class QEventPump : IQEventPump
                 try
                 {
                     var qEvent = _eventQueue.DeQueue(_cancellationTokenSource.Token);
-                    if (qEvent == null) { break; } // Cancelled
 
+                    if (qEvent == null) { break; } // Cancelled
                     if (qEvent.IsSignal(QSignals.Terminate)) { break; }
 
-                    //Console.WriteLine(String.Format("Dispatching {0} on thread {1}.", qEvent.ToString(), Thread.CurrentThread.Name));
                     _qHsm.Dispatch(qEvent);
                     // QF.Propagate(qEvent);
                 }
@@ -107,9 +113,9 @@ public class QEventPump : IQEventPump
         {
             // Expected when cancellation is requested
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // TODO: log exception properly
+            _qHsm.Trace($"QEventPump: Unexpected exception in event loop. {ex.Message} {ex.StackTrace}");
         }
 
         _eventLoopTerminated?.Invoke(this);
