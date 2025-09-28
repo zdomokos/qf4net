@@ -331,7 +331,7 @@ dotnet test
 
 ## Version History
 
-- **25.9.24**: Latest stable release with .NET 8.0 support
+- **25.9.27**: Latest stable release with .NET 8.0 support
 - **24.7.9**: Bug fixes and performance improvements
 - **24.5.8**: StateTrace level functionality added
 - Previous versions available in commit history

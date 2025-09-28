@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiningPhilosophersLegacy", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiningPhilosophers", "tests\Examples\DiningPhilosophers\DiningPhilosophers.csproj", "{C50F142C-A947-4D50-9CD7-A2E7990E1DBE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiningPhilosophersCon", "tests\Examples\DiningPhilosophersCon\DiningPhilosophersCon.csproj", "{76A317C8-895A-4ABB-BD71-149CEE7EB909}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,10 @@ Global
 		{C50F142C-A947-4D50-9CD7-A2E7990E1DBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C50F142C-A947-4D50-9CD7-A2E7990E1DBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C50F142C-A947-4D50-9CD7-A2E7990E1DBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76A317C8-895A-4ABB-BD71-149CEE7EB909}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76A317C8-895A-4ABB-BD71-149CEE7EB909}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76A317C8-895A-4ABB-BD71-149CEE7EB909}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76A317C8-895A-4ABB-BD71-149CEE7EB909}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -85,6 +91,7 @@ Global
 		{EC09CB13-D45E-4B55-8CBF-088042A6645B} = {8F784DF7-9A76-4A66-A0C3-3E6388FCC2E2}
 		{B9105941-AA96-47E1-A431-CD0D4FA0B850} = {8F784DF7-9A76-4A66-A0C3-3E6388FCC2E2}
 		{C50F142C-A947-4D50-9CD7-A2E7990E1DBE} = {8F784DF7-9A76-4A66-A0C3-3E6388FCC2E2}
+		{76A317C8-895A-4ABB-BD71-149CEE7EB909} = {8F784DF7-9A76-4A66-A0C3-3E6388FCC2E2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2F3C1950-0FAA-4C56-9A43-8ED60BAF5574}
