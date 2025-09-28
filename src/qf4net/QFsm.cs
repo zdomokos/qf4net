@@ -129,7 +129,7 @@ public class QFsm : IQHsm
                 var level = 0;
                 var dispatchToState = StateMethod;
 
-                while (dispatchToState != null)
+                while (!(dispatchToState == null || dispatchToState == TopState))
                 {
                     StateTrace(dispatchToState, qEvent.Signal, ++level);
                     dispatchToState = dispatchToState.Invoke(qEvent);
