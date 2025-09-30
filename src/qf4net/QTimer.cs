@@ -46,26 +46,30 @@
 namespace qf4net;
 
 /// <summary>
-/// Summary description for QTimer.
+/// Provides timer functionality for posting events to an associated <see cref="IQEventPump"/>
+/// after specified time intervals. Supports both one-shot and periodic timer operations.
 /// </summary>
 public class QTimer : IDisposable
 {
     /// <summary>
     /// Creates a new <see cref="QTimer"/> instance.
     /// </summary>
-    /// <param name="qActive">The <see cref="IQActive"/> object that owns this <see cref="QTimer"/>; this is also
-    /// the <see cref="IQActive"/> object that will receive the timer based events.</param>
-    public QTimer(IQActive qActive)
+    /// <param name="qActive">The <see cref="IQEventPump"/> object that owns this <see cref="QTimer"/>; this is also
+    /// the <see cref="IQEventPump"/> object that will receive the timer-based events.</param>
+    public QTimer(IQEventPump qActive)
     {
         _qActive = qActive;
         _timer = new Timer(
-            OnTimer,
-            null, // we don't need a state object
-            Timeout.Infinite, // don't start yet
-            Timeout.Infinite // no periodic firing
-        );
+                           OnTimer,
+                           null,             // we don't need a state object
+                           Timeout.Infinite, // don't start yet
+                           Timeout.Infinite  // no periodic firing
+                          );
     }
 
+    /// <summary>
+    /// Releases all resources used by the <see cref="QTimer"/>.
+    /// </summary>
     public void Dispose()
     {
         _timer?.Dispose();
@@ -74,55 +78,51 @@ public class QTimer : IDisposable
     /// <summary>
     /// Arms the <see cref="QTimer"/> to perform a one-time timeout.
     /// </summary>
-    /// <param name="timeSpan">The <see cref="TimeSpan"/> to wait before the timeout occurs.</param>
+    /// <param name="timeSpan">The <see cref="TimeSpan"/> to wait before the timeout occurs. Must be positive.</param>
     /// <param name="qEvent">The <see cref="IQEvent"/> to post into the associated <see cref="IQEventPump"/>
     /// object when the timeout occurs.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="timeSpan"/> is not positive.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="qEvent"/> is null.</exception>
     public void FireIn(TimeSpan timeSpan, IQEvent qEvent)
     {
         if (!(timeSpan > TimeSpan.Zero))
-        {
             throw new ArgumentException("The provided timespan must be positive", nameof(timeSpan));
-        }
         ArgumentNullException.ThrowIfNull(qEvent);
 
-        lock (_timer)
+        lock (_sync)
         {
             _qEvent = qEvent;
-            _timer.Change(timeSpan, new TimeSpan(-1));
+            _timer.Change((long)timeSpan.TotalMilliseconds,  Timeout.Infinite);
         }
     }
 
     /// <summary>
-    /// Arms the <see cref="QTimer"/> to perform a periodic timeout.
+    /// Arms the <see cref="QTimer"/> to perform periodic timeouts at regular intervals.
     /// </summary>
-    /// <param name="timeSpan">The <see cref="TimeSpan"/> interval between individual timeouts.</param>
+    /// <param name="timeSpan">The <see cref="TimeSpan"/> interval between individual timeouts. Must be positive.</param>
     /// <param name="qEvent">The <see cref="IQEvent"/> to post into the associated <see cref="IQEventPump"/>
-    /// object when the timeout occurs.</param>
+    /// object each time a timeout occurs.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="timeSpan"/> is not positive.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="qEvent"/> is null.</exception>
     public void FireEvery(TimeSpan timeSpan, IQEvent qEvent)
     {
+        if (!(timeSpan > TimeSpan.Zero))
+            throw new ArgumentException("The provided timespan must be positive", nameof(timeSpan));
         ArgumentNullException.ThrowIfNull(qEvent);
 
-        lock (_timer)
+        lock (_sync)
         {
-            if (!(timeSpan > TimeSpan.Zero))
-            {
-                throw new ArgumentException(
-                    "The provided timespan must be positive",
-                    nameof(timeSpan)
-                );
-            }
-
             _qEvent = qEvent;
             _timer.Change(timeSpan, timeSpan);
         }
     }
 
     /// <summary>
-    /// Disarms the timer.
+    /// Disarms the timer, preventing any future timeout events from being posted.
     /// </summary>
     public void Disarm()
     {
-        lock (_timer)
+        lock (_sync)
         {
             _timer.Change(Timeout.Infinite, Timeout.Infinite);
             // Since a timer performs the callback on a thread of the thread pool we could have a race condition
@@ -133,35 +133,42 @@ public class QTimer : IDisposable
     }
 
     /// <summary>
-    /// Rearms the timer as a one-shot timer.
+    /// Rearms the timer as a one-shot timer using the previously configured event.
     /// </summary>
-    /// <param name="timeSpan">The <see cref="TimeSpan"/> to wait before the timeout occurs.</param>
+    /// <param name="timeSpan">The <see cref="TimeSpan"/> to wait before the timeout occurs. Must be positive.</param>
+    /// <exception cref="ArgumentNullException">Thrown when no event has been previously configured.</exception>
     public void Rearm(TimeSpan timeSpan)
     {
-        ArgumentNullException.ThrowIfNull(_qEvent);
+        if (!(timeSpan > TimeSpan.Zero))
+            throw new ArgumentException("The provided timespan must be positive", nameof(timeSpan));
 
-        lock (_timer)
+        lock (_sync)
         {
-            _timer.Change(timeSpan, new TimeSpan(-1));
+            if (_qEvent == null)
+                throw new ArgumentNullException(nameof(_qEvent), "No event has been previously configured. Call FireIn or FireEvery first.");
+            
+            _timer.Change((long)timeSpan.TotalMilliseconds,  Timeout.Infinite);
         }
     }
 
     /// <summary>
-    /// Callback for the timer event
+    /// Callback method invoked by the underlying <see cref="Timer"/> when a timeout occurs.
+    /// Posts the configured event to the associated event pump if one is set.
     /// </summary>
-    /// <param name="state"></param>
+    /// <param name="state">Timer state object (unused).</param>
     private void OnTimer(object state)
     {
-        lock (_timer)
+        if (_qEvent == null)
+            return;
+
+        lock (_sync)
         {
-            if (_qEvent != null)
-            {
-                _qActive.PostFifo(_qEvent);
-            }
+            _qActive.PostFifo(_qEvent);
         }
     }
 
     private readonly IQEventPump _qActive;
-    private readonly Timer _timer;
-    private IQEvent _qEvent;
+    private readonly Timer       _timer;
+    private readonly object      _sync = new();
+    private          IQEvent     _qEvent;
 }
