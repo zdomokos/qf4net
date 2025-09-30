@@ -50,8 +50,6 @@ namespace qf4net;
 /// </summary>
 public class QEventQueue : IQEventQueue
 {
-    private readonly LinkedEventList _eventList;
-
     /// <summary>
     /// Creates a new empty <see cref="QEventQueue"/>
     /// </summary>
@@ -67,7 +65,7 @@ public class QEventQueue : IQEventQueue
     {
         get
         {
-            lock (_eventList)
+            lock(_sync)
             {
                 return _eventList.IsEmpty;
             }
@@ -81,7 +79,7 @@ public class QEventQueue : IQEventQueue
     {
         get
         {
-            lock (_eventList)
+            lock(_sync)
             {
                 return _eventList.Count;
             }
@@ -94,10 +92,10 @@ public class QEventQueue : IQEventQueue
     /// <param name="qEvent"></param>
     public void EnqueueFifo(IQEvent qEvent)
     {
-        lock (_eventList)
+        lock(_sync)
         {
             _eventList.InsertNewTail(qEvent);
-            Monitor.Pulse(_eventList);
+            Monitor.Pulse(_sync);
         }
     }
 
@@ -107,10 +105,10 @@ public class QEventQueue : IQEventQueue
     /// <param name="qEvent"></param>
     public void EnqueueLifo(IQEvent qEvent)
     {
-        lock (_eventList)
+        lock(_sync)
         {
             _eventList.InsertNewHead(qEvent);
-            Monitor.Pulse(_eventList);
+            Monitor.Pulse(_sync);
         }
     }
 
@@ -121,12 +119,12 @@ public class QEventQueue : IQEventQueue
     /// <returns>The first <see cref="QEvent"/> in the <see cref="QEventQueue"/>.</returns>
     public IQEvent DeQueue()
     {
-        lock (_eventList)
+        lock(_sync)
         {
             if (_eventList.IsEmpty)
             {
                 // We wait for the next event to be put into the queue
-                Monitor.Wait(_eventList);
+                Monitor.Wait(_sync);
             }
 
             return _eventList.RemoveHeadEvent();
@@ -142,7 +140,7 @@ public class QEventQueue : IQEventQueue
     /// <returns>The first <see cref="QEvent"/> in the <see cref="QEventQueue"/>, or null if cancelled.</returns>
     public IQEvent DeQueue(CancellationToken cancellationToken)
     {
-        lock (_eventList)
+        lock(_sync)
         {
             while (_eventList.IsEmpty)
             {
@@ -152,7 +150,7 @@ public class QEventQueue : IQEventQueue
                 }
 
                 // Wait with a timeout to allow periodic cancellation checks
-                if (!Monitor.Wait(_eventList, 100))
+                if (!Monitor.Wait(_sync, 100))
                 {
                     // Timeout occurred, check cancellation token again
                     if (cancellationToken.IsCancellationRequested)
@@ -173,7 +171,7 @@ public class QEventQueue : IQEventQueue
     /// otherwise <see langword="null"/></returns>
     public IQEvent Peek()
     {
-        lock (_eventList)
+        lock(_sync)
         {
             if (_eventList.IsEmpty)
             {
@@ -270,4 +268,7 @@ public class QEventQueue : IQEventQueue
         #endregion
     }
     #endregion
+
+    private readonly LinkedEventList _eventList;
+    private readonly object _sync = new();
 }

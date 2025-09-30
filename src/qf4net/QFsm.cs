@@ -58,8 +58,6 @@ public class StatemachineConfig
 /// </summary>
 public class QFsm : IQHsm
 {
-    private readonly object _dispatchLock = new();
-
     /// <summary>
     /// Constructor for the Quantum State Machine.
     /// </summary>
@@ -122,7 +120,7 @@ public class QFsm : IQHsm
         if (qEvent == null)
             return;
 
-        lock (_dispatchLock)
+        lock (_sync)
         {
             try
             {
@@ -207,4 +205,6 @@ public class QFsm : IQHsm
     {
         return null;
     }
+
+    private readonly object _sync = new();
 }
