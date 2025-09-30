@@ -47,9 +47,26 @@ namespace qf4net;
 
 public class QEventBrokerSingleton
 {
-    private static readonly Lazy<IQEventBroker> _instance = new(() => new QEventBroker());
+    public QEventBrokerSingleton(IQEventBroker eventBroker = null)
+    {
+        if (eventBroker != null)
+            _instance = eventBroker;
+    }
 
-    public static IQEventBroker Instance => _instance.Value;
+    public static IQEventBroker Instance
+    {
+        get
+        {
+            if (_instance != null)
+                return _instance;
+
+            _instance ??= _creator.Value;
+            return _instance;
+        }
+    }
+
+    private static readonly Lazy<IQEventBroker> _creator = new(() => new QEventBroker());
+    private static          IQEventBroker       _instance;
 }
 
 
@@ -74,7 +91,7 @@ public class QEventBroker : IQEventBroker
     {
         Console.WriteLine(qActive + " subscribes for signal " + qSignal);
 
-        lock(_syncObj)
+        lock(_sync)
         {
             if (!_signalSubscribers.TryGetValue(qSignal, out var subscriptionPriorityList))
             {
@@ -97,7 +114,7 @@ public class QEventBroker : IQEventBroker
     /// <param name="qSignal">The signal to unsubscribe.</param>
     public void Unsubscribe(IQActive qActive, QSignal qSignal)
     {
-        lock(_syncObj)
+        lock(_sync)
         {
             if (_signalSubscribers.TryGetValue(qSignal, out var subscriptionPriorityList) &&
                 subscriptionPriorityList.TryGetValue(qActive.Priority, out var subscribersAtPriority))
@@ -113,7 +130,7 @@ public class QEventBroker : IQEventBroker
 
     public void Unregister(IQActive qActive)
     {
-        lock (_syncObj)
+        lock (_sync)
         {
             foreach(var subscribers in _signalSubscribers.Values.ToList())
             {
@@ -138,7 +155,7 @@ public class QEventBroker : IQEventBroker
     /// <param name="qEvent">The <see cref="QEvent"/> to publish.</param>
     public void Publish(IQEvent qEvent)
     {
-        lock(_syncObj)
+        lock(_sync)
         {
             if(_signalSubscribers.TryGetValue(qEvent.Signal, out var sortedSubscriberList))
             {
@@ -158,5 +175,5 @@ public class QEventBroker : IQEventBroker
     }
 
     private readonly Dictionary<QSignal, SignalSubscribersByPriorityList> _signalSubscribers = [];
-    private readonly object _syncObj = new();
+    private readonly object _sync = new();
 }
