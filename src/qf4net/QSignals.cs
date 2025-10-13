@@ -54,35 +54,35 @@ namespace qf4net;
 /// </summary>
 public class QSignals
 {
-    public static readonly QSignal Empty       = new();
-    public static readonly QSignal Init        = new();
-    public static readonly QSignal Entry       = new();
-    public static readonly QSignal Exit        = new();
-    public static readonly QSignal Terminate   = new();
-    public static readonly QSignal StateJob    = new();
+    public static readonly QSignal Empty = new();
+    public static readonly QSignal Init = new();
+    public static readonly QSignal Entry = new();
+    public static readonly QSignal Exit = new();
+    public static readonly QSignal Terminate = new();
+    public static readonly QSignal StateJob = new();
     public static readonly QSignal Initialized = new();
-    public static readonly QSignal Start       = new();
-    public static readonly QSignal Stop        = new();
-    public static readonly QSignal Abort       = new();
-    public static readonly QSignal Pause       = new();
-    public static readonly QSignal Resume      = new();
-    public static readonly QSignal Error       = new();
-    public static readonly QSignal Retry       = new();
+    public static readonly QSignal Start = new();
+    public static readonly QSignal Stop = new();
+    public static readonly QSignal Abort = new();
+    public static readonly QSignal Pause = new();
+    public static readonly QSignal Resume = new();
+    public static readonly QSignal Error = new();
+    public static readonly QSignal Retry = new();
 
-    public static readonly QEvent EvtEmpty       = new(Empty);
-    public static readonly QEvent EvtInit        = new(Init);
-    public static readonly QEvent EvtEntry       = new(Entry);
-    public static readonly QEvent EvtExit        = new(Exit);
-    public static readonly QEvent EvtTerminate   = new(Terminate);
-    public static readonly QEvent EvtStateJob    = new(StateJob);
+    public static readonly QEvent EvtEmpty = new(Empty);
+    public static readonly QEvent EvtInit = new(Init);
+    public static readonly QEvent EvtEntry = new(Entry);
+    public static readonly QEvent EvtExit = new(Exit);
+    public static readonly QEvent EvtTerminate = new(Terminate);
+    public static readonly QEvent EvtStateJob = new(StateJob);
     public static readonly QEvent EvtInitialized = new(Initialized);
-    public static readonly QEvent EvtStart       = new(Start);
-    public static readonly QEvent EvtStop        = new(Stop);
-    public static readonly QEvent EvtAbort       = new(Abort);
-    public static readonly QEvent EvtPause       = new(Pause);
-    public static readonly QEvent EvtResume      = new(Resume);
-    public static readonly QEvent EvtError       = new(Error);
-    public static readonly QEvent EvtRetry       = new(Retry);
+    public static readonly QEvent EvtStart = new(Start);
+    public static readonly QEvent EvtStop = new(Stop);
+    public static readonly QEvent EvtAbort = new(Abort);
+    public static readonly QEvent EvtPause = new(Pause);
+    public static readonly QEvent EvtResume = new(Resume);
+    public static readonly QEvent EvtError = new(Error);
+    public static readonly QEvent EvtRetry = new(Retry);
 };
 
 /// <summary>
@@ -92,7 +92,7 @@ public class QSignal : IEquatable<QSignal>, IComparable<QSignal>
 {
     public QSignal([CallerMemberName] string name = null)
     {
-        Name         = name;
+        Name = name;
         _signalValue = Interlocked.Increment(ref _maxSignalCount);
     }
 

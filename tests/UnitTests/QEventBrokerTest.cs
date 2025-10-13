@@ -162,12 +162,12 @@ public class QEventBrokerTest
             ReceivedEvents.Add(qEvent);
         }
 
-        public Task RunEventPumpAsync(int priority)
+        public Task RunEventPumpAsync(int priority, CancellationToken cancellationToken = default)
         {
             return Task.CompletedTask;
         }
 
-        public void RunEventPump(int priority)
+        public void RunEventPump(int priority, CancellationToken cancellationToken = default)
         {
             // No-op for testing
         }

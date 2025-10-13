@@ -48,7 +48,6 @@ using System.Runtime.CompilerServices;
 
 namespace qf4net;
 
-
 public class QHsmLegacy : QHsmWithTransitionChains;
 
 /// <summary>
@@ -65,16 +64,13 @@ public class QHsmWithTransitionChains : QHsm
     /// <summary>
     /// Constructor for the Quantum Hierarchical State Machine.
     /// </summary>
-    protected QHsmWithTransitionChains()
-    {
-    }
+    protected QHsmWithTransitionChains() { }
 
     /// <summary>
     /// Getter for an optional <see cref="TransitionChainStore"/> that can hold cached
     /// <see cref="TransitionChain"/> objects that are used to optimize static transitions.
     /// </summary>
     protected virtual TransitionChainStore TransChainStore => STransitionChainStore;
-
 
     #region Helper functions for the predefined signals
 
@@ -220,13 +216,13 @@ public class QHsmWithTransitionChains : QHsm
     /// <param name="recorder">An instance of <see cref="TransitionChainRecorder"/> if the transition chain
     /// should be recorded; <see langword="null"/> otherwise.</param>
     private void ExitUpToLca(
-            QState targetStateMethod,
-            out List<QState> statesTargetToLca,
-            out int indexFirstStateToEnter,
-            TransitionChainRecorder recorder
-        )
+        QState targetStateMethod,
+        out List<QState> statesTargetToLca,
+        out int indexFirstStateToEnter,
+        TransitionChainRecorder recorder
+    )
     {
-        statesTargetToLca      = [targetStateMethod];
+        statesTargetToLca = [targetStateMethod];
         indexFirstStateToEnter = 0;
 
         // (a) check my source state == target state (transition to self)
@@ -264,11 +260,7 @@ public class QHsmWithTransitionChains : QHsm
         // (e) check rest of my source = super state of super state ... of target state hierarchy
         statesTargetToLca.Add(targetSuperStateMethod);
         indexFirstStateToEnter++;
-        for (
-                var stateMethod = GetSuperStateMethod(targetSuperStateMethod);
-                stateMethod != null;
-                stateMethod = GetSuperStateMethod(stateMethod)
-            )
+        for (var stateMethod = GetSuperStateMethod(targetSuperStateMethod); stateMethod != null; stateMethod = GetSuperStateMethod(stateMethod))
         {
             if (SourceStateMethod == stateMethod)
             {
@@ -299,11 +291,7 @@ public class QHsmWithTransitionChains : QHsm
 
         // (g) check each super state of super state ... of my source state ==
         //     super state of super state of ... target state
-        for (
-                var stateMethod = sourceSuperStateMethod;
-                stateMethod != null;
-                stateMethod = GetSuperStateMethod(stateMethod)
-            )
+        for (var stateMethod = sourceSuperStateMethod; stateMethod != null; stateMethod = GetSuperStateMethod(stateMethod))
         {
             for (var stateIndex = indexFirstStateToEnter; stateIndex >= 0; stateIndex--)
             {
@@ -324,11 +312,11 @@ public class QHsmWithTransitionChains : QHsm
     }
 
     private void TransitionDownToTargetState(
-            QState targetStateMethod,
-            List<QState> statesTargetToLca,
-            int indexFirstStateToEnter,
-            TransitionChainRecorder recorder
-        )
+        QState targetStateMethod,
+        List<QState> statesTargetToLca,
+        int indexFirstStateToEnter,
+        TransitionChainRecorder recorder
+    )
     {
         // we enter the states in the passed in array in reverse order
         for (var stateIndex = indexFirstStateToEnter; stateIndex >= 0; stateIndex--)
@@ -358,10 +346,7 @@ public class QHsmWithTransitionChains : QHsm
         }
     }
 
-    private void EnsureLastTransitionStepIsEntryIntoTargetState(
-            QState targetStateMethod,
-            TransitionChainRecorder recorder
-        )
+    private void EnsureLastTransitionStepIsEntryIntoTargetState(QState targetStateMethod, TransitionChainRecorder recorder)
     {
         if (recorder.GetRecordedTransitionChain().Length == 0)
         {
@@ -371,21 +356,15 @@ public class QHsmWithTransitionChains : QHsm
         }
 
         // We need to test whether the last recorded transition step is the entry into the target state
-        var transitionChain    = recorder.GetRecordedTransitionChain();
+        var transitionChain = recorder.GetRecordedTransitionChain();
         var lastTransitionStep = transitionChain[transitionChain.Length - 1];
-        if (
-                lastTransitionStep.StateMethod != targetStateMethod
-             || lastTransitionStep.QSignal != QSignals.Entry
-            )
+        if (lastTransitionStep.StateMethod != targetStateMethod || lastTransitionStep.QSignal != QSignals.Entry)
         {
             RecordEntryIntoTargetState(targetStateMethod, recorder);
         }
     }
 
-    private void RecordEntryIntoTargetState(
-            QState targetStateMethod,
-            TransitionChainRecorder recorder
-        )
+    private void RecordEntryIntoTargetState(QState targetStateMethod, TransitionChainRecorder recorder)
     {
         recorder.Record(targetStateMethod, QSignals.Entry);
     }
@@ -416,14 +395,14 @@ public abstract class QActiveLegacy : QHsmLegacy, IQActive
         _messagePump = new QEventPump(this, HsmUnhandledException, EventLoopTerminated);
     }
 
-    public Task RunEventPumpAsync(int priority)
+    public Task RunEventPumpAsync(int priority, CancellationToken cancellationToken = default)
     {
-        return _messagePump.RunEventPumpAsync(priority);
+        return _messagePump.RunEventPumpAsync(priority, cancellationToken);
     }
 
-    public void RunEventPump(int priority)
+    public void RunEventPump(int priority, CancellationToken cancellationToken = default)
     {
-        _messagePump.RunEventPump(priority);
+        _messagePump.RunEventPump(priority, cancellationToken);
     }
 
     public int Priority => _messagePump.Priority;
@@ -439,7 +418,8 @@ public abstract class QActiveLegacy : QHsmLegacy, IQActive
     }
 
     protected abstract void HsmUnhandledException(Exception e);
-    protected virtual  void EventLoopTerminated(IQEventPump obj) { }
+
+    protected virtual void EventLoopTerminated(IQEventPump obj) { }
 
     private readonly QEventPump _messagePump;
 }

@@ -1,5 +1,4 @@
-﻿
-using System.Collections;
+﻿using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -51,7 +50,7 @@ public class TransitionChain
     public TransitionChain(List<TransitionStep> transitionSteps)
     {
         _stateMethodChain = new QState[transitionSteps.Count];
-        _actionBits       = new BitArray(transitionSteps.Count * 2);
+        _actionBits = new BitArray(transitionSteps.Count * 2);
 
         for (var i = 0; i < transitionSteps.Count; i++)
         {
@@ -156,26 +155,16 @@ public class TransitionChainStore
 
     private int RetrieveStoreSizeOfBaseClass(Type baseType)
     {
-        var bindingFlags =
-            BindingFlags.DeclaredOnly
-            | BindingFlags.NonPublic
-            | BindingFlags.Static
-            | BindingFlags.GetField;
+        var bindingFlags = BindingFlags.DeclaredOnly | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.GetField;
 
-        var mi = baseType.FindMembers(
-            MemberTypes.Field,
-            bindingFlags,
-            Type.FilterName,
-            "s_TransitionChainStore"
-        );
+        var mi = baseType.FindMembers(MemberTypes.Field, bindingFlags, Type.FilterName, "s_TransitionChainStore");
 
         if (mi.Length < 1)
         {
             return 0;
         }
 
-        var store = (TransitionChainStore)
-            baseType.InvokeMember("s_TransitionChainStore", bindingFlags, null, null, null);
+        var store = (TransitionChainStore)baseType.InvokeMember("s_TransitionChainStore", bindingFlags, null, null, null);
         return store.Size;
     }
 

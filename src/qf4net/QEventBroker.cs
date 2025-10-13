@@ -66,9 +66,8 @@ public class QEventBrokerSingleton
     }
 
     private static readonly Lazy<IQEventBroker> _creator = new(() => new QEventBroker());
-    private static          IQEventBroker       _instance;
+    private static IQEventBroker _instance;
 }
-
 
 /// <summary>
 /// QF singleton. Object should be injected into QActive
@@ -91,7 +90,7 @@ public class QEventBroker : IQEventBroker
     {
         Console.WriteLine(qActive + " subscribes for signal " + qSignal);
 
-        lock(_sync)
+        lock (_sync)
         {
             if (!_signalSubscribers.TryGetValue(qSignal, out var subscriptionPriorityList))
             {
@@ -114,10 +113,12 @@ public class QEventBroker : IQEventBroker
     /// <param name="qSignal">The signal to unsubscribe.</param>
     public void Unsubscribe(IQActive qActive, QSignal qSignal)
     {
-        lock(_sync)
+        lock (_sync)
         {
-            if (_signalSubscribers.TryGetValue(qSignal, out var subscriptionPriorityList) &&
-                subscriptionPriorityList.TryGetValue(qActive.Priority, out var subscribersAtPriority))
+            if (
+                _signalSubscribers.TryGetValue(qSignal, out var subscriptionPriorityList)
+                && subscriptionPriorityList.TryGetValue(qActive.Priority, out var subscribersAtPriority)
+            )
             {
                 subscribersAtPriority.Remove(qActive);
                 if (subscribersAtPriority.Count == 0)
@@ -132,9 +133,9 @@ public class QEventBroker : IQEventBroker
     {
         lock (_sync)
         {
-            foreach(var subscribers in _signalSubscribers.Values.ToList())
+            foreach (var subscribers in _signalSubscribers.Values.ToList())
             {
-                foreach(var priorityGroup in subscribers.ToList())
+                foreach (var priorityGroup in subscribers.ToList())
                 {
                     var subscribersAtPriority = priorityGroup.Value;
                     if (subscribersAtPriority.Remove(qActive))
@@ -155,9 +156,9 @@ public class QEventBroker : IQEventBroker
     /// <param name="qEvent">The <see cref="QEvent"/> to publish.</param>
     public void Publish(IQEvent qEvent)
     {
-        lock(_sync)
+        lock (_sync)
         {
-            if(_signalSubscribers.TryGetValue(qEvent.Signal, out var sortedSubscriberList))
+            if (_signalSubscribers.TryGetValue(qEvent.Signal, out var sortedSubscriberList))
             {
                 // For simplicity, we do not use the event propagate pattern that Miro Samek uses in his implementation.
                 // This has two consequences:

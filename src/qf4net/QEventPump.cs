@@ -4,12 +4,12 @@ public class QEventPump : IQEventPump
 {
     public QEventPump(IQHsm qHsm, Action<Exception> unhandledException = null, Action<IQEventPump> eventLoopTerminated = null)
     {
-        _qHsm                = qHsm ?? throw new ArgumentNullException(nameof(qHsm));
+        _qHsm = qHsm ?? throw new ArgumentNullException(nameof(qHsm));
         _eventLoopTerminated = eventLoopTerminated;
-        _unhandledException  = unhandledException;
+        _unhandledException = unhandledException;
     }
 
-    public Task RunEventPumpAsync(int priority)
+    public Task RunEventPumpAsync(int priority, CancellationToken cancellationToken = default)
     {
         if (_executionTask != null)
         {
@@ -23,13 +23,13 @@ public class QEventPump : IQEventPump
 
         Priority = priority;
 
-        _cancellationTokenSource = new CancellationTokenSource();
-        _executionTask = Task.Factory.StartNew(
-                                               DoEventLoop,
-                                               _cancellationTokenSource.Token,
-                                               TaskCreationOptions.LongRunning,
-                                               TaskScheduler.Default
-                                              );
+        // If a cancellation token was provided, create a linked token source
+        // Otherwise, create a new cancellation token source
+        _cancellationTokenSource = cancellationToken.CanBeCanceled
+            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
+            : new CancellationTokenSource();
+
+        _executionTask = Task.Factory.StartNew(DoEventLoop, _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
         _isInitialized = true;
 
@@ -38,7 +38,7 @@ public class QEventPump : IQEventPump
         return _executionTask;
     }
 
-    public void RunEventPump(int priority)
+    public void RunEventPump(int priority, CancellationToken cancellationToken = default)
     {
         if (_isInitialized)
         {
@@ -52,8 +52,13 @@ public class QEventPump : IQEventPump
 
         Priority = priority;
 
-        _cancellationTokenSource = new CancellationTokenSource();
-        _isInitialized           = true;
+        // If a cancellation token was provided, create a linked token source
+        // Otherwise, create a new cancellation token source
+        _cancellationTokenSource = cancellationToken.CanBeCanceled
+            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
+            : new CancellationTokenSource();
+
+        _isInitialized = true;
 
         _qHsm.Trace($"QEventPump Run.sync:{_qHsm} Started event pump with priority {priority}.");
 
@@ -86,8 +91,14 @@ public class QEventPump : IQEventPump
                 {
                     var qEvent = _eventQueue.DeQueue(_cancellationTokenSource.Token);
 
-                    if (qEvent == null) { break; } // Cancelled
-                    if (qEvent.IsSignal(QSignals.Terminate)) { break; }
+                    if (qEvent == null)
+                    {
+                        break;
+                    } // Cancelled
+                    if (qEvent.IsSignal(QSignals.Terminate))
+                    {
+                        break;
+                    }
 
                     _qHsm.Dispatch(qEvent);
                     // QF.Propagate(qEvent);
@@ -135,11 +146,11 @@ public class QEventPump : IQEventPump
         _executionTask = null;
     }
 
-    private readonly IQHsm                   _qHsm;
-    private readonly IQEventQueue            _eventQueue = EventQueueFactory.GetEventQueue();
-    private          Task                    _executionTask;
-    private          CancellationTokenSource _cancellationTokenSource;
-    private          bool                    _isInitialized;
-    private readonly Action<IQEventPump>     _eventLoopTerminated;
-    private readonly Action<Exception>       _unhandledException;
+    private readonly IQHsm _qHsm;
+    private readonly IQEventQueue _eventQueue = EventQueueFactory.GetEventQueue();
+    private Task _executionTask;
+    private CancellationTokenSource _cancellationTokenSource;
+    private bool _isInitialized;
+    private readonly Action<IQEventPump> _eventLoopTerminated;
+    private readonly Action<Exception> _unhandledException;
 }

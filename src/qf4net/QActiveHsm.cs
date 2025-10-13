@@ -47,26 +47,50 @@ namespace qf4net;
 
 public class QActiveHsm : QHsm, IQActive
 {
-    public QActiveHsm(IQEventBroker eventBroker = null, StatemachineConfig fsmConfig = null) : base(fsmConfig)
+    public QActiveHsm(IQEventBroker eventBroker = null, StatemachineConfig fsmConfig = null)
+        : base(fsmConfig)
     {
         _eventBroker = eventBroker;
-        _eventPump   = new QEventPump(this, HsmUnhandledException, EventLoopTerminated);
+        _eventPump = new QEventPump(this, HsmUnhandledException, EventLoopTerminated);
     }
 
-    public int  Priority                        => _eventPump.Priority;
-    public Task RunEventPumpAsync(int priority) => _eventPump.RunEventPumpAsync(priority);
-    public void RunEventPump(int priority)      => _eventPump.RunEventPump(priority);
-    public void PostFifo(IQEvent qEvent)        => _eventPump.PostFifo(qEvent);
-    public void PostLifo(IQEvent qEvent)        => _eventPump.PostLifo(qEvent);
+    public override void Init()
+    {
+        base.Init();
+        if (Config.SendStateJobAfterEntry)
+            PostFifo(QSignals.EvtStateJob);
+    }
 
-    public void Publish(IQEvent qEvent)                       => _eventBroker.Publish(qEvent);
-    public void Subscribe(IQActive qActive, QSignal qSignal)   => _eventBroker.Subscribe(qActive, qSignal);
+    public int Priority => _eventPump.Priority;
+
+    public Task RunEventPumpAsync(int priority = 0, CancellationToken cancellationToken = default) =>
+        _eventPump.RunEventPumpAsync(priority, cancellationToken);
+
+    public void RunEventPump(int priority = 0, CancellationToken cancellationToken = default) => _eventPump.RunEventPump(priority, cancellationToken);
+
+    public void PostFifo(IQEvent qEvent) => _eventPump.PostFifo(qEvent);
+
+    public void PostLifo(IQEvent qEvent) => _eventPump.PostLifo(qEvent);
+
+    public void Publish(IQEvent qEvent) => _eventBroker.Publish(qEvent);
+
+    public void Subscribe(IQActive qActive, QSignal qSignal) => _eventBroker.Subscribe(qActive, qSignal);
+
     public void Unsubscribe(IQActive qActive, QSignal qSignal) => _eventBroker.Unsubscribe(qActive, qSignal);
-    public void Unregister()                                  => _eventBroker.Unregister(this);
 
-    protected virtual void HsmUnhandledException(Exception e)   { }
-    protected virtual void EventLoopTerminated(IQEventPump obj) { }
+    public void Unregister() => _eventBroker.Unregister(this);
 
-    private readonly QEventPump    _eventPump;
+    protected virtual void HsmUnhandledException(Exception e)
+    {
+        // Default implementation - override for specific handling
+        Console.WriteLine($"Unhandled HSM exception in {GetType().Name}: {e.Message}");
+    }
+
+    protected virtual void EventLoopTerminated(IQEventPump obj)
+    {
+        // Default implementation - override for specific cleanup
+    }
+
+    private readonly QEventPump _eventPump;
     private readonly IQEventBroker _eventBroker;
 }

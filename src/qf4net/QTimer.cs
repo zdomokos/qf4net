@@ -60,11 +60,11 @@ public class QTimer : IDisposable
     {
         _qActive = qActive;
         _timer = new Timer(
-                           OnTimer,
-                           null,             // we don't need a state object
-                           Timeout.Infinite, // don't start yet
-                           Timeout.Infinite  // no periodic firing
-                          );
+            OnTimer,
+            null, // we don't need a state object
+            Timeout.Infinite, // don't start yet
+            Timeout.Infinite // no periodic firing
+        );
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public class QTimer : IDisposable
         lock (_sync)
         {
             _qEvent = qEvent;
-            _timer.Change((long)timeSpan.TotalMilliseconds,  Timeout.Infinite);
+            _timer.Change((long)timeSpan.TotalMilliseconds, Timeout.Infinite);
         }
     }
 
@@ -146,8 +146,8 @@ public class QTimer : IDisposable
         {
             if (_qEvent == null)
                 throw new ArgumentNullException(nameof(_qEvent), "No event has been previously configured. Call FireIn or FireEvery first.");
-            
-            _timer.Change((long)timeSpan.TotalMilliseconds,  Timeout.Infinite);
+
+            _timer.Change((long)timeSpan.TotalMilliseconds, Timeout.Infinite);
         }
     }
 
@@ -168,7 +168,7 @@ public class QTimer : IDisposable
     }
 
     private readonly IQEventPump _qActive;
-    private readonly Timer       _timer;
-    private readonly object      _sync = new();
-    private          IQEvent     _qEvent;
+    private readonly Timer _timer;
+    private readonly object _sync = new();
+    private IQEvent _qEvent;
 }

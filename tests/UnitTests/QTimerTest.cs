@@ -275,8 +275,8 @@ public class QTimerTest
             }
         }
 
-        public Task RunEventPumpAsync(int priority) => Task.CompletedTask;
-        public void RunEventPump(int priority) { }
+        public Task RunEventPumpAsync(int priority, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public void RunEventPump(int priority, CancellationToken cancellationToken = default) { }
     }
 
     private class TestEvent : qf4net.IQEvent

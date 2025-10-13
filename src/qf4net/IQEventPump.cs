@@ -45,11 +45,7 @@
 
 namespace qf4net;
 
-public interface IQActive : IQEventPump
-{
-
-}
-
+public interface IQActive : IQEventPump { }
 
 /// <summary>
 /// Interface that Active Objects implement.
@@ -62,8 +58,9 @@ public interface IQEventPump
     /// to the priority assigned to the <see cref="IQActive"/> object.
     /// </summary>
     /// <param name="priority">The priority associated with this <see cref="IQActive"/> object.</param>
-    Task RunEventPumpAsync(int priority);
-    void RunEventPump(int priority);
+    /// <param name="cancellationToken">Optional cancellation token to stop the event pump.</param>
+    Task RunEventPumpAsync(int priority, CancellationToken cancellationToken = default);
+    void RunEventPump(int priority, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// The priority associated with this <see cref="IQActive"/> object. Once the <see cref="IQActive"/> object

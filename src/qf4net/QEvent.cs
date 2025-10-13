@@ -66,7 +66,8 @@ public class QEvent : IQEvent
         return this;
     }
 
-    public T Payload<T>() where T : class
+    public T Payload<T>()
+        where T : class
     {
         return _eventObject as T;
     }

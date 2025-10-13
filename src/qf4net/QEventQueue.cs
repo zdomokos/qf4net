@@ -65,7 +65,7 @@ public class QEventQueue : IQEventQueue
     {
         get
         {
-            lock(_sync)
+            lock (_sync)
             {
                 return _eventList.IsEmpty;
             }
@@ -79,7 +79,7 @@ public class QEventQueue : IQEventQueue
     {
         get
         {
-            lock(_sync)
+            lock (_sync)
             {
                 return _eventList.Count;
             }
@@ -92,7 +92,7 @@ public class QEventQueue : IQEventQueue
     /// <param name="qEvent"></param>
     public void EnqueueFifo(IQEvent qEvent)
     {
-        lock(_sync)
+        lock (_sync)
         {
             _eventList.InsertNewTail(qEvent);
             Monitor.Pulse(_sync);
@@ -105,7 +105,7 @@ public class QEventQueue : IQEventQueue
     /// <param name="qEvent"></param>
     public void EnqueueLifo(IQEvent qEvent)
     {
-        lock(_sync)
+        lock (_sync)
         {
             _eventList.InsertNewHead(qEvent);
             Monitor.Pulse(_sync);
@@ -119,7 +119,7 @@ public class QEventQueue : IQEventQueue
     /// <returns>The first <see cref="QEvent"/> in the <see cref="QEventQueue"/>.</returns>
     public IQEvent DeQueue()
     {
-        lock(_sync)
+        lock (_sync)
         {
             if (_eventList.IsEmpty)
             {
@@ -140,7 +140,7 @@ public class QEventQueue : IQEventQueue
     /// <returns>The first <see cref="QEvent"/> in the <see cref="QEventQueue"/>, or null if cancelled.</returns>
     public IQEvent DeQueue(CancellationToken cancellationToken)
     {
-        lock(_sync)
+        lock (_sync)
         {
             while (_eventList.IsEmpty)
             {
@@ -171,7 +171,7 @@ public class QEventQueue : IQEventQueue
     /// otherwise <see langword="null"/></returns>
     public IQEvent Peek()
     {
-        lock(_sync)
+        lock (_sync)
         {
             if (_eventList.IsEmpty)
             {
