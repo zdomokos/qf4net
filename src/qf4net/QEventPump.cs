@@ -87,9 +87,10 @@ public class QEventPump : IQEventPump
         {
             while (!_cancellationTokenSource.Token.IsCancellationRequested)
             {
+                IQEvent qEvent;
                 try
                 {
-                    var qEvent = _eventQueue.DeQueue(_cancellationTokenSource.Token);
+                    qEvent = _eventQueue.DeQueue(_cancellationTokenSource.Token);
 
                     if (qEvent == null)
                     {

@@ -283,7 +283,7 @@ public class QFsmTest
             InitializeState(IdleStateHandler);
         }
 
-        protected override void StateTrace(QState state, QSignal signal, int level = 0)
+        protected override void StateEventTrace(QState state, QSignal signal)
         {
             if (state != null && signal != null)
             {

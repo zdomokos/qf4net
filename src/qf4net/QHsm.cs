@@ -134,12 +134,11 @@ public class QHsm : QFsm
     {
         try
         {
-            var level = 0;
             SourceStateMethod = StateMethod;
 
             if (SourceStateMethod != null)
             {
-                StateTrace(SourceStateMethod, qEvent.Signal, ++level);
+                StateEventTrace(SourceStateMethod, qEvent.Signal);
                 var state = SourceStateMethod.Invoke(qEvent);
                 SourceStateMethod = state;
             }
