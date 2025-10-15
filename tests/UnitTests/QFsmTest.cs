@@ -1,9 +1,9 @@
-using NUnit.Framework;
-using qf4net;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NUnit.Framework;
+using qf4net;
 
 namespace qf4net.UnitTests;
 
@@ -17,7 +17,8 @@ public class QFsmTest
     public void Setup()
     {
         _logMessages = new List<string>();
-        _fsm = new TestStateMachine(_logMessages);
+        var config = new StatemachineConfig { EnableAllStateEventTracing = true };
+        _fsm = new TestStateMachine(_logMessages, config);
     }
 
     [TearDown]
@@ -270,7 +271,8 @@ public class QFsmTest
 
         public bool InitializeStateMachineCalled { get; private set; }
 
-        public TestStateMachine(List<string> logMessages)
+        public TestStateMachine(List<string> logMessages, StatemachineConfig config = null)
+            : base(config)
         {
             _logMessages = logMessages;
             IdleStateHandler = IdleState;

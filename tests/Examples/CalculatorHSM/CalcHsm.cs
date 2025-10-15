@@ -33,7 +33,7 @@ public sealed class Calc : QHsmLegacy
 
     #region Boiler plate static stuff
 
-    private static readonly TransitionChainStore STransitionChainStore = new(
+    private static new readonly TransitionChainStore STransitionChainStore = new(
                                                                               System.Reflection.MethodBase.GetCurrentMethod().DeclaringType
                                                                              );
 
