@@ -17,7 +17,7 @@ public class QFsmTest
     public void Setup()
     {
         _logMessages = new List<string>();
-        var config = new StatemachineConfig { EnableAllStateEventTracing = true };
+        var config = new StatemachineConfig { TraceLevel = TraceLevel.All };
         _fsm = new TestStateMachine(_logMessages, config);
     }
 
@@ -245,6 +245,62 @@ public class QFsmTest
         // Assert - Should complete without exceptions
         Assert.That(tasks.All(t => t.IsCompletedSuccessfully), Is.True);
         Assert.That(_fsm.StateMethod, Is.Not.Null);
+    }
+
+    #endregion
+
+    #region Trace Configuration Tests
+
+    [Test]
+    public void TraceLevel_None_NoTracing()
+    {
+        // Arrange
+        var messages = new List<string>();
+        var config = new StatemachineConfig { TraceLevel = TraceLevel.None };
+        var fsm = new TestStateMachine(messages, config);
+
+        // Act
+        fsm.Init();
+
+        // Assert - Should only have state handler messages, no trace messages
+        Assert.That(messages.Any(m => m.Contains(":")), Is.False, "No trace messages should be present");
+    }
+
+    [Test]
+    public void TraceLevel_UserSignals_TracesOnlyUserSignals()
+    {
+        // Arrange
+        var messages = new List<string>();
+        var config = new StatemachineConfig { TraceLevel = TraceLevel.UserSignals };
+        var fsm = new TestStateMachine(messages, config);
+        var workSignal = new QSignal("WORK");
+
+        // Act
+        fsm.Init();
+        messages.Clear();
+        fsm.Dispatch(new QEvent(workSignal));
+
+        // Assert - Should have trace for WORK but not for Entry/Exit/Init
+        Assert.That(messages, Contains.Item($"{workSignal}: IdleState"));
+        Assert.That(messages.Any(m => m.Contains($"{QSignals.Entry}:")), Is.False);
+        Assert.That(messages.Any(m => m.Contains($"{QSignals.Exit}:")), Is.False);
+        Assert.That(messages.Any(m => m.Contains($"{QSignals.Init}:")), Is.False);
+    }
+
+    [Test]
+    public void TraceLevel_All_TracesAllSignals()
+    {
+        // Arrange
+        var messages = new List<string>();
+        var config = new StatemachineConfig { TraceLevel = TraceLevel.All };
+        var fsm = new TestStateMachine(messages, config);
+
+        // Act
+        fsm.Init();
+
+        // Assert - Should have traces for Entry and Init
+        Assert.That(messages, Contains.Item($"{QSignals.Entry}: IdleState"));
+        Assert.That(messages, Contains.Item($"{QSignals.Init}: IdleState"));
     }
 
     #endregion

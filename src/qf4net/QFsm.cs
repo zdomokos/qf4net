@@ -47,13 +47,45 @@ using System.Reflection;
 
 namespace qf4net;
 
+/// <summary>
+/// Specifies the level of state event tracing for debugging and monitoring.
+/// </summary>
+public enum TraceLevel
+{
+    /// <summary>
+    /// No tracing is performed.
+    /// </summary>
+    None = 0,
+
+    /// <summary>
+    /// Trace only user-defined signals (excludes Entry, Exit, Init, Empty lifecycle signals).
+    /// </summary>
+    UserSignals = 1,
+
+    /// <summary>
+    /// Trace all signals including lifecycle signals (Entry, Exit, Init, Empty).
+    /// </summary>
+    All = 2
+}
+
 public class StatemachineConfig
 {
-    public bool SendStateJobAfterEntry     { get; set; } = false;
-    public bool EnableAllStateEventTracing { get; set; } = false;
-    public bool EnableStateEventTrace      { get; set; } = false;
+    /// <summary>
+    /// Gets or sets whether to send a StateJob signal after Entry action.
+    /// Default is false.
+    /// </summary>
+    public bool SendStateJobAfterEntry { get; set; } = false;
 
-    public bool IsTracingEnabled => (EnableAllStateEventTracing || EnableStateEventTrace);
+    /// <summary>
+    /// Gets or sets the trace level for state event debugging.
+    /// Default is None (no tracing).
+    /// </summary>
+    public TraceLevel TraceLevel { get; set; } = TraceLevel.None;
+
+    /// <summary>
+    /// Gets whether tracing is enabled (any level other than None).
+    /// </summary>
+    public bool IsTracingEnabled => TraceLevel != TraceLevel.None;
 }
 
 /// <summary>
@@ -191,12 +223,25 @@ public class QFsm : IQHsm
 
     protected virtual QState Trigger(QState stateMethod, QSignal qSignal)
     {
-        if (Config.EnableAllStateEventTracing)
-            StateEventTrace(stateMethod, qSignal);
-        else if (Config.EnableStateEventTrace)
+        switch (Config.TraceLevel)
         {
-            if (!(qSignal == QSignals.Entry || qSignal == QSignals.Exit || qSignal == QSignals.Init || qSignal == QSignals.Empty))
+            case TraceLevel.All:
                 StateEventTrace(stateMethod, qSignal);
+                break;
+
+            case TraceLevel.UserSignals:
+                // Exclude lifecycle signals
+                if (qSignal != QSignals.Entry && qSignal != QSignals.Exit &&
+                    qSignal != QSignals.Init && qSignal != QSignals.Empty)
+                {
+                    StateEventTrace(stateMethod, qSignal);
+                }
+                break;
+
+            case TraceLevel.None:
+            default:
+                // No tracing
+                break;
         }
 
         var state = stateMethod.Invoke(new QEvent(qSignal));
