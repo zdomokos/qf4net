@@ -168,9 +168,9 @@ dotnet test
 
 ## Version History
 
-- **25.9.27.1** - TraceLevel enum, event pump cancellation, timer improvements, .NET 8.0/C# 12
+- **25.10.14** - TraceLevel enum API improvement, simplified README documentation
+- **25.9.27** - Event pump cancellation, timer improvements, .NET 8.0/C# 12
 - **24.7.9** - Bug fixes and performance improvements
-- **24.5.8** - StateTrace functionality
 
 ## References
 
