@@ -126,7 +126,9 @@ public class QHsm : QFsm
     }
 
     /// <summary>
-    /// Dispatches the specified event to this state machine
+    /// Dispatches the specified event to this state machine.
+    /// Events bubble up through the state hierarchy until handled (returns null)
+    /// or the top state is reached.
     /// Do not call base.Dispatch() from the derived class.
     /// </summary>
     /// <param name="qEvent">The <see cref="IQEvent"/> to dispatch.</param>
@@ -134,13 +136,13 @@ public class QHsm : QFsm
     {
         try
         {
-            SourceStateMethod = StateMethod;
+            var state = StateMethod;
 
-            if (SourceStateMethod != null)
+            while (state != null)
             {
-                StateEventTrace(SourceStateMethod, qEvent.Signal);
-                var state = SourceStateMethod.Invoke(qEvent);
                 SourceStateMethod = state;
+                StateEventTrace(state, qEvent.Signal);
+                state = state.Invoke(qEvent);
             }
         }
         catch (TargetInvocationException tie)
