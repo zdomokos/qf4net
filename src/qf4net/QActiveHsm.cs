@@ -57,8 +57,13 @@ public class QActiveHsm : QHsm, IQActive
     public override void Init()
     {
         base.Init();
+
+        // The initial state's StateJob goes to the head of the queue. Events are routinely posted before
+        // the pump thread runs Init (create, start the pump, post Start); appended behind them, the
+        // StateJob missed the initial state and reached whatever state those events had moved to —
+        // a second StateJob there on top of the one its own transition sends.
         if (Config.SendStateJobAfterEntry)
-            PostFifo(QSignals.EvtStateJob);
+            PostLifo(QSignals.EvtStateJob);
     }
 
     public int Priority => _eventPump.Priority;
